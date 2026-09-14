@@ -1,0 +1,12 @@
+__pycache__/
+*.py[cod]
+.venv/
+env/
+venv/
+**/.terraform/*
+*.tfstate
+*.tfstate.*
+*.tfvars
+*.json
+service-account-key.json
+.DS_Store
