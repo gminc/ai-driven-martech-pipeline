@@ -1,6 +1,6 @@
-# <font color="#1a73e8">Day 01 | AI MarTech 架構全景圖 —— 告別數據孤島，用 Google Cloud + Vertex AI 重塑資料驅動行銷循環</font>
+# Day 01 | AI MarTech 架構全景圖 —— 告別數據孤島，用 Google Cloud + Vertex AI 重塑資料驅動行銷循環
 
-## <font color="#1a73e8">1. 前言：現代 MarTech 面臨的三大結構性斷層</font>
+## 1. 前言：現代 MarTech 面臨的三大結構性斷層
 
 在數位行銷與廣告投放的日常中，行銷人員與資料工程團隊經常陷入以下困境：
 
@@ -12,65 +12,34 @@
 
 ---
 
-## <font color="#1a73e8">2. 核心架構：雙軌資料管線（Dual-Track Pipeline）</font>
+## 2. 核心架構：雙軌資料管線（Dual-Track Pipeline）
 
-為了同時驗證踌 - Live Demo）**：建置極簡且真實運作的電商前台介面（部署於 Firebase / Cloud Run），串接真實 GA4 追蹤與 Stripe Test Mode 交易事件。每次讀者點擊與結帳，皆能即時送入資料管線，證明系統真實暢通。
+為了同時驗證「即時性與真實性」並支撐「大數據分析深度」，我們設計了企業級的**雙軌資料管線**：
+
+- **軌道 A（即時驗證軌 - Live Demo）**：建置極簡且真實運作的電商前台介面（部署於 Firebase / Cloud Run），串接真實 GA4 追蹤與 Stripe Test Mode 交易事件。每次讀者點擊與結帳，皆能即時送入資料管線，證明系統真實暢通。
 - **軌道 B（歷史規模軌 - Data Synthesizer）**：透過自研的 Python 合成管線，注入符合真實電商統計指標（CTR 1.5–3.5%、CVR 1.8–2.5%、客單價常態分佈）的 **90 天、50 萬筆跨通路日誌**，讓 BigQuery 多觸點歸因、顧客分群與 AI 模型擁有具說服力的大樣本基底。
 
 ---
 
-## <font color="#1a73e8">3. 系統總體架構全景圖</font>
+## 3. 系統總體架構全景圖
 
 整個專案由數據採集、倉儲建模、多模態特徵工程到自動化代理人，構成完整的數據循環：
 
-```mermaid
-flowchart TB
-    subgraph S1 [1. 雙軌事件收集]
-        A1[極簡 Live Demo 站<br/>Firebase Hosting] -->|點擊 / 瀏覽事件| A2[Google Analytics 4]
-        A3[Stripe 測試金流] -->|結帳成功 Webhook| A4[Cloud Functions]
-        A5[Python 數據合成器<br/>90天/50萬筆日誌] -->|批次注入| B1
-        A2 -->|BigQuery Export| B1
-        A4 -->|串流寫入| B1
-    end
+![AI-Driven MarTech 系統總體架構全景圖](https://raw.githubusercontent.com/gminc/ai-driven-martech-pipeline/main/docs/images/architecture-overview.svg)
 
-    subgraph S2 [2. BigQuery 現代倉儲建模]
-        B1[(Google BigQuery<br/>星狀綱要數據模型)]
-        B1 -->|SQL 數據建模| B2[多觸點歸因 MTA 模組<br/>First / Last / Time-Decay]
-        B1 -->|BigQuery ML| B3[顧客分群與 LTV 預測]
-    end
-
-    subgraph S3 [3. Vertex AI 多模態分析層]
-        C1[廣告素材儲存庫<br/>Cloud Storage] -->|批次讀取素材| C2[Gemini 1.5 Vision<br/>視覺特徵萃取]
-        C2 -->|Structured Outputs| C3[視覺特徵結構化資料<br/>JSON / BigQuery]
-        B1 <-->|遠端連線 ML.GENERATE_TEXT| C2
-        C3 -->|特徵 × 成效交叉分析| B1
-    end
-
-    subgraph S4 [4. 自動化決策與代理人閉環]
-        D1[行銷決策 Agent<br/>Function Calling on Cloud Run]
-        D1 -->|查詢指標 & 視覺洞察| B1
-        D1 -->|異常檢測與調優提案| D2[Cloud Workflows<br/>任務編排]
-        D2 -->|即時警報與行動建議| D3[Slack 智慧推播 / Webhook]
-    end
-
-    S1 --> S2
-    S2 --> S3
-    S3 --> S4
-```
-
-### <font color="#1a73e8">架構分層核心技術一覽</font>
+### 架構分層核心技術一覼
 
 | 架構分層 | 核心技術 / 服務 | 核心任務 |
 | :--- | :--- | :--- |
 | **前端展示與事件** | Firebase Hosting, GA4, Stripe API | 承載 Live Demo、發送真實用戶互動與轉換事件 |
-| **資料倉儲與建模** | BigQuery, BigQuery ML, Cloud Storage | 跨通路日誌清洗、多觸點歸因計算、分區分群最佳化 |
+| **資料倉儲與建模** | BigQuery, BigQuery ML, Cloud Storage | 跨通路日誌清洗、多觸點歸因訹算〉分區分群最佳化 |
 | **AI 核心引擎** | Vertex AI, Gemini 1.5 Pro / Flash | SQL 遠端直接診斷、素材視覺特徵結構化解析、Context Caching 降本 |
 | **自動化與代理人** | Function Calling, Cloud Run, Cloud Workflows | 自然語言查報表、異常指標自動巡檢、Slack 警報全流程整合 |
 | **維運與安全防護** | Terraform, Cloud Monitoring, Safety Settings | 基礎設施程式碼化 (IaC)、Token 成本防爆、Prompt 護欄 |
 
 ---
 
-## <font color="#1a73e8">4. 30 天連載實戰地圖</font>
+## 4. 30 天連載實戰地圖
 
 整個參賽旅程將依序推進五大核心模組：
 
@@ -87,7 +56,7 @@ flowchart TB
 
 ---
 
-## <font color="#1a73e8">5. 開發環境與開源骨架：基於 Cloud Shell 的「零設定」體驗</font>
+## 5. 開發環境與開源骨架：基於 Cloud Shell 的「零設定」體驗
 
 為了讓所有讀者都能「**100% 零門檻本機重現**」，本專案完全摒棄複雜的本機環境安裝。我們全程採用 Google Cloud 內建的 **Cloud Shell & Cloud Shell Editor**（瀏覽器版 VS Code）作為核心開發環境：
 
@@ -95,7 +64,7 @@ flowchart TB
 - **5GB 永久儲存**：程式碼安全存放在 Cloud Shell 家目錄，關閉瀏覽器也不會遺失。
 - **雲端完整 IDE**：提供如桌面端 VS Code 般的樹狀目錄、語法上色與終端機整合。
 
-### <font color="#1a73e8">專案模組目錄骨架</font>
+### 專案模組目錄骨架
 
 整個 30 天實戰程式碼，嚴格按照功能模組劃分，保持簡潔清晰：
 
@@ -104,13 +73,13 @@ flowchart TB
 
 ```text
 ai-driven-martech-pipeline/
-├── .env.example             # 環境變數設定範本（GCP Project ID、Region 等）
+├── .env.example             # 環境診數設定範本（GCP Project ID、Region 等）
 ├── .gitignore               # 嚴密排除金鑰、Terraform 狀態與暫存檔
 ├── LICENSE                  # MIT 開源授權協議
 ├── README.md                # 專案說明與架構總覽
 ├── terraform/               # Day 03: 基礎設施即程式碼 (IaC)
 ├── live-demo/               # Day 04: 極簡電商展示前台介面 (Firebase / GA4 / Stripe)
-├── data-pipeline/           # Day 05-12: 50萬筆日誌生成器(�� BigQuery MTA 歸因
+├── data-pipeline/           # Day 05-12: 50萬筆日誌生成器與 BigQuery MTA 歸因
 │   ├── synthetic/           # 電商數據合成器 (synthetic_pipeline.py)
 │   ├── schemas/             # 星狀綱要 DDL
 │   └── sql/                 # 多觸點歸因與 ML 語法
@@ -133,7 +102,7 @@ ai-driven-martech-pipeline/
 
 ---
 
-## <font color="#1a73e8">6. 開源專案與互動宣告</font>
+## 6. 開源專案與互動宣告
 
 本專案堅持「**程式碼完全開源、架構可本機復現、理論有數據佐證**」的原則：
 
