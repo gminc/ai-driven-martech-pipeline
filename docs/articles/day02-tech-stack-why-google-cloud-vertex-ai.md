@@ -51,7 +51,7 @@
 
 在本作的架構設計中，兩者並非互相排斥，而是各司其職的**雙軌協同關係**：
 
-[Google AI 內部雙軌協同架構圖 (SVG)](https://raw.githubusercontent.com/gminc/ai-driven-martech-pipeline/main/docs/images/day02-dual-track-collaboration.svg)
+![Google AI 內部雙軌協同架構圖](https://raw.githubusercontent.com/gminc/ai-driven-martech-pipeline/main/docs/images/day02-dual-track-collaboration.svg)
 
 > 💡 **雙軌協同原則**：在 AI Studio 以零門檻快速確立規格契約，在 Vertex AI 以最高標準資安與內網整合實現自動化大規模落地。
 
@@ -68,7 +68,7 @@
 
 而在 Google Cloud 原生體系中，我們採用**倉儲內就地運算（In-Warehouse Execution）**的零搬遷模式：
 
-[資料與 AI 的物理融合：倉儲內零搬遷運算架構對比圖 (SVG)](https://raw.githubusercontent.com/gminc/ai-driven-martech-pipeline/main/docs/images/day02-zero-copy-architecture.svg)
+![資料與 AI 的物理融合：倉儲內零搬遷運算架構對比圖](https://raw.githubusercontent.com/gminc/ai-driven-martech-pipeline/main/docs/images/day02-zero-copy-architecture.svg)
 
 > 💡 **零搬遷核心原則**：「數據重力」決定運算位置。讓運算向資料靠攏，直接在倉儲內完成推論，徹底終結傳統 ETL 拼裝車的效能瓶頸、資安隱患與跨雲資料傳輸費用。
 
@@ -99,7 +99,7 @@ FROM
 
 整個技術組合與資料流架構如下：
 
-[Google Cloud + Vertex AI 原生行銷技術組合生態架構圖 (SVG)](https://raw.githubusercontent.com/gminc/ai-driven-martech-pipeline/main/docs/images/day02-tech-stack-integration.svg)
+![Google Cloud + Vertex AI 原生行銷技術組合生態架構圖](https://raw.githubusercontent.com/gminc/ai-driven-martech-pipeline/main/docs/images/day02-tech-stack-integration.svg)
 
 ---
 
