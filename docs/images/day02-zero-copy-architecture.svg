@@ -1,0 +1,105 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 960 450" width="960" height="450">
+  <defs>
+    <style>
+      .bg { fill: #f8fafd; }
+      .outer-border { fill: none; stroke: #e0e6ed; stroke-width: 1.5; rx: 12; ry: 12; }
+      
+      .title-text { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Noto Sans TC", sans-serif; font-weight: 700; font-size: 19px; fill: #1a73e8; }
+      .subtitle-text { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Noto Sans TC", sans-serif; font-weight: 400; font-size: 12.5px; fill: #5f6368; }
+      
+      .header-cell { fill: #f1f5fb; stroke: #e0e6ed; stroke-width: 1; rx: 6; ry: 6; }
+      .header-cell-accent { fill: #e8f0fe; stroke: #1a73e8; stroke-width: 1.2; rx: 6; ry: 6; }
+      
+      .col-header-title { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Noto Sans TC", sans-serif; font-weight: 700; font-size: 14px; fill: #3c4043; text-anchor: middle; }
+      .col-header-title-accent { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Noto Sans TC", sans-serif; font-weight: 700; font-size: 14px; fill: #1a73e8; text-anchor: middle; }
+      .dim-header-title { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Noto Sans TC", sans-serif; font-weight: 700; font-size: 13px; fill: #202124; text-anchor: middle; }
+      
+      .dim-card { fill: #f1f5fb; stroke: #e0e6ed; stroke-width: 1; rx: 6; ry: 6; }
+      .dim-title { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Noto Sans TC", sans-serif; font-weight: 600; font-size: 13px; fill: #3c4043; text-anchor: middle; }
+      
+      .content-cell { fill: #ffffff; stroke: #e0e6ed; stroke-width: 1; rx: 6; ry: 6; }
+      .content-cell-accent { fill: #ffffff; stroke: #1a73e8; stroke-width: 1; rx: 6; ry: 6; }
+      
+      .cell-title { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Noto Sans TC", sans-serif; font-weight: 600; font-size: 13px; fill: #202124; }
+      .cell-title-accent { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Noto Sans TC", sans-serif; font-weight: 600; font-size: 13px; fill: #1a73e8; }
+      .cell-desc { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Noto Sans TC", sans-serif; font-weight: 400; font-size: 11.5px; fill: #5f6368; }
+    </style>
+  </defs>
+
+  <!-- 背景底板 (Day 01 標準 #f8fafd) -->
+  <rect width="960" height="450" class="bg" rx="12" ry="12" />
+  <rect x="1" y="1" width="958" height="448" class="outer-border" />
+
+  <!-- 頂部標題區 -->
+  <text x="35" y="38" class="title-text">資料與 AI 的物理融合：倉儲內零搬遷運算架構對比</text>
+  <text x="35" y="58" class="subtitle-text">傳統多跳跨雲搬遷模式 vs. BigQuery 原生倉儲就地運算模式（In-Warehouse Execution）</text>
+
+  <!-- 表格標題行 (Y=80) -->
+  <g transform="translate(35, 80)">
+    <rect width="130" height="38" class="header-cell" />
+    <text x="65" y="24" class="dim-header-title">評估維度</text>
+
+    <rect x="145" y="0" width="365" height="38" class="header-cell" />
+    <text x="327" y="24" class="col-header-title">傳統拼裝車模式 (跨雲多跳傳輸)</text>
+
+    <rect x="525" y="0" width="365" height="38" class="header-cell-accent" />
+    <text x="707" y="24" class="col-header-title-accent">零搬遷原生模式 (BigQuery + Vertex AI)</text>
+  </g>
+
+  <!-- 第 1 列：資料流向與延遲 (Y=128, 高 66) -->
+  <g transform="translate(35, 128)">
+    <rect width="130" height="66" class="dim-card" />
+    <text x="65" y="38" class="dim-title">資料流向與延遲</text>
+
+    <rect x="145" y="0" width="365" height="66" class="content-cell" />
+    <text x="165" y="26" class="cell-title">多跳傳輸，中繼延遲嚴重</text>
+    <text x="165" y="48" class="cell-desc">倉儲 ➔ 匯出 CSV ➔ 應用伺服器 ➔ 外部 HTTP API</text>
+
+    <rect x="525" y="0" width="365" height="66" class="content-cell-accent" />
+    <text x="545" y="26" class="cell-title-accent">私網直連，就地秒級運算</text>
+    <text x="545" y="48" class="cell-desc">BigQuery 透過 Remote Connection 直連 Vertex AI</text>
+  </g>
+
+  <!-- 第 2 列：運算調用機制 (Y=202, 高 66) -->
+  <g transform="translate(35, 202)">
+    <rect width="130" height="66" class="dim-card" />
+    <text x="65" y="38" class="dim-title">運算調用機制</text>
+
+    <rect x="145" y="0" width="365" height="66" class="content-cell" />
+    <text x="165" y="26" class="cell-title">依賴大量中繼膠水程式碼</text>
+    <text x="165" y="48" class="cell-desc">需自行編寫腳本處理分批、重試、限流與記憶體管理</text>
+
+    <rect x="525" y="0" width="365" height="66" class="content-cell-accent" />
+    <text x="545" y="26" class="cell-title-accent">原生 SQL 驅動分散式推論</text>
+    <text x="545" y="48" class="cell-desc">標準 ML.GENERATE_TEXT 語法，倉儲自動平行處理</text>
+  </g>
+
+  <!-- 第 3 列：網路傳輸成本 (Y=276, 高 66) -->
+  <g transform="translate(35, 276)">
+    <rect width="130" height="66" class="dim-card" />
+    <text x="65" y="38" class="dim-title">網路傳輸成本</text>
+
+    <rect x="145" y="0" width="365" height="66" class="content-cell" />
+    <text x="165" y="26" class="cell-title">高昂外部資料傳輸費 (Egress Fee)</text>
+    <text x="165" y="48" class="cell-desc">海量廣告日誌跨雲傳輸，傳輸成本隨資料量暴增</text>
+
+    <rect x="525" y="0" width="365" height="66" class="content-cell-accent" />
+    <text x="545" y="26" class="cell-title-accent">免外部資料傳輸費 (Zero Egress)</text>
+    <text x="545" y="48" class="cell-desc">全程封閉於 Google 雲端全球專用骨幹網路，內部傳輸免費</text>
+  </g>
+
+  <!-- 第 4 列：資安防護與治理 (Y=350, 高 66) -->
+  <g transform="translate(35, 350)">
+    <rect width="130" height="66" class="dim-card" />
+    <text x="65" y="38" class="dim-title">資安防護與治理</text>
+
+    <rect x="145" y="0" width="365" height="66" class="content-cell" />
+    <text x="165" y="26" class="cell-title">明文公網暴露，金鑰外洩風險</text>
+    <text x="165" y="48" class="cell-desc">外部 API Key 難以統籌稽核，敏感交易資料有合規疑慮</text>
+
+    <rect x="525" y="0" width="365" height="66" class="content-cell-accent" />
+    <text x="545" y="26" class="cell-title-accent">統一 IAM 授權與 VPC-SC 防護</text>
+    <text x="545" y="48" class="cell-desc">服務帳號精細鑑權、免金鑰暴露，具備完整審計日誌</text>
+  </g>
+</svg>

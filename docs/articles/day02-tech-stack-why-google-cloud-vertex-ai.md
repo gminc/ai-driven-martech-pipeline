@@ -39,7 +39,7 @@
 
 3. **Google Cloud —— 資料重力（Data Gravity）與行銷場景的最佳解：**
    - 專案歸因：回到本專案的命題《AI-Driven MarTech》，我們的核心資料源是 GA4 與跨通路廣告日誌。Google 在行銷數據鏈路上擁有天然的「數據重力」——GA4 原生免費直灌 BigQuery，省去了昂貴且脆弱的第三方 ETL 管線。
-   - 運算閉環：BigQuery 的 `ML.GENERATE_TEXT` 實現了「運算向數據靠攏」，讓我們能在百萬筆成效日誌所在的倉儲內，直接用 SQL 完成多模態診斷；再搭配 Gemini 百萬字元的 Context Caching，將分析成本壓低 75%。這不是「Google 贏了全世界」，而是在「行銷數據分析 × 雲端原生運算 × 嚴密成本控管」這個交集點上，Google Cloud 展現出最高的整合效益與投資報酬率（ROI）。
+   - 運算整合：BigQuery 的 `ML.GENERATE_TEXT` 實現了「運算向資料靠攏」，讓我們能在百萬筆成效日誌所在的倉儲內，直接用 SQL 完成多模態診斷；再搭配 Gemini 百萬字元的 Context Caching，將分析成本壓低 75%。這不是「Google 贏了全世界」，而是在「行銷數據分析 × 雲端原生運算 × 嚴密成本控管」這個交集點上，Google Cloud 展現出最高的整合效益與投資報酬率（ROI）。
 
 從評估結果可看出，在處理以 GA4 與數位廣告日誌為核心的 MarTech 場景時，Google Cloud 提供了阻力最小的端對端整合路徑。
 
@@ -51,51 +51,28 @@
 
 在本作的架構設計中，兩者並非互相排斥，而是各司其職的**雙軌協同關係**：
 
-```text
-[敏捷原型軌]
-Google AI Studio (Web UI & Prototyping)
-  ├── 快速驗證 Prompt 提示詞
-  ├── System Instructions 效果調整
-  └── 確定 Structured Outputs JSON Schema
-           │
-           ▼ (轉換遷移)
-[生產落地軌]
-Vertex AI on Google Cloud (Enterprise Production)
-  ├── IAM 角色與 Service Account 精細權限驗證
-  ├── BigQuery Remote Connection 內網互通
-  ├── 企業級 SLA、配額管理與 VPC Service Controls
-  └── Vertex AI Model Evaluation 品質度量
-```
+[Google AI 內部雙軌協同架構圖 (SVG)](https://raw.githubusercontent.com/gminc/ai-driven-martech-pipeline/main/docs/images/day02-dual-track-collaboration.svg)
+
+> 💡 **雙軌協同原則**：在 AI Studio 以零門檻快速確立規格契約，在 Vertex AI 以最高標準資安與內網整合實現自動化大規模落地。
 
 值得一提的是，一般使用者在 Gemini Web Chat 介面中看到的滾動更新（如 3.8 Flash、3.5 Flash-Lite、3.1 Pro），屬於面向終端消費者的 SaaS 應用層；而在企業架構與 Vertex AI 中，Google 提供嚴格的版本生命週期與端點管理。本專案以成熟穩定的 Gemini 2.0 世代為核心基準，並透過 Google Gen AI SDK 的標準介面，具備無縫升級至新一代 3 系列的擴充彈性。
 
 - **Google AI Studio（敏捷原型軌）**：負責「實驗與探勘」。在 Day 13–15 設計廣告圖文特徵萃取提示詞時，我們會在 AI Studio 進行小樣本盲測，迅速調校色系、排版、主標題情緒等萃取規格。
-- **Vertex AI（生產落地軌）**：負責「自動化與治理」。當 Prompt 規格定型後，程式碼透過 Google Cloud 統一的 `google-cloud-aiplatform` SDK 呼叫，全面享受 IAM 權限控管、稽核日誌與零外部網路傳輸的安全保障。
+- **Vertex AI（正式上線軌）**：負責「自動化與治理」。當 Prompt 規格定型後，程式碼透過 Google Cloud 統一的 `google-cloud-aiplatform` SDK 呼叫，全面享受 IAM 權限控管、稽核日誌與零外部網路傳輸的安全保障。
 
 ---
 
 ## 4. 資料與 AI 的物理融合：BigQuery 零搬遷直連架構
 
-傳統上將 AI 引入資料分析的架構如下：
+傳統上將 AI 引入資料分析的架構，往往依賴「多跳跨雲搬遷」：倉儲資料先匯出為 CSV 或 Pandas DataFrame，經由中繼伺服器清洗後，再透過外部 HTTP 請求呼叫 LLM API，最後將推論特徵寫回資料庫。這種拼裝車做法存在記憶體暴量（OOM）、網路逾時中斷、429 速率限制以及高額跨雲資料傳輸費（Egress Fees）等致命痛點。
 
-```text
-[傳統模式] BigQuery ──(匯出 CSV/Pandas)──> 應用伺服器 ──(外部 HTTP)──> LLM API ──(寫入結果)──> 資料庫
-```
+而在 Google Cloud 原生體系中，我們採用**倉儲內就地運算（In-Warehouse Execution）**的零搬遷模式：
 
-這種做法存在三大致命傷：記憶體瓶頸、網路逾時、API 速率限制。
+[資料與 AI 的物理融合：倉儲內零搬遷運算架構對比圖 (SVG)](https://raw.githubusercontent.com/gminc/ai-driven-martech-pipeline/main/docs/images/day02-zero-copy-architecture.svg)
 
-而在 Google Cloud 原生體系中，我們採用**倉儲內就地運算（In-Warehouse Execution）**：
+> 💡 **零搬遷核心原則**：「數據重力」決定運算位置。讓運算向資料靠攏，直接在倉儲內完成推論，徹底終結傳統 ETL 拼裝車的效能瓶頸、資安隱患與跨雲資料傳輸費用。
 
-```text
-[零搬遷模式]
-BigQuery (廣告成效星狀綱要)
-   │
-   ├── (Cloud Resource Connection)
-   ▼
-Vertex AI (Gemini 2.0 Flash / Pro)
-```
-
-透過建立 BigQuery 與 Vertex AI 的遠端連線，分析人員只需撰寫一段標準 SQL：
+透過建立 BigQuery 與 Vertex AI 的遠端連線（Remote Connection），分析人員只需撰寫一段標準 SQL，即可在 Google 專用骨幹私網內完成大規模分析：
 
 ```sql
 SELECT
@@ -122,36 +99,7 @@ FROM
 
 整個技術組合與資料流架構如下：
 
-[[Google Cloud + Vertex AI 原生行銷技術組合生態架構圖 (SVG)]](https://raw.githubusercontent.com/gminc/ai-driven-martech-pipeline/main/docs/images/day02-tech-stack-integration.svg)
-
-```mermaid
-flowchart LR
-    subgraph S1 [1. 行銷資料層]
-        A1[Google Analytics 4] -->|原生匯出| B1[(BigQuery 倉儲)]
-        A2[Google Ads / 日誌] -->|Data Transfer| B1
-        A3[資料合成器 50萬筆] -->|批次載入| B1
-    end
-
-    subgraph S2 [2. 倉儲內運算層]
-        B1 -->|星狀綱要模型| B2[多觸點歸因 MTA]
-        B1 <-->|Remote Connection| C1[Vertex AI / Gemini]
-    end
-
-    subgraph S3 [3. AI 核心與協同]
-        D1[Google AI Studio<br/>敏捷原型/Schema確立] -.->|遷移| C1
-        C1 -->|Gemini 2.0 Flash| E1[多模態特徵萃取]
-        C1 -->|Context Caching| E2[長文本快取降本 75%]
-    end
-
-    subgraph S4 [4. AI 代理自動化流程]
-        F1[Cloud Run 行銷 Agent] -->|Function Calling| B1
-        F1 -->|Cloud Workflows| F2[Slack 警報與行動建議]
-    end
-
-    S1 --> S2
-    S2 --> S3
-    S3 --> S4
-```
+[Google Cloud + Vertex AI 原生行銷技術組合生態架構圖 (SVG)](https://raw.githubusercontent.com/gminc/ai-driven-martech-pipeline/main/docs/images/day02-tech-stack-integration.svg)
 
 ---
 

@@ -1,0 +1,104 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 960 450" width="960" height="450">
+  <defs>
+    <style>
+      .bg { fill: #f8fafd; }
+      .outer-border { fill: none; stroke: #e0e6ed; stroke-width: 1.5; rx: 12; ry: 12; }
+      
+      .title-text { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Noto Sans TC", sans-serif; font-weight: 700; font-size: 19px; fill: #1a73e8; }
+      .subtitle-text { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Noto Sans TC", sans-serif; font-weight: 400; font-size: 12.5px; fill: #5f6368; }
+      
+      .header-cell { fill: #f1f5fb; stroke: #e0e6ed; stroke-width: 1; rx: 6; ry: 6; }
+      .header-cell-accent { fill: #e8f0fe; stroke: #1a73e8; stroke-width: 1.2; rx: 6; ry: 6; }
+      
+      .col-header-title { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Noto Sans TC", sans-serif; font-weight: 700; font-size: 14px; fill: #1a73e8; text-anchor: middle; }
+      .dim-header-title { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Noto Sans TC", sans-serif; font-weight: 700; font-size: 13px; fill: #202124; text-anchor: middle; }
+      
+      .dim-card { fill: #f1f5fb; stroke: #e0e6ed; stroke-width: 1; rx: 6; ry: 6; }
+      .dim-title { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Noto Sans TC", sans-serif; font-weight: 600; font-size: 13px; fill: #3c4043; text-anchor: middle; }
+      
+      .content-cell { fill: #ffffff; stroke: #e0e6ed; stroke-width: 1; rx: 6; ry: 6; }
+      .content-cell-accent { fill: #ffffff; stroke: #1a73e8; stroke-width: 1; rx: 6; ry: 6; }
+      
+      .cell-title { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Noto Sans TC", sans-serif; font-weight: 600; font-size: 13px; fill: #202124; }
+      .cell-title-accent { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Noto Sans TC", sans-serif; font-weight: 600; font-size: 13px; fill: #1a73e8; }
+      .cell-desc { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Noto Sans TC", sans-serif; font-weight: 400; font-size: 11.5px; fill: #5f6368; }
+    </style>
+  </defs>
+
+  <!-- 背景底板 (Day 01 標準 #f8fafd) -->
+  <rect width="960" height="450" class="bg" rx="12" ry="12" />
+  <rect x="1" y="1" width="958" height="448" class="outer-border" />
+
+  <!-- 頂部標題區 -->
+  <text x="35" y="38" class="title-text">Google AI 內部雙軌協同架構 (Dual-Track AI Pipeline)</text>
+  <text x="35" y="58" class="subtitle-text">敏捷原型驗證（Google AI Studio）與企業級生產治理（Vertex AI）的維度對照與分工</text>
+
+  <!-- 表格標題行 (Y=80) -->
+  <g transform="translate(35, 80)">
+    <rect width="130" height="38" class="header-cell" />
+    <text x="65" y="24" class="dim-header-title">比較維度</text>
+
+    <rect x="145" y="0" width="365" height="38" class="header-cell" />
+    <text x="327" y="24" class="col-header-title">軌道 A：敏捷原型軌 (Google AI Studio)</text>
+
+    <rect x="525" y="0" width="365" height="38" class="header-cell-accent" />
+    <text x="707" y="24" class="col-header-title">軌道 B：正式上線軌 (Vertex AI on GCP)</text>
+  </g>
+
+  <!-- 第 1 列：核心定位 (Y=128, 高 66) -->
+  <g transform="translate(35, 128)">
+    <rect width="130" height="66" class="dim-card" />
+    <text x="65" y="38" class="dim-title">核心定位</text>
+
+    <rect x="145" y="0" width="365" height="66" class="content-cell" />
+    <text x="165" y="26" class="cell-title">快速實驗室與探勘先鋒</text>
+    <text x="165" y="48" class="cell-desc">專注於 Prompt 靈感驗證與小樣本盲測調校</text>
+
+    <rect x="525" y="0" width="365" height="66" class="content-cell-accent" />
+    <text x="545" y="26" class="cell-title-accent">高可靠生產與自動化管線</text>
+    <text x="545" y="48" class="cell-desc">承載企業級日常批次作業與百萬級推論調用</text>
+  </g>
+
+  <!-- 第 2 列：環境與權限 (Y=202, 高 66) -->
+  <g transform="translate(35, 202)">
+    <rect width="130" height="66" class="dim-card" />
+    <text x="65" y="38" class="dim-title">環境與權限</text>
+
+    <rect x="145" y="0" width="365" height="66" class="content-cell" />
+    <text x="165" y="26" class="cell-title">開箱即用 Web 介面與 API Key</text>
+    <text x="165" y="48" class="cell-desc">免設 GCP 專案與 IAM，驗證週期以分計</text>
+
+    <rect x="525" y="0" width="365" height="66" class="content-cell-accent" />
+    <text x="545" y="26" class="cell-title-accent">IAM 角色授權與 Service Account</text>
+    <text x="545" y="48" class="cell-desc">無密鑰暴露風險，具備完整稽核日誌與 VPC 防護</text>
+  </g>
+
+  <!-- 第 3 列：專案核心任務 (Y=276, 高 66) -->
+  <g transform="translate(35, 276)">
+    <rect width="130" height="66" class="dim-card" />
+    <text x="65" y="38" class="dim-title">專案核心任務</text>
+
+    <rect x="145" y="0" width="365" height="66" class="content-cell" />
+    <text x="165" y="26" class="cell-title">確立 Structured Outputs 規格</text>
+    <text x="165" y="48" class="cell-desc">鎖定廣告圖文特徵 JSON Schema 與人設提示詞</text>
+
+    <rect x="525" y="0" width="365" height="66" class="content-cell-accent" />
+    <text x="545" y="26" class="cell-title-accent">BigQuery 倉儲直連與成本快取</text>
+    <text x="545" y="48" class="cell-desc">SQL 內就地呼叫模型，Context Caching 降本 75%</text>
+  </g>
+
+  <!-- 第 4 列：適用角色與產出 (Y=350, 高 66) -->
+  <g transform="translate(35, 350)">
+    <rect width="130" height="66" class="dim-card" />
+    <text x="65" y="38" class="dim-title">適用角色與產出</text>
+
+    <rect x="145" y="0" width="365" height="66" class="content-cell" />
+    <text x="165" y="26" class="cell-title">行銷團隊、Prompt 工程師</text>
+    <text x="165" y="48" class="cell-desc">產出定型的 Prompt 規格與 Get Code 範本</text>
+
+    <rect x="525" y="0" width="365" height="66" class="content-cell-accent" />
+    <text x="545" y="26" class="cell-title-accent">雲端架構師、資料維運團隊</text>
+    <text x="545" y="48" class="cell-desc">產出正式端點、自動化 ETL 與評測監控儀表板</text>
+  </g>
+</svg>
