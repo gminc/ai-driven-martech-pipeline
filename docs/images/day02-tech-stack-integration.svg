@@ -1,0 +1,119 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1000 620" width="1000" height="620">
+  <defs>
+    <style>
+      .bg { fill: #f8fafd; }
+      .card-bg { fill: #ffffff; stroke: #e0e6ed; stroke-width: 1.5; rx: 8; ry: 8; }
+      .card-header-bg { fill: #f1f5fb; rx: 8; ry: 8; }
+      .primary-pill { fill: #1a73e8; rx: 4; ry: 4; }
+      .accent-pill { fill: #e8f0fe; stroke: #1a73e8; stroke-width: 1; rx: 4; ry: 4; }
+      .title-text { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Noto Sans TC", sans-serif; font-weight: 700; font-size: 20px; fill: #1a73e8; }
+      .subtitle-text { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Noto Sans TC", sans-serif; font-weight: 400; font-size: 13px; fill: #5f6368; }
+      .card-title { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Noto Sans TC", sans-serif; font-weight: 700; font-size: 15px; fill: #202124; }
+      .body-text { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Noto Sans TC", sans-serif; font-weight: 400; font-size: 12px; fill: #3c4043; }
+      .bold-text { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Noto Sans TC", sans-serif; font-weight: 600; font-size: 12px; fill: #202124; }
+      .code-text { font-family: "SFMono-Regular", Consolas, "Liberation Mono", Menlo, monospace; font-size: 11px; fill: #1a73e8; }
+      .arrow { stroke: #1a73e8; stroke-width: 2; fill: none; stroke-linecap: round; stroke-linejoin: round; }
+      .tag-text { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Noto Sans TC", sans-serif; font-weight: 600; font-size: 11px; fill: #ffffff; }
+      .highlight-box { fill: #e8f0fe; rx: 6; ry: 6; }
+    </style>
+    <marker id="arrowhead" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto">
+      <polygon points="0 0, 8 3, 0 6" fill="#1a73e8" />
+    </marker>
+  </defs>
+
+  <rect width="1000" height="620" class="bg" rx="12" ry="12" />
+
+  <text x="40" y="45" class="title-text">Google Cloud + Vertex AI 原生行銷技術組合生態架構圖</text>
+  <text x="40" y="70" class="subtitle-text">從行銷數據收集、BigQuery 倉儲內零搬遷運算，到 Vertex AI 企業級落地與雙軌協同全景</text>
+
+  <g transform="translate(40, 95)">
+    <rect width="260" height="480" class="card-bg" />
+    <rect width="260" height="42" class="card-header-bg" />
+    <text x="16" y="26" class="card-title">1. 行銷數據原生整合層</text>
+    
+    <rect x="16" y="58" width="228" height="74" class="highlight-box" />
+    <text x="28" y="80" class="bold-text">Google Analytics 4 (GA4)</text>
+    <text x="28" y="100" class="body-text">全自動每日事件導出 (Daily Export)</text>
+    <text x="28" y="118" class="code-text">免寫 ETL・零串接延遲</text>
+
+    <rect x="16" y="146" width="228" height="74" class="highlight-box" />
+    <text x="28" y="168" class="bold-text">Google Ads &amp; 電商事件</text>
+    <text x="28" y="188" class="body-text">跨通路成效日誌與 Stripe 交易</text>
+    <text x="28" y="206" class="code-text">原生整合 BigQuery Data Transfer</text>
+
+    <rect x="16" y="234" width="228" height="84" class="highlight-box" />
+    <text x="28" y="256" class="bold-text">雙軌數據合成器 (軌道 B)</text>
+    <text x="28" y="276" class="body-text">90 天 / 50 萬筆高擬真日誌</text>
+    <text x="28" y="296" class="code-text">符合真實 CTR (1.5-3.5%) 常態分佈</text>
+
+    <rect x="16" y="334" width="228" height="126" fill="#ffffff" stroke="#1a73e8" stroke-width="1" rx="6" ry="6" />
+    <text x="28" y="356" class="bold-text" fill="#1a73e8">生態位優勢：零搬遷匯入</text>
+    <text x="28" y="378" class="body-text">• 完全免去第三方 ETL 訂閱成本</text>
+    <text x="28" y="400" class="body-text">• 免除跨雲網路傳輸 (Egress) 費用</text>
+    <text x="28" y="422" class="body-text">• 原生保障 GDPR / CCPA 個資合規</text>
+    <text x="28" y="444" class="body-text">• 行銷人熟悉之第一手維度完全保留</text>
+  </g>
+
+  <g transform="translate(340, 95)">
+    <rect width="320" height="480" class="card-bg" />
+    <rect width="320" height="42" class="card-header-bg" />
+    <text x="16" y="26" class="card-title">2. BigQuery 現代倉儲與 SQL 引擎</text>
+
+    <rect x="16" y="58" width="288" height="80" class="highlight-box" />
+    <text x="28" y="80" class="bold-text">廣告成效星狀綱要 (Star Schema)</text>
+    <text x="28" y="100" class="body-text">Facts: 點擊、轉換、曝光、花費</text>
+    <text x="28" y="120" class="body-text">Dimensions: 通路、素材、受眾特徵</text>
+
+    <rect x="16" y="152" width="288" height="128" fill="#ffffff" stroke="#1a73e8" stroke-width="1.5" rx="6" ry="6" />
+    <rect x="28" y="164" width="130" height="20" class="primary-pill" />
+    <text x="36" y="178" class="tag-text">倉儲內 SQL 召喚 AI</text>
+    <text x="28" y="202" class="code-text">SELECT ml_generate_text_result</text>
+    <text x="28" y="218" class="code-text">FROM ML.GENERATE_TEXT(</text>
+    <text x="40" y="234" class="code-text">MODEL `martech_dw.gemini_2_flash_model`,</text>
+    <text x="40" y="250" class="code-text">TABLE `v_abnormal_campaigns`)</text>
+    <text x="28" y="268" class="subtitle-text">免導出 CSV・直接在倉儲內部完成診斷</text>
+
+    <rect x="16" y="294" width="288" height="166" class="highlight-box" />
+    <text x="28" y="316" class="bold-text">BigQuery ML 與 Always Free 極大化</text>
+    <text x="28" y="338" class="body-text">• K-means 顧客畫像分群 &amp; LTV 預測</text>
+    <text x="28" y="360" class="body-text">• 多觸點歸因 (MTA)：First / Last / Time-Decay</text>
+    <text x="28" y="382" class="body-text">• 每月 10 GB 儲存 + 1 TB 查詢完全免費</text>
+    <text x="28" y="404" class="body-text">• 分區與分群 (Partition/Cluster) 降本 90%</text>
+    <text x="28" y="426" class="bold-text" fill="#1a73e8">✓ 實現極致 FinOps 零額外數據開銷</text>
+  </g>
+
+  <g transform="translate(700, 95)">
+    <rect width="260" height="480" class="card-bg" />
+    <rect width="260" height="42" class="card-header-bg" />
+    <text x="16" y="26" class="card-title">3. Vertex AI 與雙軌閉環</text>
+
+    <rect x="16" y="58" width="228" height="84" class="accent-pill" />
+    <text x="28" y="80" class="bold-text" fill="#1a73e8">Google AI Studio (敏捷原型軌)</text>
+    <text x="28" y="100" class="body-text">• 快速驗證素材解析 Prompt</text>
+    <text x="28" y="118" class="body-text">• 確立 Structured Outputs Schema</text>
+    <text x="28" y="134" class="code-text">零設定 Web UI 迅速調校</text>
+
+    <path d="M 130 144 L 130 156" class="arrow" marker-end="url(#arrowhead)" />
+
+    <rect x="16" y="160" width="228" height="120" fill="#ffffff" stroke="#1a73e8" stroke-width="1.5" rx="6" ry="6" />
+    <text x="28" y="182" class="bold-text" fill="#1a73e8">Vertex AI (生產落地軌)</text>
+    <text x="28" y="202" class="body-text">• IAM 權限與 VPC-SC 企業安全</text>
+    <text x="28" y="222" class="body-text">• Gemini 2.0 Flash 原生多模態極速推論</text>
+    <text x="28" y="242" class="body-text">• Context Caching 實測降本 75%</text>
+    <text x="28" y="262" class="bold-text" fill="#188038">✓ 企業級 SLA 與無外部資料傳輸</text>
+
+    <rect x="16" y="294" width="228" height="166" class="highlight-box" />
+    <text x="28" y="316" class="bold-text">自動化決策與代理人閉環</text>
+    <text x="28" y="338" class="body-text">• Cloud Run 無伺服器常駐 Agent</text>
+    <text x="28" y="360" class="body-text">• 原生 Function Calling 調用 BQ 指標</text>
+    <text x="28" y="382" class="body-text">• Cloud Workflows 定時巡檢觸發</text>
+    <text x="28" y="404" class="body-text">• Slack Webhook 即時推播決策建議</text>
+    <text x="28" y="430" class="bold-text" fill="#1a73e8">💡 完整閉環，杜絕決策延遲</text>
+  </g>
+
+  <path d="M 300 135 L 338 135" class="arrow" marker-end="url(#arrowhead)" />
+  <path d="M 300 270 L 338 270" class="arrow" marker-end="url(#arrowhead)" />
+  <path d="M 660 216 L 698 216" class="arrow" marker-end="url(#arrowhead)" />
+  <path d="M 700 226 L 662 226" class="arrow" marker-end="url(#arrowhead)" />
+</svg>
