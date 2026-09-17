@@ -1,13 +1,18 @@
 variable "project_id" {
-  description = "Google Cloud 專案 ID (例如: martech-ai-2026-12598)"
+  description = "Google Cloud 專案 ID（必填，請於 terraform.tfvars 填入自己的專案 ID）"
   type        = string
-  default     = "martech-ai-2026-12598"
 }
 
 variable "region" {
-  description = "GCP 核心資源部署區域 (預設 us-central1 愛荷華，Vertex AI Gemini 支援最完整且享有每月 5GB 免費儲存)"
+  description = "Cloud Storage 等區域型資源的部署區域（預設 us-central1 愛荷華，適用 Cloud Storage 每月 5 GB 免費額度）"
   type        = string
   default     = "us-central1"
+}
+
+variable "bq_location" {
+  description = "BigQuery Dataset 與遠端連線的位置（預設 US 多區域；BigQuery 生成式 AI 函式對 Gemini 3.x 模型的支援以 US / EU 多區域為準）"
+  type        = string
+  default     = "US"
 }
 
 variable "dataset_id" {
@@ -29,13 +34,13 @@ variable "storage_bucket_name" {
 }
 
 variable "billing_account_id" {
-  description = "Cloud Billing 帳單帳戶 ID (用於自動配置預算警報，若無帳單管理員權限可留空)"
+  description = "Cloud Billing 帳單帳戶 ID (用於自動配置預算警報，若無建立預算的權限可留空)"
   type        = string
   default     = ""
 }
 
-variable "budget_amount_twd" {
-  description = "每月預算硬性防護上限基準 (新台幣 TWD，預設 NT$ 300 約合 US$ 10)"
+variable "budget_amount" {
+  description = "每月預算警報基準金額（幣別由 budget_currency 決定；TWD 建議 300，USD 建議 10）"
   type        = number
   default     = 300
 }
@@ -44,4 +49,10 @@ variable "budget_currency" {
   description = "預算幣別 (必須與 Cloud Billing 帳戶幣別一致，例如 TWD 或 USD)"
   type        = string
   default     = "TWD"
+}
+
+variable "allow_destroy_with_data" {
+  description = "terraform destroy 時是否連同儲存庫物件與資料表一併刪除（教學環境預設 true；正式環境請設為 false）"
+  type        = bool
+  default     = true
 }

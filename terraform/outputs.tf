@@ -4,8 +4,13 @@ output "project_id" {
 }
 
 output "region" {
-  description = "核心資源部署區域"
+  description = "Cloud Storage 等區域型資源的部署區域"
   value       = var.region
+}
+
+output "bq_location" {
+  description = "BigQuery Dataset 與遠端連線的位置"
+  value       = var.bq_location
 }
 
 output "bigquery_dataset_id" {

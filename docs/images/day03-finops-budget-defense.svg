@@ -67,7 +67,7 @@
       <text x="258" y="22" class="badge-text-green">NT$ 0 免費</text>
       <text x="14" y="44" class="body-text">• 每月 10 GB 儲存空間（免費用滿）</text>
       <text x="14" y="63" class="body-text">• 每月 1 TB 查詢額度（SQL 最佳化）</text>
-      <text x="14" y="82" class="sub-text">• 足以支應日常日誌分析與模型呼叫</text>
+      <text x="14" y="82" class="sub-text">• 足以支應日常日誌分析（模型呼叫另計）</text>
     </g>
 
     <!-- Item 2: Cloud Run -->
@@ -77,7 +77,7 @@
       <rect x="222" y="8" width="72" height="20" class="badge-green" />
       <text x="258" y="22" class="badge-text-green">NT$ 0 免費</text>
       <text x="14" y="44" class="body-text">• 每月 200 萬次請求完全免費</text>
-      <text x="14" y="63" class="body-text">• 享有 36 萬秒 vCPU 運算配額</text>
+      <text x="14" y="63" class="body-text">• 享有每月 18 萬 vCPU 秒運算配額</text>
       <text x="14" y="82" class="sub-text">• 自動縮容至 0，無待機常駐開銷</text>
     </g>
 
@@ -110,7 +110,7 @@
       <text x="258" y="22" class="badge-text-blue">自動清理</text>
       <text x="14" y="44" class="body-text">• 廣告素材與暫存日誌 90 天過期</text>
       <text x="14" y="63" class="body-text">• 自動清除過期檔案，防止容量膨脹</text>
-      <text x="14" y="82" class="code-sub">• 規則：age = 90 / Delete action</text>
+      <text x="14" y="82" class="code-sub">• 規則：age = 90 + 非現行版本 7 天</text>
     </g>
 
     <!-- Item 2: Model Tiering -->
@@ -119,8 +119,8 @@
       <text x="14" y="22" class="item-title">模型用量分級與防護</text>
       <rect x="222" y="8" width="72" height="20" class="badge-blue" />
       <text x="258" y="22" class="badge-text-blue">智慧分流</text>
-      <text x="14" y="44" class="body-text">• 批次推論：Gemini 2.0 Flash</text>
-      <text x="14" y="63" class="body-text">• 輕量任務：Gemini 3.5 Flash-Lite</text>
+      <text x="14" y="44" class="body-text">• 批次推論：Gemini 3.5 Flash-Lite</text>
+      <text x="14" y="63" class="body-text">• 一般任務：Gemini 3.6 Flash</text>
       <text x="14" y="82" class="sub-text">• 避免批次開啟高耗費思考 Token</text>
     </g>
 
@@ -131,8 +131,8 @@
       <rect x="222" y="8" width="72" height="20" class="badge-blue" />
       <text x="258" y="22" class="badge-text-blue">費用減免</text>
       <text x="14" y="44" class="body-text">• 系統 Prompt 與星狀綱要快取</text>
-      <text x="14" y="63" class="body-text">• 重複輸入 Token 費用降低 75%</text>
-      <text x="14" y="82" class="sub-text">• 最短快取 1 小時即享顯著成本減免</text>
+      <text x="14" y="63" class="body-text">• 快取命中 Token 約原價一成</text>
+      <text x="14" y="82" class="sub-text">• 隱含式快取預設啟用，免額外設定</text>
     </g>
   </g>
 
@@ -175,7 +175,7 @@
       <text x="258" y="22" class="badge-text-red">100% 門檻</text>
       <text x="14" y="44" class="body-text">• 當月花費觸及 NT$ 300 (約 US$ 10)</text>
       <text x="14" y="63" class="body-text">• 即時發送緊急警報 Email 通報</text>
-      <text x="14" y="82" class="sub-text">• 確保自付額嚴格維持於銅板價內</text>
+      <text x="14" y="82" class="sub-text">• 警報不會停機，請立即檢查用量</text>
     </g>
   </g>
 

@@ -1,12 +1,25 @@
+# Python
 __pycache__/
 *.py[cod]
 .venv/
 env/
 venv/
+
+# 環境變數與金鑰（只擋機密檔，不擋一般 JSON 設定檔）
+.env
+*-key.json
+service-account*.json
+credentials*.json
+application_default_credentials.json
+
+# Terraform（.terraform.lock.hcl 依官方建議納入版控）
 **/.terraform/*
 *.tfstate
 *.tfstate.*
 *.tfvars
-*.json
-service-account-key.json
+tfplan
+*.tfplan
+crash.log
+
+# OS
 .DS_Store

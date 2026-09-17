@@ -6,8 +6,11 @@
 # Google Cloud 專案 ID (必填，請替換為自己的專案 ID)
 project_id = "your-gcp-project-id"
 
-# 核心區域預設 us-central1 (愛荷華)，適用每月 5GB 免費 Cloud Storage 且 Gemini 模型支援最完整
+# Cloud Storage 區域，預設 us-central1 (愛荷華)，適用每月 5 GB 免費 Cloud Storage
 region = "us-central1"
+
+# BigQuery Dataset 與遠端連線位置，預設 US 多區域
+bq_location = "US"
 
 # 資料倉儲 Dataset ID
 dataset_id = "martech_dw"
@@ -15,11 +18,12 @@ dataset_id = "martech_dw"
 # 素材儲存庫名稱 (留空時會自動使用「專案ID-martech-assets」避免重名)
 storage_bucket_name = ""
 
-# Cloud Billing 帳單帳戶 ID (選填，需具備帳單管理員權限；若無可留空，自動跳過預算警報建置)
+# Cloud Billing 帳單帳戶 ID (選填，需具備建立預算的權限；若無可留空，自動跳過預算警報建置)
 billing_account_id = ""
 
-# 預算警報基準額度 (預設 NT$ 300)
-budget_amount_twd = 300
+# 預算警報基準金額與幣別 (必須與帳單帳戶幣別一致：TWD 填 300，USD 填 10)
+budget_amount   = 300
+budget_currency = "TWD"
 
-# 預算幣別 (TWD 或 USD，需與帳單帳戶一致)
-budget_currency = "TWD" 
+# destroy 時是否連同資料一併刪除 (教學環境 true；正式環境請改為 false)
+allow_destroy_with_data = true

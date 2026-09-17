@@ -57,7 +57,7 @@
 
     <rect x="525" y="0" width="365" height="66" class="content-cell-accent" />
     <text x="545" y="26" class="cell-title-accent">高可靠生產與自動化管線</text>
-    <text x="545" y="48" class="cell-desc">承載企業級日常批次作業與百萬級推論調用</text>
+    <text x="545" y="48" class="cell-desc">承載企業級日常批次作業與百萬級推論呼叫</text>
   </g>
 
   <!-- 第 2 列：環境與權限 (Y=202, 高 66) -->
@@ -85,7 +85,7 @@
 
     <rect x="525" y="0" width="365" height="66" class="content-cell-accent" />
     <text x="545" y="26" class="cell-title-accent">BigQuery 倉儲直連與成本快取</text>
-    <text x="545" y="48" class="cell-desc">SQL 內就地呼叫模型，Context Caching 降本 75%</text>
+    <text x="545" y="48" class="cell-desc">SQL 內就地呼叫模型，Context Caching 快取降本</text>
   </g>
 
   <!-- 第 4 列：適用角色與產出 (Y=350, 高 66) -->

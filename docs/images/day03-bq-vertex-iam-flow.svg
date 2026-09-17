@@ -68,9 +68,9 @@
     
     <rect x="12" y="74" width="186" height="76" class="inner-box" />
     <text x="20" y="93" class="code-text">SELECT ...</text>
-    <text x="20" y="110" class="code-text">FROM ML.GENERATE_TEXT(</text>
-    <text x="20" y="127" class="code-text">  MODEL `gemini_flash`,</text>
-    <text x="20" y="144" class="code-text">  TABLE `ad_logs`)</text>
+    <text x="20" y="110" class="code-text">FROM AI.GENERATE_TEXT(</text>
+    <text x="20" y="127" class="code-text">  MODEL `gemini_flash_lite`,</text>
+    <text x="20" y="144" class="code-text">  (SELECT ... AS prompt))</text>
     
     <rect x="12" y="160" width="186" height="92" class="inner-box" />
     <text x="20" y="182" class="section-label">運算特性</text>
@@ -93,7 +93,7 @@
     
     <rect x="12" y="74" width="186" height="76" class="inner-box" />
     <text x="20" y="96" class="code-text">vertex_ai_conn</text>
-    <text x="20" y="116" class="body-text">位置: us-central1 (愛荷華)</text>
+    <text x="20" y="116" class="body-text">位置: US 多區域</text>
     <text x="20" y="136" class="body-text">類型: CLOUD_RESOURCE</text>
     
     <rect x="12" y="160" width="186" height="92" class="inner-box" />
@@ -137,16 +137,16 @@
     <text x="37" y="24" class="badge-text">步驟 4</text>
     <text x="70" y="25" class="card-title">Vertex AI</text>
     
-    <text x="14" y="62" class="section-label">Gemini 2.0 / 3 推論引擎</text>
+    <text x="14" y="62" class="section-label">Gemini 3.x 推論引擎</text>
     
     <rect x="12" y="74" width="186" height="76" class="inner-box" />
-    <text x="20" y="96" class="code-text">gemini-2.0-flash</text>
-    <text x="20" y="116" class="body-text">區域: us-central1 (愛荷華)</text>
+    <text x="20" y="96" class="code-text">gemini-3.5-flash-lite</text>
+    <text x="20" y="116" class="body-text">呼叫位置: US 多區域</text>
     <text x="20" y="136" class="body-text">百萬 Token Context 視窗</text>
     
     <rect x="12" y="160" width="186" height="92" class="inner-box" />
     <text x="20" y="182" class="section-label">推論結果直回</text>
-    <text x="20" y="202" class="body-text">• 次秒級就地完成歸因診斷</text>
+    <text x="20" y="202" class="body-text">• 就地完成歸因診斷</text>
     <text x="20" y="221" class="body-text">• 結構化 JSON 直接寫回</text>
     <text x="20" y="240" class="body-text">• 支援 Context Caching 降低成本</text>
   </g>
@@ -170,7 +170,7 @@
 
   <!-- Return Flow Dashed Arrow -->
   <path d="M 990 357 L 990 398 L 150 398 L 150 357" class="return-arrow" marker-end="url(#arrowgreen)" />
-  <text x="570" y="392" class="return-label">Google 專用骨幹內部網路零搬遷高速回傳（免外部資料傳輸費 Egress Fees・次秒級完成診斷）</text>
+  <text x="570" y="392" class="return-label">Google 專用骨幹內部網路零搬遷高速回傳（免外部資料傳輸費 Egress Fees・就地完成診斷）</text>
 
   <!-- ======================================================================== -->
   <!-- Bottom Architecture Specification Bar -->

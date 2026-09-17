@@ -61,10 +61,10 @@
     <text x="545" y="48" class="cell-desc">BigQuery 透過 Remote Connection 直連 Vertex AI</text>
   </g>
 
-  <!-- 第 2 列：運算調用機制 (Y=202, 高 66) -->
+  <!-- 第 2 列：運算呼叫機制 (Y=202, 高 66) -->
   <g transform="translate(35, 202)">
     <rect width="130" height="66" class="dim-card" />
-    <text x="65" y="38" class="dim-title">運算調用機制</text>
+    <text x="65" y="38" class="dim-title">運算呼叫機制</text>
 
     <rect x="145" y="0" width="365" height="66" class="content-cell" />
     <text x="165" y="26" class="cell-title">依賴大量中繼膠水程式碼</text>
@@ -72,7 +72,7 @@
 
     <rect x="525" y="0" width="365" height="66" class="content-cell-accent" />
     <text x="545" y="26" class="cell-title-accent">原生 SQL 驅動分散式推論</text>
-    <text x="545" y="48" class="cell-desc">標準 ML.GENERATE_TEXT 語法，倉儲自動平行處理</text>
+    <text x="545" y="48" class="cell-desc">標準 AI.GENERATE_TEXT 語法，倉儲自動平行處理</text>
   </g>
 
   <!-- 第 3 列：網路傳輸成本 (Y=276, 高 66) -->
@@ -100,6 +100,6 @@
 
     <rect x="525" y="0" width="365" height="66" class="content-cell-accent" />
     <text x="545" y="26" class="cell-title-accent">統一 IAM 授權與 VPC-SC 防護</text>
-    <text x="545" y="48" class="cell-desc">服務帳號精細鑑權、免金鑰暴露，具備完整審計日誌</text>
+    <text x="545" y="48" class="cell-desc">服務帳號精細授權、免金鑰暴露，具備完整稽核日誌</text>
   </g>
 </svg>

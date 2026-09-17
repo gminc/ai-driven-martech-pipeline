@@ -61,7 +61,7 @@
       <text x="272" y="22" class="badge-text">檔案架構</text>
       <text x="14" y="45" class="body-text">• main.tf：核心雲端資源與相依關聯定義</text>
       <text x="14" y="65" class="body-text">• variables.tf：專案 ID、區域與參數設定</text>
-      <text x="14" y="85" class="body-text">• outputs.tf：遠端連線 ID 與素材庫網址輸出</text>
+      <text x="14" y="85" class="body-text">• outputs.tf：遠端連線 ID 與素材庫名稱輸出</text>
       <text x="14" y="103" class="code-sub">存放於專案 terraform/ 目錄模組化封裝</text>
     </g>
 
@@ -107,7 +107,7 @@
       <text x="272" y="22" class="badge-text">身分授權</text>
       <text x="14" y="45" class="body-text">• 啟用 10 項核心 API (BQ, Vertex AI 等)</text>
       <text x="14" y="65" class="body-text">• 專用服務帳號：martech-pipeline-runner</text>
-      <text x="14" y="85" class="body-text">• 綁定最小權限角色 (dataEditor, jobUser)</text>
+      <text x="14" y="85" class="body-text">• 最小權限：資料集 / 儲存庫層級授權</text>
       <text x="14" y="103" class="code-sub">roles/aiplatform.user 授予 Gemini 存取權</text>
     </g>
 
@@ -118,7 +118,7 @@
       <rect x="236" y="8" width="72" height="20" class="badge-pill" />
       <text x="272" y="22" class="badge-text">資料倉儲</text>
       <text x="14" y="45" class="body-text">• 核心資料集：martech_dw (星狀綱要)</text>
-      <text x="14" y="65" class="body-text">• 駐留區域：us-central1 (愛荷華)</text>
+      <text x="14" y="65" class="body-text">• 駐留位置：US 多區域</text>
       <text x="14" y="85" class="body-text">• 承載廣告成效、歸因日誌與 AI 診斷特徵</text>
       <text x="14" y="103" class="sub-text">• 就地運算核心，享有每月 10 GB 免費儲存</text>
     </g>
@@ -131,7 +131,7 @@
       <text x="272" y="22" class="badge-text">物件儲存</text>
       <text x="14" y="45" class="body-text">• 專屬儲存庫：專案ID-martech-assets</text>
       <text x="14" y="65" class="body-text">• 統一儲存庫層級存取控制 (UBLA)</text>
-      <text x="14" y="85" class="body-text">• 90 天自動清理生命週期 (age=90 / Delete)</text>
+      <text x="14" y="85" class="body-text">• 90 天清理＋非現行版本 7 天清除</text>
       <text x="14" y="103" class="sub-text">• 防止過期素材與暫存日誌產生多餘開銷</text>
     </g>
   </g>
@@ -163,7 +163,7 @@
       <text x="14" y="22" class="item-title">Cloud Billing 預算警報</text>
       <rect x="236" y="8" width="72" height="20" class="badge-pill" />
       <text x="272" y="22" class="badge-text">預算警報</text>
-      <text x="14" y="45" class="body-text">• 預算基準額度：NT$ 300 (TWD 幣別對齊)</text>
+      <text x="14" y="45" class="body-text">• 預算基準：NT$ 300 或 US$ 10 (對齊幣別)</text>
       <text x="14" y="65" class="body-text">• 三階警報：50% 預警 / 80% 警戒 / 100% 警告</text>
       <text x="14" y="85" class="body-text">• 觸發時即時以 Email 通報帳單管理員</text>
       <text x="14" y="103" class="sub-text">• 未指定帳單帳戶時條件式跳過，不阻礙部署</text>
@@ -177,7 +177,7 @@
       <text x="272" y="22" class="badge-text">生命週期</text>
       <text x="14" y="45" class="body-text">• quickstart.sh：一鍵偵測專案並自動重試 API</text>
       <text x="14" y="65" class="body-text">• bq show：即時驗證跨服務遠端連線狀態</text>
-      <text x="14" y="85" class="body-text">• terraform destroy：完整釋放資源零殘留費用</text>
+      <text x="14" y="85" class="body-text">• terraform destroy：移除資源，不留持續計費項目</text>
       <text x="14" y="103" class="sub-text">• 提供開箱即用體驗與完整雲端資源生命週期</text>
     </g>
   </g>

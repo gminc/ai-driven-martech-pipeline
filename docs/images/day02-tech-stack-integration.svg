@@ -39,7 +39,7 @@
     <rect x="16" y="58" width="228" height="74" class="highlight-box" />
     <text x="28" y="80" class="bold-text">Google Analytics 4 (GA4)</text>
     <text x="28" y="100" class="body-text">全自動每日事件匯出 (Daily Export)</text>
-    <text x="28" y="118" class="code-text">免寫 ETL・零串接延遲</text>
+    <text x="28" y="118" class="code-text">免寫 ETL・每日匯出免費</text>
 
     <!-- Item: Google Ads / Stripe -->
     <rect x="16" y="146" width="228" height="74" class="highlight-box" />
@@ -58,7 +58,7 @@
     <text x="28" y="356" class="bold-text" fill="#1a73e8">生態位優勢：零搬遷匯入</text>
     <text x="28" y="378" class="body-text">• 完全免去第三方 ETL 訂閱成本</text>
     <text x="28" y="400" class="body-text">• 免除跨雲網路傳輸 (Egress) 費用</text>
-    <text x="28" y="422" class="body-text">• 原生保障 GDPR / CCPA 個資合規</text>
+    <text x="28" y="422" class="body-text">• 資料不離開 Google Cloud 利於合規</text>
     <text x="28" y="444" class="body-text">• 行銷人熟悉之第一手維度完全保留</text>
   </g>
 
@@ -78,10 +78,10 @@
     <rect x="16" y="152" width="288" height="128" fill="#ffffff" stroke="#1a73e8" stroke-width="1.5" rx="6" ry="6" />
     <rect x="28" y="164" width="130" height="20" class="primary-pill" />
     <text x="36" y="178" class="tag-text">倉儲內 SQL 呼叫 AI</text>
-    <text x="28" y="202" class="code-text">SELECT ml_generate_text_result</text>
-    <text x="28" y="218" class="code-text">FROM ML.GENERATE_TEXT(</text>
-    <text x="40" y="234" class="code-text">MODEL `martech_dw.gemini_2_flash_model`,</text>
-    <text x="40" y="250" class="code-text">TABLE `v_abnormal_campaigns`)</text>
+    <text x="28" y="202" class="code-text">SELECT result</text>
+    <text x="28" y="218" class="code-text">FROM AI.GENERATE_TEXT(</text>
+    <text x="40" y="234" class="code-text">MODEL `martech_dw.gemini_flash_lite`,</text>
+    <text x="40" y="250" class="code-text">(SELECT ... AS prompt))</text>
     <text x="28" y="268" class="subtitle-text">免匯出 CSV・直接在倉儲內部完成診斷</text>
 
     <!-- Sub-block: BigQuery ML & FinOps -->
@@ -90,7 +90,7 @@
     <text x="28" y="338" class="body-text">• K-means 顧客畫像分群 &amp; LTV 預測</text>
     <text x="28" y="360" class="body-text">• 多觸點歸因 (MTA)：First / Last / Time-Decay</text>
     <text x="28" y="382" class="body-text">• 每月 10 GB 儲存 + 1 TB 查詢完全免費</text>
-    <text x="28" y="404" class="body-text">• 分區與分群 (Partition/Cluster) 降本 90%</text>
+    <text x="28" y="404" class="body-text">• 分區與分群 (Partition/Cluster) 降低掃描量</text>
     <text x="28" y="426" class="bold-text" fill="#1a73e8">✓ 實現極致 FinOps 零額外資料開銷</text>
   </g>
 
@@ -114,14 +114,14 @@
     <rect x="16" y="160" width="228" height="120" fill="#ffffff" stroke="#1a73e8" stroke-width="1.5" rx="6" ry="6" />
     <text x="28" y="182" class="bold-text" fill="#1a73e8">Vertex AI (正式上線軌)</text>
     <text x="28" y="202" class="body-text">• IAM 權限與 VPC-SC 企業安全</text>
-    <text x="28" y="222" class="body-text">• Gemini 2.0 Flash 原生多模態極速推論</text>
-    <text x="28" y="242" class="body-text">• Context Caching 實測降本 75%</text>
-    <text x="28" y="262" class="bold-text" fill="#188038">✓ 企業級 SLA 與無外部資料傳輸</text>
+    <text x="28" y="222" class="body-text">• Gemini 3.x Flash 原生多模態推論</text>
+    <text x="28" y="242" class="body-text">• Context Caching 快取讀取約原價一成</text>
+    <text x="28" y="262" class="bold-text" fill="#188038">✓ IAM 權限控管與稽核日誌</text>
 
     <!-- Cloud Run & Action Loop -->
     <rect x="16" y="294" width="228" height="166" class="highlight-box" />
     <text x="28" y="316" class="bold-text">自動化決策與 AI 代理流程</text>
-    <text x="28" y="338" class="body-text">• Cloud Run 無伺服器常駐 Agent</text>
+    <text x="28" y="338" class="body-text">• Cloud Run 無伺服器 AI 代理</text>
     <text x="28" y="360" class="body-text">• 原生 Function Calling 呼叫 BQ 指標</text>
     <text x="28" y="382" class="body-text">• Cloud Workflows 定時巡檢觸發</text>
     <text x="28" y="404" class="body-text">• Slack Webhook 即時推播決策建議</text>
