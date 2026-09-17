@@ -1,0 +1,41 @@
+<!doctype html>
+<html lang="zh-Hant-TW">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="robots" content="noindex">
+  <title>{% block title %}{{ shop.brand_name_zh }} {{ shop.brand_name_en }}{% endblock %}</title>
+  <link rel="icon" href="{{ url_for('static', filename='img/logo.svg') }}" type="image/svg+xml">
+  <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+  {% if ga_id %}
+  <script async src="https://www.googletagmanager.com/gtag/js?id={{ ga_id }}"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+    gtag('config', '{{ ga_id }}');
+  </script>
+  {% endif %}
+  <script id="demo-config" type="application/json">{{ {"gaId": ga_id, "currency": shop.currency, "brand": shop.brand_name_zh} | tojson }}</script>
+  <script defer src="{{ url_for('static', filename='analytics.js') }}"></script>
+</head>
+<body>
+  <div class="demo-banner" role="note">
+    iThome 鐵人賽技術展示站：使用綠界「測試環境」，不會實際扣款，商品不會出貨。
+  </div>
+  <header class="site-header">
+    <a class="brand" href="{{ url_for('index') }}">
+      <img src="{{ url_for('static', filename='img/logo.svg') }}" alt="" width="40" height="40">
+      <span><strong>{{ shop.brand_name_zh }}</strong><small>{{ shop.brand_name_en }}</small></span>
+    </a>
+    <p class="tagline">{{ shop.tagline }}</p>
+  </header>
+  <main>
+    {% block content %}{% endblock %}
+  </main>
+  <footer class="site-footer">
+    <p>本站為 2026 iThome 鐵人賽「AI-Driven MarTech」系列的 Live Demo，品牌與商品皆為示範用途。</p>
+    <p>付款模式：{% if payment_mode == "simulate" %}模擬結帳{% else %}綠界 ECPay 測試環境{% endif %}{% if not ga_id %} ・GA4 尚未設定，事件不會送出{% endif %}</p>
+  </footer>
+</body>
+</html>

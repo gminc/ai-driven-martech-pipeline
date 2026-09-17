@@ -1,0 +1,55 @@
+{
+  "brand": {
+    "name_zh": "織日常",
+    "name_en": "Everyday Weave",
+    "tagline": "台灣織造的日常好物"
+  },
+  "currency": "TWD",
+  "products": [
+    {
+      "id": "sock-crew-daily",
+      "name": "日常中筒襪",
+      "category": "襪子",
+      "price": 180,
+      "image": "img/sock-crew.svg",
+      "summary": "中等厚度、透氣舒適，適合外出與日常穿搭。",
+      "details": "精梳棉混紡 · 成人中性尺寸 · 台灣織造"
+    },
+    {
+      "id": "sock-towel-training",
+      "name": "厚底毛巾訓練襪",
+      "category": "襪子",
+      "price": 260,
+      "image": "img/sock-towel.svg",
+      "summary": "厚底毛巾結構，重訓時穩定、耐穿。",
+      "details": "毛巾底加厚 · 成人中性尺寸 · 台灣織造"
+    },
+    {
+      "id": "towel-face-cotton",
+      "name": "純棉洗臉毛巾",
+      "category": "毛巾",
+      "price": 220,
+      "image": "img/towel-face.svg",
+      "summary": "柔軟吸水，每天洗臉都舒服。",
+      "details": "34 × 76 cm · 純棉 · 台灣織造"
+    },
+    {
+      "id": "towel-bath-cotton",
+      "name": "純棉大浴巾",
+      "category": "浴巾",
+      "price": 690,
+      "image": "img/towel-bath.svg",
+      "summary": "大尺寸、厚實包覆，洗完澡的第一份溫暖。",
+      "details": "70 × 140 cm · 純棉 · 台灣織造"
+    },
+    {
+      "id": "set-starter",
+      "name": "日常入門組合",
+      "category": "組合",
+      "price": 890,
+      "image": "img/set-starter.svg",
+      "summary": "中筒襪兩雙＋洗臉毛巾兩條，送禮自用都合適。",
+      "details": "組合內容可能依庫存調整 · 台灣織造"
+    }
+  ]
+}

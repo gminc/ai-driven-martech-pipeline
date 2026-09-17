@@ -1,0 +1,22 @@
+{% extends "base.html" %}
+{% block title %}{% if success %}訂單完成{% else %}付款未完成{% endif %}｜{{ shop.brand_name_zh }}{% endblock %}
+{% block content %}
+<section class="panel">
+  {% if success %}
+  <h1>謝謝你的訂購{% if simulated %}（模擬結帳）{% endif %}</h1>
+  <p>訂單編號 <code>{{ trade_no }}</code></p>
+  <p>{{ product.name }} × {{ qty }}，金額 NT$ {{ "{:,}".format(amount) }}</p>
+  <p class="hint">{% if simulated %}本筆為模擬結帳，沒有經過任何金流。{% else %}本筆為綠界測試環境交易，不會實際扣款。{% endif %}</p>
+  <script id="purchase-data" type="application/json">{{ {
+    "transaction_id": trade_no,
+    "value": amount,
+    "currency": shop.currency,
+    "items": [{"item_id": product.id, "item_name": product.name, "item_brand": shop.brand_name_zh, "item_category": product.category, "price": product.price, "quantity": qty}]
+  } | tojson }}</script>
+  {% else %}
+  <h1>付款沒有完成</h1>
+  <p>訂單沒有成立，不會送出購買事件。{% if rtn_msg %}（綠界訊息：{{ rtn_msg }}）{% endif %}</p>
+  {% endif %}
+  <p><a class="button-link" href="{{ url_for('index') }}">回到商品列表</a></p>
+</section>
+{% endblock %}

@@ -1,0 +1,90 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 620" width="1200" height="620">
+  <defs>
+    <style>
+      .bg { fill: #f8fafd; }
+      .outer { fill: none; stroke: #e0e6ed; stroke-width: 1.5; }
+      .title { font-family: -apple-system, BlinkMacSystemFont, &quot;Segoe UI&quot;, Roboto, &quot;Noto Sans TC&quot;, &quot;PingFang TC&quot;, &quot;Microsoft JhengHei&quot;, sans-serif; font-weight: 700; font-size: 22px; fill: #1a73e8; }
+      .subtitle { font-family: -apple-system, BlinkMacSystemFont, &quot;Segoe UI&quot;, Roboto, &quot;Noto Sans TC&quot;, &quot;PingFang TC&quot;, &quot;Microsoft JhengHei&quot;, sans-serif; font-size: 13.5px; fill: #5f6368; }
+      .card { fill: #ffffff; stroke: #e0e6ed; stroke-width: 1.5; }
+      .card-accent { fill: #ffffff; stroke: #1a73e8; stroke-width: 1.8; }
+      .head { fill: #f1f5fb; }
+      .head-accent { fill: #e8f0fe; }
+      .badge { fill: #1a73e8; }
+      .badge-green { fill: #188038; }
+      .badge-warn { fill: #f29900; }
+      .badge-text { font-family: -apple-system, BlinkMacSystemFont, &quot;Segoe UI&quot;, Roboto, &quot;Noto Sans TC&quot;, &quot;PingFang TC&quot;, &quot;Microsoft JhengHei&quot;, sans-serif; font-weight: 700; font-size: 11px; fill: #ffffff; text-anchor: middle; }
+      .card-title { font-family: -apple-system, BlinkMacSystemFont, &quot;Segoe UI&quot;, Roboto, &quot;Noto Sans TC&quot;, &quot;PingFang TC&quot;, &quot;Microsoft JhengHei&quot;, sans-serif; font-weight: 700; font-size: 15px; fill: #202124; }
+      .label { font-family: -apple-system, BlinkMacSystemFont, &quot;Segoe UI&quot;, Roboto, &quot;Noto Sans TC&quot;, &quot;PingFang TC&quot;, &quot;Microsoft JhengHei&quot;, sans-serif; font-weight: 600; font-size: 12.5px; fill: #202124; }
+      .body { font-family: -apple-system, BlinkMacSystemFont, &quot;Segoe UI&quot;, Roboto, &quot;Noto Sans TC&quot;, &quot;PingFang TC&quot;, &quot;Microsoft JhengHei&quot;, sans-serif; font-size: 12px; fill: #3c4043; }
+      .muted { font-family: -apple-system, BlinkMacSystemFont, &quot;Segoe UI&quot;, Roboto, &quot;Noto Sans TC&quot;, &quot;PingFang TC&quot;, &quot;Microsoft JhengHei&quot;, sans-serif; font-size: 11px; fill: #5f6368; }
+      .code { font-family: &quot;SFMono-Regular&quot;, Consolas, &quot;Liberation Mono&quot;, Menlo, monospace; font-size: 11.5px; fill: #1557b0; }
+      .inner { fill: #f8fafd; stroke: #e0e6ed; stroke-width: 1; }
+      .inner-accent { fill: #f1f5fb; stroke: #1a73e8; stroke-width: 1; }
+      .inner-green { fill: #e6f4ea; stroke: #188038; stroke-width: 1; }
+      .inner-danger { fill: #fce8e6; stroke: #d93025; stroke-width: 1; }
+      .arrow { stroke: #1a73e8; stroke-width: 2; fill: none; stroke-linecap: round; stroke-linejoin: round; }
+      .arrow-green { stroke: #188038; stroke-width: 2; stroke-dasharray: 6,4; fill: none; stroke-linecap: round; stroke-linejoin: round; }
+      .arrow-label { font-family: -apple-system, BlinkMacSystemFont, &quot;Segoe UI&quot;, Roboto, &quot;Noto Sans TC&quot;, &quot;PingFang TC&quot;, &quot;Microsoft JhengHei&quot;, sans-serif; font-weight: 600; font-size: 11.5px; fill: #1a73e8; text-anchor: middle; }
+      .arrow-label-green { font-family: -apple-system, BlinkMacSystemFont, &quot;Segoe UI&quot;, Roboto, &quot;Noto Sans TC&quot;, &quot;PingFang TC&quot;, &quot;Microsoft JhengHei&quot;, sans-serif; font-weight: 600; font-size: 11.5px; fill: #188038; text-anchor: middle; }
+      .foot { fill: #ffffff; stroke: #e0e6ed; stroke-width: 1.2; }
+      .foot-text { font-family: -apple-system, BlinkMacSystemFont, &quot;Segoe UI&quot;, Roboto, &quot;Noto Sans TC&quot;, &quot;PingFang TC&quot;, &quot;Microsoft JhengHei&quot;, sans-serif; font-size: 12.5px; fill: #3c4043; }
+      .danger-text { font-family: -apple-system, BlinkMacSystemFont, &quot;Segoe UI&quot;, Roboto, &quot;Noto Sans TC&quot;, &quot;PingFang TC&quot;, &quot;Microsoft JhengHei&quot;, sans-serif; font-weight: 600; font-size: 12px; fill: #d93025; }
+      .green-text { font-family: -apple-system, BlinkMacSystemFont, &quot;Segoe UI&quot;, Roboto, &quot;Noto Sans TC&quot;, &quot;PingFang TC&quot;, &quot;Microsoft JhengHei&quot;, sans-serif; font-weight: 600; font-size: 12px; fill: #188038; }
+    </style>
+    <marker id="ah" markerWidth="9" markerHeight="7" refX="8" refY="3.5" orient="auto"><polygon points="0 0, 9 3.5, 0 7" fill="#1a73e8"/></marker>
+    <marker id="ahg" markerWidth="9" markerHeight="7" refX="8" refY="3.5" orient="auto"><polygon points="0 0, 9 3.5, 0 7" fill="#188038"/></marker>
+  </defs>
+
+  <rect width="1200" height="620" rx="12" class="bg"/>
+  <rect x="1" y="1" width="1198" height="618" rx="12" class="outer"/>
+  <text x="40" y="46" class="title">綠界 ECPay 測試金流：伺服器簽章、瀏覽器轉址、雙重回呼驗章</text>
+  <text x="40" y="72" class="subtitle">CheckMacValue 讓雙方確認資料完整；ReturnURL 給伺服器記帳，OrderResultURL 讓瀏覽器帶著結果回到感謝頁</text>
+  <rect x="40" y="96" width="310" height="46" rx="8" class="card"/>
+  <path d="M41 140 V105 a8 8 0 0 1 8 -8 H341 a8 8 0 0 1 8 8 V140 Z" class="head"/>
+  <rect x="54" y="109" width="29.0" height="20" rx="4" class="badge"/>
+  <text x="68.5" y="123" class="badge-text">前台</text>
+  <text x="93.0" y="124" class="card-title">訪客瀏覽器</text>
+  <path d="M195 144 V540" stroke="#e0e6ed" stroke-width="2" stroke-dasharray="4,4"/>
+  <rect x="445" y="96" width="310" height="46" rx="8" class="card-accent"/>
+  <path d="M446 140 V105 a8 8 0 0 1 8 -8 H746 a8 8 0 0 1 8 8 V140 Z" class="head-accent"/>
+  <rect x="459" y="109" width="29.0" height="20" rx="4" class="badge"/>
+  <text x="473.5" y="123" class="badge-text">後台</text>
+  <text x="498.0" y="124" class="card-title">Cloud Run 服務</text>
+  <path d="M600 144 V540" stroke="#e0e6ed" stroke-width="2" stroke-dasharray="4,4"/>
+  <rect x="850" y="96" width="310" height="46" rx="8" class="card"/>
+  <path d="M851 140 V105 a8 8 0 0 1 8 -8 H1151 a8 8 0 0 1 8 8 V140 Z" class="head"/>
+  <rect x="864" y="109" width="29.0" height="20" rx="4" class="badge-green"/>
+  <text x="878.5" y="123" class="badge-text">金流</text>
+  <text x="903.0" y="124" class="card-title">綠界測試環境</text>
+  <path d="M1005 144 V540" stroke="#e0e6ed" stroke-width="2" stroke-dasharray="4,4"/>
+  <path d="M195 180 L600 180" class="arrow" marker-end="url(#ah)"/>
+  <text x="397.5" y="172" class="arrow-label">① GET /checkout/商品?qty=2&amp;cid=…</text>
+  <rect x="450" y="190" width="300" height="40" rx="6" class="inner-accent"/>
+  <text x="600" y="207" class="body" text-anchor="middle">② 查價格 × 數量、產生訂單編號</text>
+  <text x="600" y="223" class="body" text-anchor="middle">組參數並計算 CheckMacValue</text>
+  <path d="M600 256 L195 256" class="arrow" marker-end="url(#ah)"/>
+  <text x="397.5" y="248" class="arrow-label">③ 回傳自動送出的隱藏表單</text>
+  <path d="M195 284 L1005 284" class="arrow" marker-end="url(#ah)"/>
+  <text x="600.0" y="276" class="arrow-label">④ POST AioCheckOut/V5（含 CheckMacValue）</text>
+  <rect x="855" y="294" width="300" height="40" rx="6" class="inner"/>
+  <text x="1005" y="311" class="body" text-anchor="middle">⑤ 測試卡 4311-9522-2222-2222</text>
+  <text x="1005" y="327" class="body" text-anchor="middle">3D 驗證碼 1234，不會實際扣款</text>
+  <path d="M1005 358 L600 358" class="arrow-green" marker-end="url(#ahg)"/>
+  <text x="802.5" y="350" class="arrow-label-green">⑥ 伺服器 POST ReturnURL</text>
+  <rect x="450" y="366" width="300" height="40" rx="6" class="inner-green"/>
+  <text x="600" y="383" class="green-text" text-anchor="middle">驗章成功 → 寫入日誌、回應 1|OK</text>
+  <text x="600" y="399" class="danger-text" text-anchor="middle">驗章失敗 → 回應 400，不記為付款</text>
+  <path d="M1005 430 L195 430" class="arrow-green" marker-end="url(#ahg)"/>
+  <text x="600.0" y="422" class="arrow-label-green">⑦ 導回瀏覽器（帶付款結果與簽章）</text>
+  <path d="M195 456 L600 456" class="arrow-green" marker-end="url(#ahg)"/>
+  <text x="397.5" y="448" class="arrow-label-green">⑧ POST /ecpay/result</text>
+  <rect x="450" y="464" width="300" height="40" rx="6" class="inner-green"/>
+  <text x="600" y="481" class="green-text" text-anchor="middle">驗章、RtnCode = 1、金額 = 目錄價 × 數量</text>
+  <text x="600" y="497" class="green-text" text-anchor="middle">訂單編號格式與時間合理</text>
+  <path d="M600 528 L195 528" class="arrow-green" marker-end="url(#ahg)"/>
+  <text x="397.5" y="520" class="arrow-label-green">⑨ 感謝頁送出 GA4 purchase</text>
+  <rect x="40" y="548" width="1120" height="56" rx="6" class="foot"/>
+  <text x="60" y="572" class="foot-text">CheckMacValue：參數依名稱 A–Z 排序 → 前後加 HashKey / HashIV → .NET 規則 URL encode → 轉小寫 → SHA256 → 轉大寫。</text>
+  <text x="60" y="592" class="foot-text">本系列用官方公開測試特店，金鑰人人可得，驗章無法防偽，所以另外檢查金額與訂單編號；正式特店的 HashKey / HashIV 請放 Secret Manager。</text>
+</svg>

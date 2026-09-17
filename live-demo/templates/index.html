@@ -1,0 +1,34 @@
+{% extends "base.html" %}
+{% block content %}
+<section class="hero">
+  <h1>把台灣織造的溫度，穿進日常</h1>
+  <p>襪子、毛巾、浴巾，從每天都會用到的小東西開始。</p>
+</section>
+
+<section class="product-grid" aria-label="商品列表" data-list-id="home" data-list-name="首頁商品列表">
+  {% for p in shop.products %}
+  <article class="product-card" data-item='{{ {"item_id": p.id, "item_name": p.name, "item_category": p.category, "price": p.price, "index": loop.index0} | tojson }}'>
+    <img src="{{ url_for('static', filename=p.image) }}" alt="{{ p.name }} 示意插圖" width="320" height="240" loading="lazy">
+    <div class="product-body">
+      <span class="badge">{{ p.category }}</span>
+      <h2>{{ p.name }}</h2>
+      <p class="summary">{{ p.summary }}</p>
+      <details class="product-details">
+        <summary>查看商品細節</summary>
+        <p>{{ p.details }}</p>
+      </details>
+      <form class="checkout-form" method="get" action="{{ url_for('checkout', product_id=p.id) }}">
+        <p class="price">NT$ {{ "{:,}".format(p.price) }}</p>
+        <label>數量
+          <select name="qty">
+            {% for n in range(1, max_quantity + 1) %}<option value="{{ n }}">{{ n }}</option>{% endfor %}
+          </select>
+        </label>
+        <input type="hidden" name="cid" value="">
+        <button type="submit">前往結帳</button>
+      </form>
+    </div>
+  </article>
+  {% endfor %}
+</section>
+{% endblock %}

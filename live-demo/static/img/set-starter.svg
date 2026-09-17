@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 240" width="320" height="240">
+  <rect width="320" height="240" fill="#f3eee6"/>
+  <rect x="40" y="110" width="150" height="90" rx="8" fill="#e3ede8" stroke="#2f2a24" stroke-width="2"/>
+  <path d="M48 124h134" stroke="#3f6b5b" stroke-width="1.5" stroke-opacity="0.6"/><path d="M48 132h134" stroke="#3f6b5b" stroke-width="1.5" stroke-opacity="0.6"/><path d="M48 186h134" stroke="#3f6b5b" stroke-width="1.5" stroke-opacity="0.6"/><path d="M48 178h134" stroke="#3f6b5b" stroke-width="1.5" stroke-opacity="0.6"/>
+  <path transform="translate(170 34) scale(0.9)" d="M20 0h44v96c0 10 4 16 14 22l26 16c14 9 10 32-8 32H40c-14 0-24-10-24-24V0z" fill="#f0e2cf" stroke="#2f2a24" stroke-width="2" stroke-linejoin="round"/>
+  <rect transform="translate(170 34) scale(0.9)" x="16" y="0" width="48" height="18" rx="3" fill="#b07a45" stroke="#2f2a24" stroke-width="2"/>
+
+  <path transform="translate(210 48) scale(0.9)" d="M20 0h44v96c0 10 4 16 14 22l26 16c14 9 10 32-8 32H40c-14 0-24-10-24-24V0z" fill="#dfe8e3" stroke="#2f2a24" stroke-width="2" stroke-linejoin="round"/>
+  <rect transform="translate(210 48) scale(0.9)" x="16" y="0" width="48" height="18" rx="3" fill="#3f6b5b" stroke="#2f2a24" stroke-width="2"/>
+
+</svg>

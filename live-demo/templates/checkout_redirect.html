@@ -1,0 +1,17 @@
+{% extends "base.html" %}
+{% block title %}前往綠界測試環境付款｜{{ shop.brand_name_zh }}{% endblock %}
+{% block content %}
+<section class="panel">
+  <h1>正在前往綠界測試環境…</h1>
+  <p>{{ product.name }} × {{ qty }}，金額 NT$ {{ "{:,}".format(amount) }}</p>
+  <p class="hint">測試卡號 4311-9522-2222-2222，有效期限填未來月份，CVV 任意三碼，3D 驗證碼 1234。</p>
+  <form id="ecpay-form" method="post" action="{{ action_url }}">
+    {% for key, value in params.items() %}
+    <input type="hidden" name="{{ key }}" value="{{ value }}">
+    {% endfor %}
+    <noscript><p>瀏覽器未啟用 JavaScript，請手動按下按鈕。</p></noscript>
+    <button type="submit">前往付款</button>
+  </form>
+</section>
+<script src="{{ url_for('static', filename='autosubmit.js') }}"></script>
+{% endblock %}

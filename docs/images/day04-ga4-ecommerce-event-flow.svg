@@ -1,0 +1,106 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 620" width="1200" height="620">
+  <defs>
+    <style>
+      .bg { fill: #f8fafd; }
+      .outer { fill: none; stroke: #e0e6ed; stroke-width: 1.5; }
+      .title { font-family: -apple-system, BlinkMacSystemFont, &quot;Segoe UI&quot;, Roboto, &quot;Noto Sans TC&quot;, &quot;PingFang TC&quot;, &quot;Microsoft JhengHei&quot;, sans-serif; font-weight: 700; font-size: 22px; fill: #1a73e8; }
+      .subtitle { font-family: -apple-system, BlinkMacSystemFont, &quot;Segoe UI&quot;, Roboto, &quot;Noto Sans TC&quot;, &quot;PingFang TC&quot;, &quot;Microsoft JhengHei&quot;, sans-serif; font-size: 13.5px; fill: #5f6368; }
+      .card { fill: #ffffff; stroke: #e0e6ed; stroke-width: 1.5; }
+      .card-accent { fill: #ffffff; stroke: #1a73e8; stroke-width: 1.8; }
+      .head { fill: #f1f5fb; }
+      .head-accent { fill: #e8f0fe; }
+      .badge { fill: #1a73e8; }
+      .badge-green { fill: #188038; }
+      .badge-warn { fill: #f29900; }
+      .badge-text { font-family: -apple-system, BlinkMacSystemFont, &quot;Segoe UI&quot;, Roboto, &quot;Noto Sans TC&quot;, &quot;PingFang TC&quot;, &quot;Microsoft JhengHei&quot;, sans-serif; font-weight: 700; font-size: 11px; fill: #ffffff; text-anchor: middle; }
+      .card-title { font-family: -apple-system, BlinkMacSystemFont, &quot;Segoe UI&quot;, Roboto, &quot;Noto Sans TC&quot;, &quot;PingFang TC&quot;, &quot;Microsoft JhengHei&quot;, sans-serif; font-weight: 700; font-size: 15px; fill: #202124; }
+      .label { font-family: -apple-system, BlinkMacSystemFont, &quot;Segoe UI&quot;, Roboto, &quot;Noto Sans TC&quot;, &quot;PingFang TC&quot;, &quot;Microsoft JhengHei&quot;, sans-serif; font-weight: 600; font-size: 12.5px; fill: #202124; }
+      .body { font-family: -apple-system, BlinkMacSystemFont, &quot;Segoe UI&quot;, Roboto, &quot;Noto Sans TC&quot;, &quot;PingFang TC&quot;, &quot;Microsoft JhengHei&quot;, sans-serif; font-size: 12px; fill: #3c4043; }
+      .muted { font-family: -apple-system, BlinkMacSystemFont, &quot;Segoe UI&quot;, Roboto, &quot;Noto Sans TC&quot;, &quot;PingFang TC&quot;, &quot;Microsoft JhengHei&quot;, sans-serif; font-size: 11px; fill: #5f6368; }
+      .code { font-family: &quot;SFMono-Regular&quot;, Consolas, &quot;Liberation Mono&quot;, Menlo, monospace; font-size: 11.5px; fill: #1557b0; }
+      .inner { fill: #f8fafd; stroke: #e0e6ed; stroke-width: 1; }
+      .inner-accent { fill: #f1f5fb; stroke: #1a73e8; stroke-width: 1; }
+      .inner-green { fill: #e6f4ea; stroke: #188038; stroke-width: 1; }
+      .inner-danger { fill: #fce8e6; stroke: #d93025; stroke-width: 1; }
+      .arrow { stroke: #1a73e8; stroke-width: 2; fill: none; stroke-linecap: round; stroke-linejoin: round; }
+      .arrow-green { stroke: #188038; stroke-width: 2; stroke-dasharray: 6,4; fill: none; stroke-linecap: round; stroke-linejoin: round; }
+      .arrow-label { font-family: -apple-system, BlinkMacSystemFont, &quot;Segoe UI&quot;, Roboto, &quot;Noto Sans TC&quot;, &quot;PingFang TC&quot;, &quot;Microsoft JhengHei&quot;, sans-serif; font-weight: 600; font-size: 11.5px; fill: #1a73e8; text-anchor: middle; }
+      .arrow-label-green { font-family: -apple-system, BlinkMacSystemFont, &quot;Segoe UI&quot;, Roboto, &quot;Noto Sans TC&quot;, &quot;PingFang TC&quot;, &quot;Microsoft JhengHei&quot;, sans-serif; font-weight: 600; font-size: 11.5px; fill: #188038; text-anchor: middle; }
+      .foot { fill: #ffffff; stroke: #e0e6ed; stroke-width: 1.2; }
+      .foot-text { font-family: -apple-system, BlinkMacSystemFont, &quot;Segoe UI&quot;, Roboto, &quot;Noto Sans TC&quot;, &quot;PingFang TC&quot;, &quot;Microsoft JhengHei&quot;, sans-serif; font-size: 12.5px; fill: #3c4043; }
+      .danger-text { font-family: -apple-system, BlinkMacSystemFont, &quot;Segoe UI&quot;, Roboto, &quot;Noto Sans TC&quot;, &quot;PingFang TC&quot;, &quot;Microsoft JhengHei&quot;, sans-serif; font-weight: 600; font-size: 12px; fill: #d93025; }
+      .green-text { font-family: -apple-system, BlinkMacSystemFont, &quot;Segoe UI&quot;, Roboto, &quot;Noto Sans TC&quot;, &quot;PingFang TC&quot;, &quot;Microsoft JhengHei&quot;, sans-serif; font-weight: 600; font-size: 12px; fill: #188038; }
+    </style>
+    <marker id="ah" markerWidth="9" markerHeight="7" refX="8" refY="3.5" orient="auto"><polygon points="0 0, 9 3.5, 0 7" fill="#1a73e8"/></marker>
+    <marker id="ahg" markerWidth="9" markerHeight="7" refX="8" refY="3.5" orient="auto"><polygon points="0 0, 9 3.5, 0 7" fill="#188038"/></marker>
+  </defs>
+
+  <rect width="1200" height="620" rx="12" class="bg"/>
+  <rect x="1" y="1" width="1198" height="618" rx="12" class="outer"/>
+  <text x="40" y="46" class="title">GA4 電子商務事件漏斗：從曝光到購買的四個埋設點</text>
+  <text x="40" y="72" class="subtitle">事件名稱與參數依 GA4 建議事件規格；purchase 以綠界訂單編號作為 transaction_id，同一使用者重複送出時 GA4 報表會去重</text>
+  <rect x="40" y="100" width="255" height="300" rx="8" class="card"/>
+  <path d="M41 144 V109 a8 8 0 0 1 8 -8 H286 a8 8 0 0 1 8 8 V144 Z" class="head"/>
+  <rect x="54" y="113" width="44.0" height="20" rx="4" class="badge"/>
+  <text x="76.0" y="127" class="badge-text">步驟 1</text>
+  <text x="108.0" y="128" class="card-title">商品列表曝光</text>
+  <rect x="56" y="160" width="223" height="40" rx="6" class="inner-accent"/>
+  <text x="70" y="186" class="code">view_item_list</text>
+  <text x="56" y="228" class="label">觸發：首頁載入</text>
+  <text x="56" y="258" class="body">• item_list_id: home</text>
+  <text x="56" y="284" class="body">• items[5]: id / 名稱 / 分類 / 價格</text>
+  <path d="M297 250 L323 250" class="arrow" marker-end="url(#ah)"/>
+  <rect x="328" y="100" width="255" height="300" rx="8" class="card"/>
+  <path d="M329 144 V109 a8 8 0 0 1 8 -8 H574 a8 8 0 0 1 8 8 V144 Z" class="head"/>
+  <rect x="342" y="113" width="44.0" height="20" rx="4" class="badge"/>
+  <text x="364.0" y="127" class="badge-text">步驟 2</text>
+  <text x="396.0" y="128" class="card-title">查看商品細節</text>
+  <rect x="344" y="160" width="223" height="40" rx="6" class="inner-accent"/>
+  <text x="358" y="186" class="code">view_item</text>
+  <text x="344" y="228" class="label">觸發：展開「查看商品細節」</text>
+  <text x="344" y="258" class="body">• currency: TWD</text>
+  <text x="344" y="284" class="body">• value: 單價</text>
+  <text x="344" y="310" class="body">• 每張卡片只送一次</text>
+  <path d="M585 250 L611 250" class="arrow" marker-end="url(#ah)"/>
+  <rect x="616" y="100" width="255" height="300" rx="8" class="card"/>
+  <path d="M617 144 V109 a8 8 0 0 1 8 -8 H862 a8 8 0 0 1 8 8 V144 Z" class="head"/>
+  <rect x="630" y="113" width="44.0" height="20" rx="4" class="badge"/>
+  <text x="652.0" y="127" class="badge-text">步驟 3</text>
+  <text x="684.0" y="128" class="card-title">開始結帳</text>
+  <rect x="632" y="160" width="223" height="40" rx="6" class="inner-accent"/>
+  <text x="646" y="186" class="code">begin_checkout</text>
+  <text x="632" y="228" class="label">觸發：按下「前往結帳」</text>
+  <text x="632" y="258" class="body">• value: 單價 × 數量</text>
+  <text x="632" y="284" class="body">• 取得 client_id 帶到伺服器</text>
+  <text x="632" y="310" class="body">• 最多等 1.2 秒就轉址</text>
+  <path d="M873 250 L899 250" class="arrow" marker-end="url(#ah)"/>
+  <rect x="904" y="100" width="255" height="300" rx="8" class="card-accent"/>
+  <path d="M905 144 V109 a8 8 0 0 1 8 -8 H1150 a8 8 0 0 1 8 8 V144 Z" class="head-accent"/>
+  <rect x="918" y="113" width="44.0" height="20" rx="4" class="badge-green"/>
+  <text x="940.0" y="127" class="badge-text">步驟 4</text>
+  <text x="972.0" y="128" class="card-title">購買完成</text>
+  <rect x="920" y="160" width="223" height="40" rx="6" class="inner-accent"/>
+  <text x="934" y="186" class="code">purchase</text>
+  <text x="920" y="228" class="label">觸發：驗章成功的感謝頁</text>
+  <text x="920" y="258" class="body">• transaction_id: 訂單編號</text>
+  <text x="920" y="284" class="body">• value: 綠界回傳 TradeAmt</text>
+  <text x="920" y="310" class="body">• 付款失敗不送出</text>
+  <rect x="40" y="418" width="540" height="118" rx="8" class="card"/>
+  <path d="M41 462 V427 a8 8 0 0 1 8 -8 H571 a8 8 0 0 1 8 8 V462 Z" class="head"/>
+  <rect x="54" y="431" width="29.0" height="20" rx="4" class="badge"/>
+  <text x="68.5" y="445" class="badge-text">去向</text>
+  <text x="93.0" y="446" class="card-title">GA4 資源 → BigQuery 每日匯出</text>
+  <text x="58" y="486" class="body">事件表 analytics_&lt;資源 ID&gt;.events_YYYYMMDD，每天一張日期分片資料表</text>
+  <text x="58" y="510" class="muted">Day 05 起與合成日誌對齊欄位，Day 07 起用於多觸點歸因</text>
+  <rect x="620" y="418" width="540" height="118" rx="8" class="card"/>
+  <path d="M621 462 V427 a8 8 0 0 1 8 -8 H1151 a8 8 0 0 1 8 8 V462 Z" class="head"/>
+  <rect x="634" y="431" width="29.0" height="20" rx="4" class="badge-warn"/>
+  <text x="648.5" y="445" class="badge-text">防呆</text>
+  <text x="673.0" y="446" class="card-title">三個容易踩的坑</text>
+  <text x="638" y="480" class="body">1. 金額只信伺服器：前端傳來的價格一律不採用</text>
+  <text x="638" y="502" class="body">2. 把 ecpay.com.tw 加入「不適用的參照連結網址」，購買才不會歸給綠界</text>
+  <text x="638" y="524" class="body">3. 廣告攔截器擋掉 GA 時，結帳仍要能繼續</text>
+  <rect x="40" y="548" width="1120" height="48" rx="6" class="foot"/>
+  <text x="60" y="578" class="foot-text">驗證方式：GA4「即時」報表（DebugView 需另外開啟 debug_mode）；未設定 GA_MEASUREMENT_ID 時事件只印在瀏覽器 Console，網站功能不受影響。</text>
+</svg>
