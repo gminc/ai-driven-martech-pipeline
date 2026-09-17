@@ -1,0 +1,184 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1140 510" width="1140" height="510">
+  <defs>
+    <style>
+      .bg { fill: #f8fafd; }
+      .outer-border { fill: none; stroke: #e0e6ed; stroke-width: 1.5; rx: 12; ry: 12; }
+      
+      .title-text { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Noto Sans TC", "PingFang TC", "Microsoft JhengHei", sans-serif; font-weight: 700; font-size: 20px; fill: #1a73e8; }
+      .subtitle-text { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Noto Sans TC", "PingFang TC", "Microsoft JhengHei", sans-serif; font-weight: 400; font-size: 13px; fill: #5f6368; }
+      
+      .card-bg { fill: #ffffff; stroke: #e0e6ed; stroke-width: 1.5; rx: 8; ry: 8; }
+      .card-header { fill: #f1f5fb; rx: 8; ry: 8; }
+      .card-header-accent { fill: #e8f0fe; rx: 8; ry: 8; }
+      
+      .badge-pill { fill: #1a73e8; rx: 4; ry: 4; }
+      .badge-text { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Noto Sans TC", "PingFang TC", "Microsoft JhengHei", sans-serif; font-weight: 700; font-size: 11px; fill: #ffffff; text-anchor: middle; }
+      
+      .card-title { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Noto Sans TC", "PingFang TC", "Microsoft JhengHei", sans-serif; font-weight: 700; font-size: 14.5px; fill: #202124; }
+      .card-title-accent { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Noto Sans TC", "PingFang TC", "Microsoft JhengHei", sans-serif; font-weight: 700; font-size: 14.5px; fill: #1a73e8; }
+      
+      .section-label { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Noto Sans TC", "PingFang TC", "Microsoft JhengHei", sans-serif; font-weight: 600; font-size: 12px; fill: #202124; }
+      .body-text { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Noto Sans TC", "PingFang TC", "Microsoft JhengHei", sans-serif; font-weight: 400; font-size: 11.5px; fill: #3c4043; }
+      .code-text { font-family: "SFMono-Regular", Consolas, "Liberation Mono", Menlo, Courier, monospace; font-size: 11px; fill: #1a73e8; }
+      .code-sub { font-family: "SFMono-Regular", Consolas, "Liberation Mono", Menlo, Courier, monospace; font-size: 10px; fill: #5f6368; }
+      
+      .inner-box { fill: #f8fafd; stroke: #e0e6ed; stroke-width: 1; rx: 6; ry: 6; }
+      .inner-box-accent { fill: #f1f5fb; stroke: #1a73e8; stroke-width: 1; rx: 6; ry: 6; }
+      
+      .arrow { stroke: #1a73e8; stroke-width: 2; fill: none; stroke-linecap: round; stroke-linejoin: round; }
+      .arrow-label { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Noto Sans TC", "PingFang TC", "Microsoft JhengHei", sans-serif; font-weight: 600; font-size: 11.5px; fill: #1a73e8; text-anchor: middle; }
+      
+      .return-arrow { stroke: #188038; stroke-width: 1.8; stroke-dasharray: 5,4; fill: none; stroke-linecap: round; }
+      .return-label { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Noto Sans TC", "PingFang TC", "Microsoft JhengHei", sans-serif; font-weight: 600; font-size: 11.5px; fill: #188038; text-anchor: middle; }
+      
+      .footer-box { fill: #ffffff; stroke: #e0e6ed; stroke-width: 1.2; rx: 6; ry: 6; }
+      .footer-badge { fill: #e8f0fe; stroke: #1a73e8; stroke-width: 1; rx: 4; ry: 4; }
+      .footer-badge-text { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Noto Sans TC", "PingFang TC", "Microsoft JhengHei", sans-serif; font-weight: 700; font-size: 11px; fill: #1a73e8; text-anchor: middle; }
+      .footer-desc { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Noto Sans TC", "PingFang TC", "Microsoft JhengHei", sans-serif; font-weight: 400; font-size: 12px; fill: #3c4043; }
+    </style>
+    
+    <marker id="arrowhead" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto">
+      <polygon points="0 0, 8 3, 0 6" fill="#1a73e8" />
+    </marker>
+    <marker id="arrowgreen" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto">
+      <polygon points="0 0, 8 3, 0 6" fill="#188038" />
+    </marker>
+  </defs>
+
+  <!-- Background Canvas -->
+  <rect width="1140" height="510" class="bg" rx="12" ry="12" />
+  <rect x="1" y="1" width="1138" height="508" class="outer-border" />
+
+  <!-- Header Banner -->
+  <text x="45" y="42" class="title-text">BigQuery 與 Vertex AI 跨服務 IAM 連線與零信任授權架構圖</text>
+  <text x="45" y="66" class="subtitle-text">利用 BigQuery Connection 橋接 Vertex AI：無金鑰暴露、內部專網互通與最小權限原則實踐</text>
+
+  <!-- ======================================================================== -->
+  <!-- Step 1: BigQuery SQL Engine (Left) -->
+  <!-- ======================================================================== -->
+  <g transform="translate(45, 92)">
+    <rect width="210" height="265" class="card-bg" />
+    <rect width="210" height="40" class="card-header" />
+    <rect x="12" y="10" width="50" height="20" class="badge-pill" />
+    <text x="37" y="24" class="badge-text">步驟 1</text>
+    <text x="70" y="25" class="card-title">BigQuery SQL</text>
+    
+    <text x="14" y="62" class="section-label">倉儲就地執行 SQL 語法</text>
+    
+    <rect x="12" y="74" width="186" height="76" class="inner-box" />
+    <text x="20" y="93" class="code-text">SELECT ...</text>
+    <text x="20" y="110" class="code-text">FROM ML.GENERATE_TEXT(</text>
+    <text x="20" y="127" class="code-text">  MODEL `gemini_flash`,</text>
+    <text x="20" y="144" class="code-text">  TABLE `ad_logs`)</text>
+    
+    <rect x="12" y="160" width="186" height="92" class="inner-box" />
+    <text x="20" y="182" class="section-label">運算特性</text>
+    <text x="20" y="202" class="body-text">• 不經由本機匯出 CSV</text>
+    <text x="20" y="221" class="body-text">• 就地於資料倉儲觸發</text>
+    <text x="20" y="240" class="body-text">• 享有 BigQuery 查詢配額</text>
+  </g>
+
+  <!-- ======================================================================== -->
+  <!-- Step 2: BigQuery Connection Resource -->
+  <!-- ======================================================================== -->
+  <g transform="translate(325, 92)">
+    <rect width="210" height="265" class="card-bg" />
+    <rect width="210" height="40" class="card-header" />
+    <rect x="12" y="10" width="50" height="20" class="badge-pill" />
+    <text x="37" y="24" class="badge-text">步驟 2</text>
+    <text x="70" y="25" class="card-title">遠端連線資源</text>
+    
+    <text x="14" y="62" class="section-label">Cloud Resource 連線</text>
+    
+    <rect x="12" y="74" width="186" height="76" class="inner-box" />
+    <text x="20" y="96" class="code-text">vertex_ai_conn</text>
+    <text x="20" y="116" class="body-text">位置: us-central1 (愛荷華)</text>
+    <text x="20" y="136" class="body-text">類型: CLOUD_RESOURCE</text>
+    
+    <rect x="12" y="160" width="186" height="92" class="inner-box" />
+    <text x="20" y="182" class="section-label">架構防護核心</text>
+    <text x="20" y="202" class="body-text">• 建立專用雲端連線抽象層</text>
+    <text x="20" y="221" class="body-text">• 阻絕外部網路直接暴露</text>
+    <text x="20" y="240" class="body-text">• 無需人工配置靜態金鑰</text>
+  </g>
+
+  <!-- ======================================================================== -->
+  <!-- Step 3: Google-managed Service Account -->
+  <!-- ======================================================================== -->
+  <g transform="translate(605, 92)">
+    <rect width="210" height="265" class="card-bg" />
+    <rect width="210" height="40" class="card-header-accent" />
+    <rect x="12" y="10" width="50" height="20" class="badge-pill" />
+    <text x="37" y="24" class="badge-text">步驟 3</text>
+    <text x="70" y="25" class="card-title-accent">託管服務帳號</text>
+    
+    <text x="14" y="62" class="section-label">GCP 自動託管專用身分</text>
+    
+    <rect x="12" y="74" width="186" height="76" class="inner-box" />
+    <text x="20" y="95" class="code-sub">service-&lt;PROJECT_NUM&gt;</text>
+    <text x="20" y="112" class="code-sub">@gcp-sa-bigquery-...</text>
+    <text x="20" y="134" class="code-text">roles/aiplatform.user</text>
+    
+    <rect x="12" y="160" width="186" height="92" class="inner-box-accent" />
+    <text x="20" y="182" class="section-label" fill="#1a73e8">最小權限原則實踐</text>
+    <text x="20" y="202" class="body-text">• 僅授予 Vertex AI 呼叫權</text>
+    <text x="20" y="221" class="body-text">• 遵循最小權限存取原則</text>
+    <text x="20" y="240" class="body-text" fill="#188038">• 零 JSON 私密金鑰暴露風險</text>
+  </g>
+
+  <!-- ======================================================================== -->
+  <!-- Step 4: Vertex AI Gemini Model (Right) -->
+  <!-- ======================================================================== -->
+  <g transform="translate(885, 92)">
+    <rect width="210" height="265" class="card-bg" />
+    <rect width="210" height="40" class="card-header" />
+    <rect x="12" y="10" width="50" height="20" class="badge-pill" />
+    <text x="37" y="24" class="badge-text">步驟 4</text>
+    <text x="70" y="25" class="card-title">Vertex AI</text>
+    
+    <text x="14" y="62" class="section-label">Gemini 2.0 / 3 推論引擎</text>
+    
+    <rect x="12" y="74" width="186" height="76" class="inner-box" />
+    <text x="20" y="96" class="code-text">gemini-2.0-flash</text>
+    <text x="20" y="116" class="body-text">區域: us-central1 (愛荷華)</text>
+    <text x="20" y="136" class="body-text">百萬 Token Context 視窗</text>
+    
+    <rect x="12" y="160" width="186" height="92" class="inner-box" />
+    <text x="20" y="182" class="section-label">推論結果直回</text>
+    <text x="20" y="202" class="body-text">• 次秒級就地完成歸因診斷</text>
+    <text x="20" y="221" class="body-text">• 結構化 JSON 直接寫回</text>
+    <text x="20" y="240" class="body-text">• 支援 Context Caching 降低成本</text>
+  </g>
+
+  <!-- ======================================================================== -->
+  <!-- Inter-Card Connectors (Drawn on top with generous 70px gap clearance) -->
+  <!-- ======================================================================== -->
+  <g id="connectors">
+    <!-- Connector 1 -> 2 (Gap from 255 to 325, center 290) -->
+    <path d="M 262 225 L 318 225" class="arrow" marker-end="url(#arrowhead)" />
+    <text x="290" y="215" class="arrow-label">委派連線</text>
+
+    <!-- Connector 2 -> 3 (Gap from 535 to 605, center 570) -->
+    <path d="M 542 225 L 598 225" class="arrow" marker-end="url(#arrowhead)" />
+    <text x="570" y="215" class="arrow-label">配發身分</text>
+
+    <!-- Connector 3 -> 4 (Gap from 815 to 885, center 850) -->
+    <path d="M 822 225 L 878 225" class="arrow" marker-end="url(#arrowhead)" />
+    <text x="850" y="215" class="arrow-label">內網呼叫</text>
+  </g>
+
+  <!-- Return Flow Dashed Arrow -->
+  <path d="M 990 357 L 990 398 L 150 398 L 150 357" class="return-arrow" marker-end="url(#arrowgreen)" />
+  <text x="570" y="392" class="return-label">Google 專用骨幹內部網路零搬遷高速回傳（免外部資料傳輸費 Egress Fees・次秒級完成診斷）</text>
+
+  <!-- ======================================================================== -->
+  <!-- Bottom Architecture Specification Bar -->
+  <!-- ======================================================================== -->
+  <g transform="translate(45, 426)">
+    <rect width="1050" height="56" class="footer-box" />
+    <rect x="16" y="15" width="200" height="26" class="footer-badge" />
+    <text x="116" y="32" class="footer-badge-text">零金鑰跨服務授權架構</text>
+    <text x="232" y="33" class="footer-desc">全程由 GCP 系統託管服務帳號自動完成身分驗證，無任何 JSON 私密金鑰產生或外洩風險，落實雲端最小權限原則。</text>
+  </g>
+</svg>

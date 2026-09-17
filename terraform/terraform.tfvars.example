@@ -1,0 +1,25 @@
+# ==============================================================================
+# 2026 iThome 鐵人賽 Day 03 - Terraform 參數設定檔範本
+# 請複製此檔為 terraform.tfvars 並填入自己的 GCP 專案 ID
+# ==============================================================================
+
+# Google Cloud 專案 ID (必填，請替換為自己的專案 ID)
+project_id = "your-gcp-project-id"
+
+# 核心區域預設 us-central1 (愛荷華)，適用每月 5GB 免費 Cloud Storage 且 Gemini 模型支援最完整
+region = "us-central1"
+
+# 資料倉儲 Dataset ID
+dataset_id = "martech_dw"
+
+# 素材儲存庫名稱 (留空時會自動使用「專案ID-martech-assets」避免重名)
+storage_bucket_name = ""
+
+# Cloud Billing 帳單帳戶 ID (選填，需具備帳單管理員權限；若無可留空，自動跳過預算警報建置)
+billing_account_id = ""
+
+# 預算警報基準額度 (預設 NT$ 300)
+budget_amount_twd = 300
+
+# 預算幣別 (TWD 或 USD，需與帳單帳戶一致)
+budget_currency = "TWD" 

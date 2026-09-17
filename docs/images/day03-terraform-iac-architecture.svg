@@ -1,0 +1,200 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 620" width="1200" height="620">
+  <defs>
+    <style>
+      .bg { fill: #f8fafd; }
+      .outer-border { fill: none; stroke: #e0e6ed; stroke-width: 1.5; rx: 12; ry: 12; }
+      
+      .title-text { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Noto Sans TC", "PingFang TC", "Microsoft JhengHei", sans-serif; font-weight: 700; font-size: 20px; fill: #1a73e8; }
+      .subtitle-text { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Noto Sans TC", "PingFang TC", "Microsoft JhengHei", sans-serif; font-weight: 400; font-size: 13px; fill: #5f6368; }
+      
+      .pillar-card { fill: #ffffff; stroke: #e0e6ed; stroke-width: 1.5; rx: 8; ry: 8; }
+      .pillar-header { fill: #f1f5fb; rx: 8; ry: 8; }
+      .pillar-title { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Noto Sans TC", "PingFang TC", "Microsoft JhengHei", sans-serif; font-weight: 700; font-size: 14.5px; fill: #1a73e8; text-anchor: middle; }
+      .pillar-subtitle { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Noto Sans TC", "PingFang TC", "Microsoft JhengHei", sans-serif; font-weight: 400; font-size: 11.5px; fill: #5f6368; text-anchor: middle; }
+      
+      .item-box { fill: #f8fafd; stroke: #e0e6ed; stroke-width: 1; rx: 6; ry: 6; }
+      .item-box-accent { fill: #f1f5fb; stroke: #1a73e8; stroke-width: 1.2; rx: 6; ry: 6; }
+      
+      .item-title { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Noto Sans TC", "PingFang TC", "Microsoft JhengHei", sans-serif; font-weight: 700; font-size: 12.5px; fill: #202124; }
+      .body-text { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Noto Sans TC", "PingFang TC", "Microsoft JhengHei", sans-serif; font-weight: 400; font-size: 11.5px; fill: #3c4043; }
+      .sub-text { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Noto Sans TC", "PingFang TC", "Microsoft JhengHei", sans-serif; font-weight: 400; font-size: 10.5px; fill: #5f6368; }
+      .code-sub { font-family: "SFMono-Regular", Consolas, "Liberation Mono", Menlo, Courier, monospace; font-size: 10.5px; fill: #1a73e8; }
+      
+      .badge-pill { fill: #e8f0fe; stroke: #1a73e8; stroke-width: 1; rx: 4; ry: 4; }
+      .badge-text { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Noto Sans TC", "PingFang TC", "Microsoft JhengHei", sans-serif; font-weight: 700; font-size: 10.5px; fill: #1967d2; text-anchor: middle; }
+      
+      .arrow { stroke: #1a73e8; stroke-width: 2; fill: none; stroke-linecap: round; stroke-linejoin: round; }
+      
+      .footer-box { fill: #ffffff; stroke: #e0e6ed; stroke-width: 1.2; rx: 6; ry: 6; }
+      .footer-badge { fill: #e8f0fe; stroke: #1a73e8; stroke-width: 1; rx: 4; ry: 4; }
+      .footer-badge-text { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Noto Sans TC", "PingFang TC", "Microsoft JhengHei", sans-serif; font-weight: 700; font-size: 11px; fill: #1a73e8; text-anchor: middle; }
+      .footer-desc { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Noto Sans TC", "PingFang TC", "Microsoft JhengHei", sans-serif; font-weight: 400; font-size: 12px; fill: #3c4043; }
+    </style>
+    <marker id="arrowhead" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto">
+      <polygon points="0 0, 8 3, 0 6" fill="#1a73e8" />
+    </marker>
+  </defs>
+
+  <!-- Canvas Background -->
+  <rect width="1200" height="620" class="bg" rx="12" ry="12" />
+  <rect x="1" y="1" width="1198" height="618" class="outer-border" />
+
+  <!-- Header Banner -->
+  <text x="45" y="42" class="title-text">Terraform 基礎設施即程式碼 (IaC) 雲端資源部署全景圖</text>
+  <text x="45" y="66" class="subtitle-text">以宣告式程式碼實現 GCP 核心架構一鍵建置：從 API 啟用、資料倉儲、素材儲存庫到 AI 遠端連線</text>
+
+  <!-- ======================================================================== -->
+  <!-- Column 1: Terraform IaC Code Layer (Left) -->
+  <!-- ======================================================================== -->
+  <g transform="translate(45, 86)">
+    <rect width="350" height="440" class="pillar-card" />
+    <rect width="350" height="48" class="pillar-header" />
+    <text x="175" y="24" class="pillar-title">1. Terraform 宣告配置層</text>
+    <text x="175" y="40" class="pillar-subtitle">以程式碼宣告管理雲端狀態與資源相依性</text>
+
+    <!-- Box 1: File Structure -->
+    <g transform="translate(14, 58)">
+      <rect width="322" height="114" class="item-box" />
+      <text x="14" y="22" class="item-title">IaC 配置檔案結構</text>
+      <rect x="236" y="8" width="72" height="20" class="badge-pill" />
+      <text x="272" y="22" class="badge-text">檔案架構</text>
+      <text x="14" y="45" class="body-text">• main.tf：核心雲端資源與相依關聯定義</text>
+      <text x="14" y="65" class="body-text">• variables.tf：專案 ID、區域與參數設定</text>
+      <text x="14" y="85" class="body-text">• outputs.tf：遠端連線 ID 與素材庫網址輸出</text>
+      <text x="14" y="103" class="code-sub">存放於專案 terraform/ 目錄模組化封裝</text>
+    </g>
+
+    <!-- Box 2: Execution Flow -->
+    <g transform="translate(14, 182)">
+      <rect width="322" height="114" class="item-box" />
+      <text x="14" y="22" class="item-title">Cloud Shell 部署工作流</text>
+      <rect x="236" y="8" width="72" height="20" class="badge-pill" />
+      <text x="272" y="22" class="badge-text">標準流程</text>
+      <text x="14" y="45" class="body-text">• terraform init：下載 GCP Provider 外掛</text>
+      <text x="14" y="65" class="body-text">• terraform plan：預先比對雲端狀態與變更</text>
+      <text x="14" y="85" class="body-text">• terraform apply：一鍵自動化部署全部資源</text>
+      <text x="14" y="103" class="sub-text">• 約 5 分鐘內完成完整環境全自動就緒</text>
+    </g>
+
+    <!-- Box 3: Core Engineering Value -->
+    <g transform="translate(14, 306)">
+      <rect width="322" height="114" class="item-box" />
+      <text x="14" y="22" class="item-title">核心工程治理價值</text>
+      <rect x="236" y="8" width="72" height="20" class="badge-pill" />
+      <text x="272" y="22" class="badge-text">治理效益</text>
+      <text x="14" y="45" class="body-text">• 100% 程式碼宣告，徹底消除手動操作漂移</text>
+      <text x="14" y="65" class="body-text">• 一致性重現：隨時一鍵銷毀與重新建置</text>
+      <text x="14" y="85" class="body-text">• 嚴格版本控管：Git 追蹤基礎設施演進歷史</text>
+      <text x="14" y="103" class="sub-text">• 提供高重現性、便於社群實作之開源架構</text>
+    </g>
+  </g>
+
+  <!-- ======================================================================== -->
+  <!-- Column 2: Google Cloud Native Resources (Middle) -->
+  <!-- ======================================================================== -->
+  <g transform="translate(425, 86)">
+    <rect width="350" height="440" class="pillar-card" />
+    <rect width="350" height="48" class="pillar-header" />
+    <text x="175" y="24" class="pillar-title">2. Google Cloud 原生資源層</text>
+    <text x="175" y="40" class="pillar-subtitle">自動建立倉儲、素材儲存庫與服務帳號</text>
+
+    <!-- Box 1: API & SA -->
+    <g transform="translate(14, 58)">
+      <rect width="322" height="114" class="item-box" />
+      <text x="14" y="22" class="item-title">核心 API 與服務帳號</text>
+      <rect x="236" y="8" width="72" height="20" class="badge-pill" />
+      <text x="272" y="22" class="badge-text">身分授權</text>
+      <text x="14" y="45" class="body-text">• 啟用 10 項核心 API (BQ, Vertex AI 等)</text>
+      <text x="14" y="65" class="body-text">• 專用服務帳號：martech-pipeline-runner</text>
+      <text x="14" y="85" class="body-text">• 綁定最小權限角色 (dataEditor, jobUser)</text>
+      <text x="14" y="103" class="code-sub">roles/aiplatform.user 授予 Gemini 存取權</text>
+    </g>
+
+    <!-- Box 2: BigQuery Dataset -->
+    <g transform="translate(14, 182)">
+      <rect width="322" height="114" class="item-box" />
+      <text x="14" y="22" class="item-title">BigQuery 資料倉儲</text>
+      <rect x="236" y="8" width="72" height="20" class="badge-pill" />
+      <text x="272" y="22" class="badge-text">資料倉儲</text>
+      <text x="14" y="45" class="body-text">• 核心資料集：martech_dw (星狀綱要)</text>
+      <text x="14" y="65" class="body-text">• 駐留區域：us-central1 (愛荷華)</text>
+      <text x="14" y="85" class="body-text">• 承載廣告成效、歸因日誌與 AI 診斷特徵</text>
+      <text x="14" y="103" class="sub-text">• 就地運算核心，享有每月 10 GB 免費儲存</text>
+    </g>
+
+    <!-- Box 3: Cloud Storage -->
+    <g transform="translate(14, 306)">
+      <rect width="322" height="114" class="item-box" />
+      <text x="14" y="22" class="item-title">Cloud Storage 素材庫</text>
+      <rect x="236" y="8" width="72" height="20" class="badge-pill" />
+      <text x="272" y="22" class="badge-text">物件儲存</text>
+      <text x="14" y="45" class="body-text">• 專屬儲存庫：專案ID-martech-assets</text>
+      <text x="14" y="65" class="body-text">• 統一儲存庫層級存取控制 (UBLA)</text>
+      <text x="14" y="85" class="body-text">• 90 天自動清理生命週期 (age=90 / Delete)</text>
+      <text x="14" y="103" class="sub-text">• 防止過期素材與暫存日誌產生多餘開銷</text>
+    </g>
+  </g>
+
+  <!-- ======================================================================== -->
+  <!-- Column 3: Cross-Service Bridge & Governance (Right) -->
+  <!-- ======================================================================== -->
+  <g transform="translate(805, 86)">
+    <rect width="350" height="440" class="pillar-card" />
+    <rect width="350" height="48" class="pillar-header" />
+    <text x="175" y="24" class="pillar-title">3. 跨服務連線與治理層</text>
+    <text x="175" y="40" class="pillar-subtitle">零金鑰遠端連線與多階預算警報防線</text>
+
+    <!-- Box 1: BigQuery Remote Connection -->
+    <g transform="translate(14, 58)">
+      <rect width="322" height="114" class="item-box-accent" />
+      <text x="14" y="22" class="item-title">BigQuery 遠端連線</text>
+      <rect x="236" y="8" width="72" height="20" class="badge-pill" />
+      <text x="272" y="22" class="badge-text">零金鑰橋樑</text>
+      <text x="14" y="45" class="body-text">• 連線資源：vertex_ai_conn (Cloud Resource)</text>
+      <text x="14" y="65" class="body-text">• GCP 系統自動配發並託管專屬服務帳號</text>
+      <text x="14" y="85" class="body-text">• 授予 Vertex AI 權限 (roles/aiplatform.user)</text>
+      <text x="14" y="103" class="code-sub">SQL 就地呼叫 Gemini，零 JSON 私密金鑰風險</text>
+    </g>
+
+    <!-- Box 2: Cloud Billing Budget Alert -->
+    <g transform="translate(14, 182)">
+      <rect width="322" height="114" class="item-box" />
+      <text x="14" y="22" class="item-title">Cloud Billing 預算警報</text>
+      <rect x="236" y="8" width="72" height="20" class="badge-pill" />
+      <text x="272" y="22" class="badge-text">預算警報</text>
+      <text x="14" y="45" class="body-text">• 預算基準額度：NT$ 300 (TWD 幣別對齊)</text>
+      <text x="14" y="65" class="body-text">• 三階警報：50% 預警 / 80% 警戒 / 100% 警告</text>
+      <text x="14" y="85" class="body-text">• 觸發時即時以 Email 通報帳單管理員</text>
+      <text x="14" y="103" class="sub-text">• 未指定帳單帳戶時條件式跳過，不阻礙部署</text>
+    </g>
+
+    <!-- Box 3: Verification & Lifecycle -->
+    <g transform="translate(14, 306)">
+      <rect width="322" height="114" class="item-box" />
+      <text x="14" y="22" class="item-title">環境驗證與清理流程</text>
+      <rect x="236" y="8" width="72" height="20" class="badge-pill" />
+      <text x="272" y="22" class="badge-text">生命週期</text>
+      <text x="14" y="45" class="body-text">• quickstart.sh：一鍵偵測專案並自動重試 API</text>
+      <text x="14" y="65" class="body-text">• bq show：即時驗證跨服務遠端連線狀態</text>
+      <text x="14" y="85" class="body-text">• terraform destroy：完整釋放資源零殘留費用</text>
+      <text x="14" y="103" class="sub-text">• 提供開箱即用體驗與完整雲端資源生命週期</text>
+    </g>
+  </g>
+
+  <!-- Connective Arrows -->
+  <path d="M 395 172 L 425 172" class="arrow" marker-end="url(#arrowhead)" />
+  <path d="M 395 296 L 425 296" class="arrow" marker-end="url(#arrowhead)" />
+  <path d="M 775 172 L 805 172" class="arrow" marker-end="url(#arrowhead)" />
+  <path d="M 775 296 L 805 296" class="arrow" marker-end="url(#arrowhead)" />
+
+  <!-- ======================================================================== -->
+  <!-- Bottom Architecture Specification Bar -->
+  <!-- ======================================================================== -->
+  <g transform="translate(45, 544)">
+    <rect width="1110" height="48" class="footer-box" />
+    <rect x="16" y="11" width="180" height="26" class="footer-badge" />
+    <text x="106" y="28" class="footer-badge-text">IaC 自動化建置原則</text>
+    <text x="210" y="29" class="footer-desc">宣告式程式碼統一管理資源生命週期，整合最小權限原則與自動化連線，5 分鐘內完成企業級基礎建設標準化建置。</text>
+  </g>
+</svg>

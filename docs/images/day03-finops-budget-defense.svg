@@ -1,0 +1,191 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1160 540" width="1160" height="540">
+  <defs>
+    <style>
+      .bg { fill: #f8fafd; }
+      .outer-border { fill: none; stroke: #e0e6ed; stroke-width: 1.5; rx: 12; ry: 12; }
+      
+      .title-text { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Noto Sans TC", "PingFang TC", "Microsoft JhengHei", sans-serif; font-weight: 700; font-size: 20px; fill: #1a73e8; }
+      .subtitle-text { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Noto Sans TC", "PingFang TC", "Microsoft JhengHei", sans-serif; font-weight: 400; font-size: 13px; fill: #5f6368; }
+      
+      .pillar-card { fill: #ffffff; stroke: #e0e6ed; stroke-width: 1.5; rx: 8; ry: 8; }
+      .pillar-header { fill: #f1f5fb; rx: 8; ry: 8; }
+      .pillar-title { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Noto Sans TC", "PingFang TC", "Microsoft JhengHei", sans-serif; font-weight: 700; font-size: 14.5px; fill: #1a73e8; text-anchor: middle; }
+      .pillar-subtitle { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Noto Sans TC", "PingFang TC", "Microsoft JhengHei", sans-serif; font-weight: 400; font-size: 11.5px; fill: #5f6368; text-anchor: middle; }
+      
+      .item-box { fill: #f8fafd; stroke: #e0e6ed; stroke-width: 1; rx: 6; ry: 6; }
+      .item-box-accent { fill: #fdfaf5; stroke: #f9ab00; stroke-width: 1; rx: 6; ry: 6; }
+      .item-box-alert { fill: #fdf7f6; stroke: #ea4335; stroke-width: 1; rx: 6; ry: 6; }
+      
+      .item-title { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Noto Sans TC", "PingFang TC", "Microsoft JhengHei", sans-serif; font-weight: 700; font-size: 12.5px; fill: #202124; }
+      .body-text { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Noto Sans TC", "PingFang TC", "Microsoft JhengHei", sans-serif; font-weight: 400; font-size: 11.5px; fill: #3c4043; }
+      .sub-text { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Noto Sans TC", "PingFang TC", "Microsoft JhengHei", sans-serif; font-weight: 400; font-size: 11px; fill: #5f6368; }
+      .code-sub { font-family: "SFMono-Regular", Consolas, "Liberation Mono", Menlo, Courier, monospace; font-size: 10.5px; fill: #1a73e8; }
+      
+      /* Harmonious Badge System */
+      .badge-green { fill: #e6f4ea; stroke: #34a853; stroke-width: 1; rx: 4; ry: 4; }
+      .badge-text-green { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Noto Sans TC", "PingFang TC", "Microsoft JhengHei", sans-serif; font-weight: 700; font-size: 10.5px; fill: #137333; text-anchor: middle; }
+      
+      .badge-blue { fill: #e8f0fe; stroke: #1a73e8; stroke-width: 1; rx: 4; ry: 4; }
+      .badge-text-blue { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Noto Sans TC", "PingFang TC", "Microsoft JhengHei", sans-serif; font-weight: 700; font-size: 10.5px; fill: #1967d2; text-anchor: middle; }
+      
+      .badge-orange { fill: #fef7e0; stroke: #f9ab00; stroke-width: 1; rx: 4; ry: 4; }
+      .badge-text-orange { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Noto Sans TC", "PingFang TC", "Microsoft JhengHei", sans-serif; font-weight: 700; font-size: 10.5px; fill: #b06000; text-anchor: middle; }
+      
+      .badge-red { fill: #fce8e6; stroke: #ea4335; stroke-width: 1; rx: 4; ry: 4; }
+      .badge-text-red { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Noto Sans TC", "PingFang TC", "Microsoft JhengHei", sans-serif; font-weight: 700; font-size: 10.5px; fill: #c5221f; text-anchor: middle; }
+
+      .footer-box { fill: #ffffff; stroke: #e0e6ed; stroke-width: 1.2; rx: 6; ry: 6; }
+      .footer-badge { fill: #e8f0fe; stroke: #1a73e8; stroke-width: 1; rx: 4; ry: 4; }
+      .footer-badge-text { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Noto Sans TC", "PingFang TC", "Microsoft JhengHei", sans-serif; font-weight: 700; font-size: 11px; fill: #1a73e8; text-anchor: middle; }
+      .footer-desc { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Noto Sans TC", "PingFang TC", "Microsoft JhengHei", sans-serif; font-weight: 400; font-size: 12px; fill: #3c4043; }
+    </style>
+  </defs>
+
+  <!-- Background Canvas -->
+  <rect width="1160" height="540" class="bg" rx="12" ry="12" />
+  <rect x="1" y="1" width="1158" height="538" class="outer-border" />
+
+  <!-- Header Banner -->
+  <text x="45" y="42" class="title-text">AI MarTech 專案 FinOps 成本防護與三道防線架構圖</text>
+  <text x="45" y="66" class="subtitle-text">結合 GCP 免費配額上限、架構層自動化治理與 Cloud Billing 即時預算警報</text>
+
+  <!-- ======================================================================== -->
+  <!-- Pillar 1: Monthly Free Quota Defense -->
+  <!-- ======================================================================== -->
+  <g transform="translate(45, 86)">
+    <rect width="336" height="370" class="pillar-card" />
+    <rect width="336" height="48" class="pillar-header" />
+    <text x="168" y="24" class="pillar-title">第一道防線：每月免費額度把關</text>
+    <text x="168" y="40" class="pillar-subtitle">優先消耗 GCP 永久免費配額，達成開發零花費</text>
+
+    <!-- Item 1: BigQuery -->
+    <g transform="translate(14, 58)">
+      <rect width="308" height="94" class="item-box" />
+      <text x="14" y="22" class="item-title">BigQuery 資料倉儲配額</text>
+      <rect x="222" y="8" width="72" height="20" class="badge-green" />
+      <text x="258" y="22" class="badge-text-green">NT$ 0 免費</text>
+      <text x="14" y="44" class="body-text">• 每月 10 GB 儲存空間（免費用滿）</text>
+      <text x="14" y="63" class="body-text">• 每月 1 TB 查詢額度（SQL 最佳化）</text>
+      <text x="14" y="82" class="sub-text">• 足以支應日常日誌分析與模型呼叫</text>
+    </g>
+
+    <!-- Item 2: Cloud Run -->
+    <g transform="translate(14, 162)">
+      <rect width="308" height="94" class="item-box" />
+      <text x="14" y="22" class="item-title">Cloud Run 無伺服器運算</text>
+      <rect x="222" y="8" width="72" height="20" class="badge-green" />
+      <text x="258" y="22" class="badge-text-green">NT$ 0 免費</text>
+      <text x="14" y="44" class="body-text">• 每月 200 萬次請求完全免費</text>
+      <text x="14" y="63" class="body-text">• 享有 36 萬秒 vCPU 運算配額</text>
+      <text x="14" y="82" class="sub-text">• 自動縮容至 0，無待機常駐開銷</text>
+    </g>
+
+    <!-- Item 3: Cloud Storage -->
+    <g transform="translate(14, 266)">
+      <rect width="308" height="94" class="item-box" />
+      <text x="14" y="22" class="item-title">Cloud Storage 素材儲存庫</text>
+      <rect x="222" y="8" width="72" height="20" class="badge-green" />
+      <text x="258" y="22" class="badge-text-green">NT$ 0 免費</text>
+      <text x="14" y="44" class="body-text">• 每月 5 GB 標準儲存免費額度</text>
+      <text x="14" y="63" class="body-text">• 足以容納數千張廣告圖文素材</text>
+      <text x="14" y="82" class="sub-text">• 啟用 UBLA 統一由 IAM 權限治理</text>
+    </g>
+  </g>
+
+  <!-- ======================================================================== -->
+  <!-- Pillar 2: Architectural Optimization -->
+  <!-- ======================================================================== -->
+  <g transform="translate(412, 86)">
+    <rect width="336" height="370" class="pillar-card" />
+    <rect width="336" height="48" class="pillar-header" />
+    <text x="168" y="24" class="pillar-title">第二道防線：架構層被動成本防護</text>
+    <text x="168" y="40" class="pillar-subtitle">透過 Terraform 規格限制與模型智慧分流</text>
+
+    <!-- Item 1: GCS Lifecycle -->
+    <g transform="translate(14, 58)">
+      <rect width="308" height="94" class="item-box" />
+      <text x="14" y="22" class="item-title">儲存空間生命週期管理</text>
+      <rect x="222" y="8" width="72" height="20" class="badge-blue" />
+      <text x="258" y="22" class="badge-text-blue">自動清理</text>
+      <text x="14" y="44" class="body-text">• 廣告素材與暫存日誌 90 天過期</text>
+      <text x="14" y="63" class="body-text">• 自動清除過期檔案，防止容量膨脹</text>
+      <text x="14" y="82" class="code-sub">• 規則：age = 90 / Delete action</text>
+    </g>
+
+    <!-- Item 2: Model Tiering -->
+    <g transform="translate(14, 162)">
+      <rect width="308" height="94" class="item-box" />
+      <text x="14" y="22" class="item-title">模型用量分級與防護</text>
+      <rect x="222" y="8" width="72" height="20" class="badge-blue" />
+      <text x="258" y="22" class="badge-text-blue">智慧分流</text>
+      <text x="14" y="44" class="body-text">• 批次推論：Gemini 2.0 Flash</text>
+      <text x="14" y="63" class="body-text">• 輕量任務：Gemini 3.5 Flash-Lite</text>
+      <text x="14" y="82" class="sub-text">• 避免批次開啟高耗費思考 Token</text>
+    </g>
+
+    <!-- Item 3: Context Caching (上下文快取) -->
+    <g transform="translate(14, 266)">
+      <rect width="308" height="94" class="item-box" />
+      <text x="14" y="22" class="item-title">上下文快取 (Context Caching)</text>
+      <rect x="222" y="8" width="72" height="20" class="badge-blue" />
+      <text x="258" y="22" class="badge-text-blue">費用減免</text>
+      <text x="14" y="44" class="body-text">• 系統 Prompt 與星狀綱要快取</text>
+      <text x="14" y="63" class="body-text">• 重複輸入 Token 費用降低 75%</text>
+      <text x="14" y="82" class="sub-text">• 最短快取 1 小時即享顯著成本減免</text>
+    </g>
+  </g>
+
+  <!-- ======================================================================== -->
+  <!-- Pillar 3: Billing Budget Defense -->
+  <!-- ======================================================================== -->
+  <g transform="translate(779, 86)">
+    <rect width="336" height="370" class="pillar-card" />
+    <rect width="336" height="48" class="pillar-header" />
+    <text x="168" y="24" class="pillar-title">第三道防線：雲端帳單預算警報</text>
+    <text x="168" y="40" class="pillar-subtitle">Cloud Billing 預算警報三階門檻即時通知</text>
+
+    <!-- Threshold 50% -->
+    <g transform="translate(14, 58)">
+      <rect width="308" height="94" class="item-box" />
+      <text x="14" y="22" class="item-title">門檻 1：50% 早期預警通知</text>
+      <rect x="222" y="8" width="72" height="20" class="badge-green" />
+      <text x="258" y="22" class="badge-text-green">50% 門檻</text>
+      <text x="14" y="44" class="body-text">• 當月花費達 NT$ 150 (約 US$ 5)</text>
+      <text x="14" y="63" class="body-text">• 檢視日誌生成頻率與推論次數</text>
+      <text x="14" y="82" class="sub-text">• 屬正常研發進度之早期健康提醒</text>
+    </g>
+
+    <!-- Threshold 80% -->
+    <g transform="translate(14, 162)">
+      <rect width="308" height="94" class="item-box-accent" />
+      <text x="14" y="22" class="item-title">門檻 2：80% 警戒巡檢階段</text>
+      <rect x="222" y="8" width="72" height="20" class="badge-orange" />
+      <text x="258" y="22" class="badge-text-orange">80% 門檻</text>
+      <text x="14" y="44" class="body-text">• 當月花費達 NT$ 240 (約 US$ 8)</text>
+      <text x="14" y="63" class="body-text">• 啟動快取檢查，暫停非必要排程</text>
+      <text x="14" y="82" class="sub-text">• 排查是否有無窮迴圈或大量批次呼叫</text>
+    </g>
+
+    <!-- Threshold 100% -->
+    <g transform="translate(14, 266)">
+      <rect width="308" height="94" class="item-box-alert" />
+      <text x="14" y="22" class="item-title">門檻 3：100% 超支警告通報</text>
+      <rect x="222" y="8" width="72" height="20" class="badge-red" />
+      <text x="258" y="22" class="badge-text-red">100% 門檻</text>
+      <text x="14" y="44" class="body-text">• 當月花費觸及 NT$ 300 (約 US$ 10)</text>
+      <text x="14" y="63" class="body-text">• 即時發送緊急警報 Email 通報</text>
+      <text x="14" y="82" class="sub-text">• 確保自付額嚴格維持於銅板價內</text>
+    </g>
+  </g>
+
+  <!-- ======================================================================== -->
+  <!-- Bottom Architecture Specification Bar -->
+  <!-- ======================================================================== -->
+  <g transform="translate(45, 470)">
+    <rect width="1070" height="48" class="footer-box" />
+    <rect x="16" y="11" width="180" height="26" class="footer-badge" />
+    <text x="106" y="28" class="footer-badge-text">成本治理核心原則</text>
+    <text x="210" y="29" class="footer-desc">整合 GCP 原生免費配額、架構層被動防護與多階預算警報，兼顧開發效率與嚴密成本治理。</text>
+  </g>
+</svg>
