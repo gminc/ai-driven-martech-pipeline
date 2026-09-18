@@ -274,4 +274,4 @@ cd ~/ai-driven-martech-pipeline/terraform && terraform destroy
 
 今日已成功利用 Terraform 建立高合規、高安全且隨時可重現的 GCP 雲端環境。
 
-**明日預告**：Day 04《即時驗證軌：極簡 Live Demo 站與事件追蹤埋設》，我們將搭建微型電商展示介面，並串接 GA4 與 Stripe 測試金流，驗證即時事件資料處理流程！
+**明日預告**：Day 04《即時驗證軌：極簡 Live Demo 站與電商事件追蹤》，我們將搭建微型電商展示介面，並串接 GA4 與綠界 ECPay 測試金流，驗證即時事件資料處理流程！

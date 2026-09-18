@@ -18,7 +18,7 @@ Day 01 提過本系列採用「雙軌資料架構」：軌道 B 用合成器灌�
 
 今天產生的事件不是做完就結束，Day 05 的合成器會沿用同一組商品 ID 與事件欄位，讓合成資料與真實事件對得起來；Day 07 的多觸點歸因則直接拿今天匯出到 BigQuery 的事件表當輸入，今天等於是在替後面兩週的分析鋪第一段軌道。
 
-> **關於 Stripe 與 Firebase 的說明**：Day 01 與 Day 03 原本規劃「Firebase Hosting / Cloud Functions ＋ Stripe Test Mode」。實作時發現兩件事：
+> **關於 Stripe 與 Firebase 的說明**：Day 01 與 Day 03 原本規劃「Firebase Hosting / Cloud Functions ＋ Stripe Test Mode」，實作時發現兩件事：
 >
 > - Stripe 目前的支援清單沒有台灣，台灣團隊要用 Stripe 必須另外走申請流程，目前還在進行中，為了讓讀者今天就能完整跑完結帳，本篇改用台灣讀者更熟悉、且提供公開測試特店的綠界 ECPay 測試環境，若 30 天賽期內 Stripe 流程通過，會再補充 Stripe 版本。
 > - 頁面、結帳簽章與付款結果通知其實只需要一個小小的 Python 服務，用 Cloud Run 單一服務就能全部處理，也和系列後段的 Cloud Run AI 助理共用同一套部署方式，所以本篇不另外拆 Hosting 與 Functions。
@@ -75,7 +75,7 @@ live-demo/
 
 ## 3.1 商品目錄與伺服器端定價
 
-`products.json` 一次定義品牌文案、三大工藝主張、5 款商品與 2 檔活動。價格、品名與可選尺寸全部寫在這裡，前端只能傳商品 ID、數量與尺寸三個值。
+`products.json` 一次定義品牌文案、三大工藝主張、5 款商品與 2 檔活動，價格、品名與可選尺寸全部寫在這裡，前端只能傳商品 ID、數量與尺寸三個值。
 
 以下為節錄，完整欄位見 `products.json`：
 
@@ -89,15 +89,15 @@ live-demo/
 }
 ```
 
-`size_options` 是詳情頁上唯一可以挑的商品變體。這裡刻意做尺寸而不做顏色，因為顏色一旦可選，圖片就得跟著換，對一個只想驗證資料流的展示站是不必要的成本；尺寸可以共用同一組照片，卻一樣能產生「同商品、不同變體」的事件，剛好對應 GA4 電子商務的 `item_variant` 欄位。
+`size_options` 是詳情頁上唯一可以挑的商品變體，這裡刻意做尺寸而不做顏色，因為顏色一旦可選，圖片就得跟著換，對一個只想驗證資料流的展示站是不必要的成本；尺寸可以共用同一組照片，卻一樣能產生「同商品、不同變體」的事件，剛好對應 GA4 電子商務的 `item_variant` 欄位。
 
-驗證只信伺服器端。`Product.resolve_size()` 只接受清單內的字串，網址上塞任何自己寫的尺寸都會退回預設值，`catalog.py` 在載入時就檢查商品 ID 不可重複、活動代號不可重複、活動指到的商品必須存在、價格必須為正整數、每個商品至少要有一個不重複的尺寸選項；數量只接受 1 到 5，其他任何輸入一律視為 1，這些檢查放在啟動時，設定寫錯會讓容器直接起不來，而不是等到使用者結帳才出錯。
+驗證只信伺服器端，`Product.resolve_size()` 只接受清單內的字串，網址上塞任何自己寫的尺寸都會退回預設值，`catalog.py` 在載入時就檢查商品 ID 不可重複、活動代號不可重複、活動指到的商品必須存在、價格必須為正整數、每個商品至少要有一個不重複的尺寸選項；數量只接受 1 到 5，其他任何輸入一律視為 1，這些檢查放在啟動時，設定寫錯會讓容器直接起不來，而不是等到使用者結帳才出錯。
 
 ## 3.2 綠界測試金流：付款結果怎麼回到伺服器
 
 ![綠界 ECPay 測試金流與驗章流程圖](https://raw.githubusercontent.com/gminc/ai-driven-martech-pipeline/main/docs/images/day04-ecpay-checkmac-flow.svg)
 
-綠界的測試環境提供公開測試特店（特店編號 3002607），不用申請就能跑完整個刷卡流程。完整流程如下：
+綠界的測試環境提供公開測試特店（特店編號 3002607），不用申請就能跑完整個刷卡流程，完整流程如下：
 
 1. 使用者按下「前往結帳」，瀏覽器發送 `GET /checkout/<商品 ID>?qty=2` 請求
 2. 伺服器查定價、算總額、產生 20 碼內不重複的訂單編號（例如 `DM20260918093015A1B2`），組好參數並計算 `CheckMacValue`
@@ -107,9 +107,9 @@ live-demo/
 6. 綠界伺服器 POST 付款結果到 `ReturnURL`（`/ecpay/return`），我們驗章後回應 `1|OK`
 7. 綠界把使用者瀏覽器導回 `OrderResultURL`（`/ecpay/result`），同樣帶著付款結果與簽章
 
-這裡有兩條回程，用途不一樣。`ReturnURL` 是伺服器對伺服器的**付款結果通知**，是可信的帳務來源，收到後寫進 Cloud Logging，`OrderResultURL` 是**付款完成導回**，只是把使用者的瀏覽器帶回感謝頁，而感謝頁是購買事件送出的地方，這個分工決定了一件事：感謝頁絕對不能只看網址就認定付款成功。
+這裡有兩條回程，用途不一樣，`ReturnURL` 是伺服器對伺服器的**付款結果通知**，是可信的帳務來源，收到後寫進 Cloud Logging，`OrderResultURL` 是**付款完成導回**，只是把使用者的瀏覽器帶回感謝頁，而感謝頁是購買事件送出的地方，這個分工決定了一件事：感謝頁絕對不能只看網址就認定付款成功。
 
-`CheckMacValue` 是綠界的簽章欄位，把所有參數按字母排序後接上 HashKey 與 HashIV，做 URL 編碼再取 SHA256，它證明資料在傳輸過程中沒有被改動，但公開測試特店的金鑰人人可得，任何人都能自己算出一個「正確」的簽章來偽造一筆付款成功，所以伺服器端還要再加兩道檢查：金額必須等於商品定價乘以數量、訂單編號的格式與時間必須合理。三道都過才輸出購買資料，演算法細節、參數完整清單與 `.NET` 編碼規則寫在 `live-demo/README.md`，這裡不展開。
+`CheckMacValue` 是綠界的簽章欄位，把所有參數按字母排序後接上 HashKey 與 HashIV，做 URL 編碼再取 SHA256，它證明資料在傳輸過程中沒有被改動，但公開測試特店的金鑰人人可得，任何人都能自己算出一個「正確」的簽章來偽造一筆付款成功，所以伺服器端還要再加兩道檢查：金額必須等於商品定價乘以數量、訂單編號的格式與時間必須合理，三道都過才輸出購買資料，演算法細節、參數完整清單與 `.NET` 編碼規則寫在 `live-demo/README.md`，這裡不展開。
 
 自訂欄位是把金流與行為資料接起來的關鍵，綠界給四個欄位，本專案這樣用：
 
@@ -122,13 +122,13 @@ live-demo/
 
 `CustomField3` 與 `CustomField4` 是整篇文章最重要的兩格，有了它們，Cloud Logging 裡的每一筆付款紀錄都能對應到 GA4 的哪一個訪客、來自哪一個廣告活動，Day 07 的多觸點歸因才有辦法把「廣告花費」和「實際成交」接起來。
 
-`CustomField2` 放的是尺寸的索引而不是「加大 80x160 cm」這串中文，因為自訂欄位的字串會被納入 `CheckMacValue`，而驗章是拿回傳的字面值重新計算，只要金流端在任何一個環節對中文或半形空白做過轉換與正規化，簽章就完全對不起來。這會導致整筆付款在感謝頁被判定失敗，而且極不容易被發現。改用純 ASCII 數字不但沒有這個風險，也不可能超過 50 字元的長度上限。
+`CustomField2` 放的是尺寸的索引而不是「加大 80x160 cm」這串中文，因為自訂欄位的字串會被納入 `CheckMacValue`，而驗章是拿回傳的字面值重新計算，只要金流端在任何一個環節對中文或半形空白做過轉換與正規化，簽章就完全對不起來，這會導致整筆付款在感謝頁被判定失敗，而且極不容易被發現，改用純 ASCII 數字不但沒有這個風險，也不可能超過 50 字元的長度上限。
 
 ## 3.3 GA4 電子商務事件追蹤
 
 ![GA4 電子商務事件漏斗與五個追蹤點](https://raw.githubusercontent.com/gminc/ai-driven-martech-pipeline/main/docs/images/day04-ga4-ecommerce-event-flow.svg)
 
-GA4 的電子商務事件有一套建議規格，照著送的好處是報表會自動認得，不用另外設定自訂維度。本站送出的事件如下：
+GA4 的電子商務事件有一套建議規格，照著送的好處是報表會自動認得，不用另外設定自訂維度，本站送出的事件如下：
 
 | 事件 | 觸發時機 | 關鍵參數 |
 | --- | --- | --- |
@@ -141,9 +141,9 @@ GA4 的電子商務事件有一套建議規格，照著送的好處是報表會�
 
 `item_list_id` 會隨列表位置變化，本站有三種取值：首頁的 `home_all`、活動頁的 `lp_<活動代號>`、商品頁下方相關商品的 `related_<商品 ID>`，之後就能回答「從活動頁點進去的人最後買了什麼」這種問題，`view_promotion` 與 `creative_name` 則是 Day 18 比對廣告素材與 Landing Page 的接點。
 
-**變體要跟著實際勾選走：** `begin_checkout` 的 `item_variant` 讀的是使用者當下勾選的尺寸，不是商品頁載入時的預設值；`purchase` 的 `item_variant` 則是從綠界回傳的自訂欄位還原出來的。兩邊對得起來，後面才能做「哪個尺寸賣得好、哪個尺寸退換貨多」這種變體維度的分析。
+**變體要跟著實際勾選走：** `begin_checkout` 的 `item_variant` 讀的是使用者當下勾選的尺寸，不是商品頁載入時的預設值；`purchase` 的 `item_variant` 則是從綠界回傳的自訂欄位還原出來的，兩邊對得起來，後面才能做「哪個尺寸賣得好、哪個尺寸退換貨多」這種變體維度的分析。
 
-**購買事件一定要由伺服器決定：** 感謝頁的 `purchase` 不是前端想送就送，而是伺服器驗完章、確認 `RtnCode` 為 1、金額等於定價乘以數量、訂單編號格式與時間合理之後，才把購買資料以 JSON 輸出到頁面上，前端讀到才送。任何一項不過就不輸出，前端自然也送不出去。這道設計擋掉的是最常見的營收汙染：有人直接打開感謝頁網址，或重複整理頁面，讓 GA4 多記好幾筆根本不存在的訂單。
+**購買事件一定要由伺服器決定：** 感謝頁的 `purchase` 不是前端想送就送，而是伺服器驗完章、確認 `RtnCode` 為 1、金額等於定價乘以數量、訂單編號格式與時間合理之後，才把購買資料以 JSON 輸出到頁面上，前端讀到才送，任何一項不過就不輸出，前端自然也送不出去，這道設計擋掉的是最常見的營收汙染：有人直接打開感謝頁網址，或重複整理頁面，讓 GA4 多記好幾筆根本不存在的訂單。
 
 **訪客識別要在跳轉前拿到：** 使用者按下結帳後會離開本站前往綠界，所以 `client_id` 必須在跳轉發生之前取得並寫進表單：
 
@@ -160,9 +160,9 @@ window.gtag("get", config.gaId, "client_id", function (clientId) {
 window.setTimeout(go, 1200);    // GA 被擋掉時，最多等 1.2 秒也要讓使用者結帳
 ```
 
-`event_callback` 確保事件真的送出去才跳轉，但它在 GA 被廣告攔截器擋掉時永遠不會被呼叫，所以一定要搭配保底計時器。**追蹤是為了生意服務，不能反過來擋住生意。** 另外實際程式碼在這段之前還有一道 `if (!enabled)` 判斷：沒有設定 GA4 評估 ID 時 `window.gtag` 根本不存在，少了這道判斷，攔截表單之後的呼叫會直接丟出例外，連保底計時器都來不及註冊，結帳就永遠送不出去。
+`event_callback` 確保事件真的送出去才跳轉，但它在 GA 被廣告攔截器擋掉時永遠不會被呼叫，所以一定要搭配保底計時器，**追蹤是為了生意服務，不能反過來擋住生意，** 另外實際程式碼在這段之前還有一道 `if (!enabled)` 判斷：沒有設定 GA4 評估 ID 時 `window.gtag` 根本不存在，少了這道判斷，攔截表單之後的呼叫會直接丟出例外，連保底計時器都來不及註冊，結帳就永遠送不出去。
 
-**廣告來源記在瀏覽器端：** 訪客帶著 `utm_` 參數進站時，`analytics.js` 就把來源寫進 `sessionStorage`，同一個工作階段內以最後一次為準。結帳時再塞進表單的隱藏欄位送回伺服器，伺服器只接受 `[A-Za-z0-9_.|-]` 且長度 50 以內的字串，其餘一律視為空值。
+**廣告來源記在瀏覽器端：** 訪客帶著 `utm_` 參數進站時，`analytics.js` 就把來源寫進 `sessionStorage`，同一個工作階段內以最後一次為準，結帳時再塞進表單的隱藏欄位送回伺服器，伺服器只接受 `[A-Za-z0-9_.|-]` 且長度 50 以內的字串，其餘一律視為空值。
 
 ## 3.4 GA4 每日匯出到 BigQuery
 
@@ -187,7 +187,7 @@ GA4 報表介面適合看趨勢，但做歸因需要的是逐筆事件，GA4 標
 
 `event_params` 與 `items` 都是巢狀結構，查詢時要用 `UNNEST`，這是 GA4 匯出資料最容易卡住新手的地方，Day 05 會一併處理。
 
-**有一個設定不做，今天的資料就是錯的：** 付款完成後瀏覽器是從綠界的網域被導回感謝頁，GA4 預設會把這次造訪當成「從 `payment-stage.ecpay.com.tw` 推薦過來」，開一個新的工作階段，結果購買就被歸功給綠界而不是原本帶來訂單的廣告。解法是到 GA4「管理 → 資料串流 → 網站 → 點選你的串流 → 進行代碼設定 → 在設定區塊點『全部顯示』→ 列出不適用的參照連結網址」，新增一個條件，網域填入 `ecpay.com.tw` 後儲存，任何有第三方金流的網站都會踩到這個坑，而且踩到了報表還是有數字，只是全部歸錯。
+**有一個設定不做，今天的資料就是錯的：** 付款完成後瀏覽器是從綠界的網域被導回感謝頁，GA4 預設會把這次造訪當成「從 `payment-stage.ecpay.com.tw` 推薦過來」，開一個新的工作階段，結果購買就被歸功給綠界而不是原本帶來訂單的廣告，解法是到 GA4「管理 → 資料串流 → 網站 → 點選你的串流 → 進行代碼設定 → 在設定區塊點『全部顯示』→ 列出不適用的參照連結網址」，新增一個條件，網域填入 `ecpay.com.tw` 後儲存，任何有第三方金流的網站都會踩到這個坑，而且踩到了報表還是有數字，只是全部歸錯。
 
 最後兩個提醒：匯出不會回填歷史資料，連結建立當天以前的事件不會出現；第一張事件表通常要到隔天才會生成，所以今天設定完不會馬上看到東西，先用 GA4 的即時報表確認事件有進來就好。
 
@@ -202,7 +202,7 @@ GA4 報表介面適合看趨勢，但做歸因需要的是逐筆事件，GA4 標
 3. **第三道防線**  
    **Cloud Billing 預算警報**：沿用 Day 03 設定的預算警報（新台幣帳戶 NT$ 300／美元帳戶 US$ 10：50% 早期預警、80% 警戒通知、100% 超支警告），要注意，預算警報只會寄通知，不會自動停止服務
 
-💡 **小插曲：為什麼 Firebase 用不了免費的 Spark 方案？** 如果你和我一樣透過 Firebase 建立 GA4 資源，把 Firebase 加進 Day 03 的專案時會發現沒有 Spark 可選。原因是這個專案早就為了 BigQuery、Vertex AI 與 Cloud Run 連結了帳單帳戶，Firebase 會直接套用 Blaze 隨用隨付方案；想用 Spark 就得解除帳單連結，Day 01 到 03 建好的資源也會跟著停擺。不過不必擔心，Blaze 方案的大部分產品仍享有與 Spark 相同的免費用量，而且依 Firebase 官方規定，要部署 Cloud Functions 本來就必須使用 Blaze。真正的成本防護從來不是方案名稱，而是免費額度、架構設計與預算警報這三道防線。本篇的 Live Demo 跑在 Cloud Run，沒有用到 Firebase Hosting 或 Cloud Functions，所以不需要安裝 Firebase CLI。
+💡 **小插曲：為什麼 Firebase 用不了免費的 Spark 方案？** 如果你和我一樣透過 Firebase 建立 GA4 資源，把 Firebase 加進 Day 03 的專案時會發現沒有 Spark 可選，原因是這個專案早就為了 BigQuery、Vertex AI 與 Cloud Run 連結了帳單帳戶，Firebase 會直接套用 Blaze 隨用隨付方案；想用 Spark 就得解除帳單連結，Day 01 到 03 建好的資源也會跟著停擺，不過不必擔心，Blaze 方案的大部分產品仍享有與 Spark 相同的免費用量，而且依 Firebase 官方規定，要部署 Cloud Functions 本來就必須使用 Blaze，真正的成本防護從來不是方案名稱，而是免費額度、架構設計與預算警報這三道防線，本篇的 Live Demo 跑在 Cloud Run，沒有用到 Firebase Hosting 或 Cloud Functions，所以不需要安裝 Firebase CLI。
 
 ---
 
@@ -241,7 +241,7 @@ cd ~ && if [ -d ai-driven-martech-pipeline/.git ]; then git -C ai-driven-martech
 cd ~/ai-driven-martech-pipeline && GA_MEASUREMENT_ID=G-XXXXXXXXXX bash scripts/deploy_live_demo.sh
 ```
 
-`deploy_live_demo.sh` 會依序啟用 Cloud Run、Cloud Build 與 Artifact Registry 三個 API，檢查並補齊預設服務帳號的 `roles/run.builder` 權限，用 `gcloud run deploy --source` 把原始碼交給 Cloud Build 建置後部署到 `asia-east1`，設定映像檔清理政策，最後印出服務網址與查詢付款日誌的指令。看到「✅ Live Demo 已上線」就完成了。
+`deploy_live_demo.sh` 會依序啟用 Cloud Run、Cloud Build 與 Artifact Registry 三個 API，檢查並補齊預設服務帳號的 `roles/run.builder` 權限，用 `gcloud run deploy --source` 把原始碼交給 Cloud Build 建置後部署到 `asia-east1`，設定映像檔清理政策，最後印出服務網址與查詢付款日誌的指令，看到「✅ Live Demo 已上線」就完成了。
 
 ## 5.3 路線 B｜逐步教學：理解每一個指令
 
@@ -262,7 +262,7 @@ python -m pytest -q tests
 PAYMENT_MODE=simulate python main.py
 ```
 
-點 Cloud Shell 右上角的「網頁預覽 → 透過通訊埠 8080 預覽」就能看到商品頁。這裡使用模擬結帳，因為 Cloud Shell 的預覽網址需要登入，綠界伺服器無法把付款結果通知送進來。看完按 `Ctrl + C` 停止。
+點 Cloud Shell 右上角的「網頁預覽 → 透過通訊埠 8080 預覽」就能看到商品頁，這裡使用模擬結帳，因為 Cloud Shell 的預覽網址需要登入，綠界伺服器無法把付款結果通知送進來，看完按 `Ctrl + C` 停止。
 
 ### 步驟 3：啟用 API 與建置權限
 
@@ -288,11 +288,11 @@ gcloud run deploy martech-live-demo \
   --update-env-vars PAYMENT_MODE=ecpay
 ```
 
-`--source` 直接上傳原始碼由 Cloud Build 依 `Dockerfile` 建置，不必自己裝 Docker，第一次執行會詢問是否建立 `cloud-run-source-deploy` 儲存庫，輸入 `Y` 即可。`--allow-unauthenticated` 是必要的，因為展示站需要公開瀏覽，綠界也必須能呼叫 `ReturnURL`。
+`--source` 直接上傳原始碼由 Cloud Build 依 `Dockerfile` 建置，不必自己裝 Docker，第一次執行會詢問是否建立 `cloud-run-source-deploy` 儲存庫，輸入 `Y` 即可，`--allow-unauthenticated` 是必要的，因為展示站需要公開瀏覽，綠界也必須能呼叫 `ReturnURL`。
 
 - ✅ **成功的樣子**：最後出現 `Service URL: https://martech-live-demo-專案編號.asia-east1.run.app`
 
-Cloud Run 會同時給服務兩個網址：含專案編號、可預測的 `*.run.app` 網址，以及含隨機碼的 `*.a.run.app` 網址，兩個都能用。若不想在公開文章中露出專案編號，可以分享 `*.a.run.app` 那個，`deploy_live_demo.sh` 預設就是印出這個。
+Cloud Run 會同時給服務兩個網址：含專案編號、可預測的 `*.run.app` 網址，以及含隨機碼的 `*.a.run.app` 網址，兩個都能用，若不想在公開文章中露出專案編號，可以分享 `*.a.run.app` 那個，`deploy_live_demo.sh` 預設就是印出這個。
 
 ## 5.4 驗證部署成果
 
@@ -303,7 +303,7 @@ curl -s "${SERVICE_URL}/health"
 
 - ✅ **成功的樣子**：回傳 `{"status":"ok"}`
 
-接著跑一次完整的測試結帳：打開服務網址挑一款商品按「前往結帳」，在綠界測試付款頁輸入測試卡號 `4311-9522-2222-2222`，有效期限填任一未來月份，CVV 任意三碼，3D 驗證頁面輸入 `1234`。看到網站的「謝謝你的訂購」頁面就代表驗章成功。
+接著跑一次完整的測試結帳：打開服務網址挑一款商品按「前往結帳」，在綠界測試付款頁輸入測試卡號 `4311-9522-2222-2222`，有效期限填任一未來月份，CVV 任意三碼，3D 驗證頁面輸入 `1234`，看到網站的「謝謝你的訂購」頁面就代表驗章成功。
 
 確認付款結果通知有進 Cloud Logging：
 
@@ -313,7 +313,7 @@ gcloud logging read 'resource.type="cloud_run_revision" AND jsonPayload.event="e
 
 - ✅ **成功的樣子**：看到 `"verified": true`、`"rtn_code": "1"`，以及剛才的訂單編號與金額
 
-設定了 `GA_MEASUREMENT_ID` 的話，打開 GA4「報表 → 即時總覽」，從首頁點進商品頁再結帳，應該能依序看到 `view_item_list`、`select_item`、`view_item`、`begin_checkout`、`purchase`。帶著 `?utm_source=demo&utm_medium=test&utm_campaign=day04` 進站，還能順便驗證來源有沒有被記到綠界的 `CustomField4`。想逐筆檢查參數可以用 GA4 的 DebugView，但一般瀏覽不會出現在 DebugView，需要先安裝 Google Analytics Debugger 擴充功能，或在 gtag 設定中加上 `debug_mode: true`。
+設定了 `GA_MEASUREMENT_ID` 的話，打開 GA4「報表 → 即時總覽」，從首頁點進商品頁再結帳，應該能依序看到 `view_item_list`、`select_item`、`view_item`、`begin_checkout`、`purchase`，帶著 `?utm_source=demo&utm_medium=test&utm_campaign=day04` 進站，還能順便驗證來源有沒有被記到綠界的 `CustomField4`，想逐筆檢查參數可以用 GA4 的 DebugView，但一般瀏覽不會出現在 DebugView，需要先安裝 Google Analytics Debugger 擴充功能，或在 gtag 設定中加上 `debug_mode: true`。
 
 ## 5.5 不用了？指令全部清除
 
@@ -323,7 +323,7 @@ gcloud artifacts repositories delete cloud-run-source-deploy --location asia-eas
 gcloud storage ls | grep run-sources
 ```
 
-前兩行刪除服務與映像檔儲存庫；第三行列出原始碼部署時自動建立、名稱以 `run-sources-` 開頭的 Cloud Storage 儲存庫，確認後可用 `gcloud storage rm -r gs://儲存庫名稱` 一併刪除。GA4 資源與 BigQuery 連結則到 GA4 管理介面中移除。
+前兩行刪除服務與映像檔儲存庫；第三行列出原始碼部署時自動建立、名稱以 `run-sources-` 開頭的 Cloud Storage 儲存庫，確認後可用 `gcloud storage rm -r gs://儲存庫名稱` 一併刪除，GA4 資源與 BigQuery 連結則到 GA4 管理介面中移除。
 
 ## 5.6 常用指令速查
 
