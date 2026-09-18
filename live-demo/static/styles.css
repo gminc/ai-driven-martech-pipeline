@@ -4,10 +4,10 @@
   --line: #e4ded2;
   --text: #2b2723;
   --muted: #6e675d;
-  --accent: #3f6b5b;
-  --accent-dark: #2d4f42;
+  --accent: #8a5a3b;
+  --accent-dark: #66412a;
   --sand: #efe8dc;
-  --clay: #b07a45;
+  --clay: #8f5f30;
   --banner: #f6efdd;
   --radius: 14px;
   --serif: "Noto Serif TC", "Songti TC", serif;
@@ -33,10 +33,11 @@ a { color: inherit; }
 main { max-width: 1120px; margin: 0 auto; padding: 0 24px 72px; }
 
 .hero-banner {
-  /* 全幅去邊：抵銷 main 的左右內距 */
+  /* 這一段渲染在 main 之外，直接吃滿容器寬度即可，不用 100vw 去邊（100vw 含捲軸寬會撐出橫向捲軸） */
   position: relative;
-  margin: 0 calc(50% - 50vw) 8px;
-  width: 100vw;
+  margin: 0 0 8px;
+  width: 100%;
+  overflow: hidden;
   min-height: min(76vh, 640px);
   background-image: url("img/hero-banner.jpg");
   background-size: cover;
@@ -55,13 +56,16 @@ main { max-width: 1120px; margin: 0 auto; padding: 0 24px 72px; }
 .hero-banner-inner { position: relative; z-index: 1; padding: 40px 24px; max-width: 780px; }
 .hero-banner h1 {
   font-family: var(--serif);
-  font-size: clamp(28px, 4.4vw, 50px);
-  line-height: 1.45;
+  font-size: clamp(26px, 4.2vw, 48px);
+  line-height: 1.5;
   font-weight: 600;
   color: var(--text);
   margin: 0 0 32px;
+  letter-spacing: .04em;
   text-shadow: 0 1px 14px rgba(250, 248, 244, .7);
 }
+/* 主標固定兩行；極窄螢幕仍允許自己折行，不讓版面被撐開 */
+.hero-banner h1 .line { display: block; }
 .eyebrow { margin: 0 0 12px; color: var(--muted); font-size: 12px; letter-spacing: .24em; text-transform: uppercase; }
 .eyebrow-light { color: var(--muted); text-shadow: 0 1px 10px rgba(250, 248, 244, .8); }
 .lede { color: var(--muted); font-size: 16px; margin: 0 0 24px; }
@@ -97,10 +101,6 @@ main { max-width: 1120px; margin: 0 auto; padding: 0 24px 72px; }
 .card-price { margin: 8px 0 0; font-size: 16px; font-weight: 500; }
 .card-price s { color: var(--muted); font-size: 13px; margin-left: 8px; font-weight: 400; }
 
-.story-band { display: grid; grid-template-columns: 1.1fr .9fr; gap: 44px; align-items: center; background: var(--sand); border-radius: var(--radius); padding: 44px; margin-top: 64px; }
-.story-band h2 { font-family: var(--serif); font-size: 24px; margin: 0 0 14px; font-weight: 600; line-height: 1.5; }
-.story-band p { margin: 0 0 12px; color: var(--muted); }
-.story-band img { border-radius: 10px; display: block; }
 
 .campaign-row { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 24px; }
 .campaign-card { display: block; text-decoration: none; background: var(--paper); border: 1px solid var(--line); border-radius: var(--radius); overflow: hidden; }
@@ -125,9 +125,23 @@ main { max-width: 1120px; margin: 0 auto; padding: 0 24px 72px; }
 .price s { color: var(--muted); font-size: 15px; margin-left: 10px; }
 .summary { margin: 0 0 12px; }
 .story { margin: 0 0 16px; color: var(--muted); }
-.colors { margin: 0 0 18px; color: var(--muted); font-size: 14px; }
-.color-chip { display: inline-block; background: var(--sand); border-radius: 999px; padding: 2px 12px; margin-right: 6px; color: var(--text); font-size: 13px; }
 .checkout-form { display: flex; align-items: center; gap: 14px; flex-wrap: wrap; margin: 0 0 10px; }
+.size-picker { flex: 1 0 100%; border: 0; margin: 4px 0 6px; padding: 0; }
+.size-picker legend { padding: 0; color: var(--muted); font-size: 14px; margin-bottom: 8px; }
+.size-option { display: inline-flex; align-items: center; margin: 0 8px 8px 0; cursor: pointer; }
+.size-option input { position: absolute; opacity: 0; width: 0; height: 0; }
+.size-option span {
+  display: inline-block; background: var(--paper); border: 1px solid #b9ae9b;
+  border-radius: 999px; padding: 7px 16px; font-size: 13.5px; color: var(--text);
+  transition: border-color .15s ease, background .15s ease;
+}
+.size-option:hover span { border-color: var(--accent); }
+.size-option input:checked + span { background: var(--accent); border-color: var(--accent); color: #fff; }
+.size-option input:focus-visible + span { outline: 2px solid var(--accent-dark); outline-offset: 2px; }
+/* 高對比模式會覆寫背景與文字色，選中狀態改用外框表示 */
+@media (forced-colors: active) {
+  .size-option input:checked + span { outline: 3px solid; outline-offset: -3px; }
+}
 .checkout-form label { font-size: 14px; color: var(--muted); }
 .checkout-form select { margin-left: 6px; padding: 8px 10px; border-radius: 8px; border: 1px solid var(--line); background: var(--paper); font-size: 14px; }
 .checkout-form button { background: var(--accent); color: #fff; border: 0; border-radius: 999px; padding: 12px 30px; font-size: 15px; cursor: pointer; }
@@ -169,11 +183,10 @@ code { background: var(--sand); padding: 2px 8px; border-radius: 4px; word-break
 .footer-note { margin: 0 0 8px; }
 
 @media (max-width: 860px) {
-  .product-detail, .story-band, .about-band, .lp-hero { grid-template-columns: 1fr; gap: 28px; }
+  .product-detail, .about-band, .lp-hero { grid-template-columns: 1fr; gap: 28px; }
   .hero-banner { min-height: 58vh; background-image: url("img/hero-banner-mobile.jpg"); }
   .pillars { grid-template-columns: 1fr; gap: 20px; }
   .footer-inner { grid-template-columns: repeat(2, 1fr); }
-  .story-band { padding: 28px; }
   main { padding: 0 16px 56px; }
   .header-inner { padding: 10px 16px; flex-direction: column; align-items: flex-start; gap: 8px; }
   .site-nav { gap: 18px; font-size: 13px; }

@@ -7,7 +7,7 @@
 </nav>
 
 <section class="product-detail"
-         data-item='{{ {"item_id": product.id, "item_name": product.name, "item_category": product.category, "price": product.price} | tojson }}'>
+         data-item='{{ {"item_id": product.id, "item_name": product.name, "item_category": product.category, "price": product.price, "item_variant": product.size_options[0]} | tojson }}'>
   <div class="gallery">
     <img class="gallery-main" id="gallery-main" src="{{ url_for('static', filename=product.gallery[0]) }}" alt="{{ product.name }}" width="800" height="600">
     {% if product.gallery|length > 1 %}
@@ -31,10 +31,16 @@
     </p>
     <p class="summary">{{ product.summary }}</p>
     {% if product.story %}<p class="story">{{ product.story }}</p>{% endif %}
-    {% if product.colors %}
-    <p class="colors">顏色：{% for c in product.colors %}<span class="color-chip">{{ c }}</span>{% endfor %}</p>
-    {% endif %}
     <form class="checkout-form" method="get" action="{{ url_for('checkout', product_id=product.id) }}">
+      <fieldset class="size-picker">
+        <legend>尺寸</legend>
+        {% for opt in product.size_options %}
+        <label class="size-option">
+          <input type="radio" name="size" value="{{ opt }}"{% if loop.first %} checked{% endif %}>
+          <span>{{ opt }}</span>
+        </label>
+        {% endfor %}
+      </fieldset>
       <label>數量
         <select name="qty">
           {% for n in range(1, max_quantity + 1) %}<option value="{{ n }}">{{ n }}</option>{% endfor %}
@@ -48,7 +54,7 @@
 
     <dl class="spec">
       <div><dt>材質</dt><dd>{{ product.material }}</dd></div>
-      <div><dt>尺寸</dt><dd>{{ product.size }}</dd></div>
+      <div><dt>尺寸對照</dt><dd>{{ product.size }}</dd></div>
       <div><dt>洗滌</dt><dd>{{ product.care }}</dd></div>
       <div><dt>織造地</dt><dd>{{ product.made_in }}</dd></div>
     </dl>

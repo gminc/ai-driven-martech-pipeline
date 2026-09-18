@@ -8,14 +8,17 @@
   <p>訂單編號 <code>{{ trade_no }}</code></p>
   <p class="order-line">
     <img src="{{ url_for('static', filename=product.image) }}" alt="" width="96" height="72">
-    <span>{{ product.name }} × {{ qty }}<br><strong>NT$ {{ "{:,}".format(amount) }}</strong></span>
+    <span>{{ product.name }}{% if size %}（{{ size }}）{% endif %} × {{ qty }}<br><strong>NT$ {{ "{:,}".format(amount) }}</strong></span>
   </p>
   <p class="hint">{% if simulated %}本筆為模擬結帳，沒有經過任何金流。{% else %}本筆為綠界測試環境交易，不會實際扣款，商品也不會出貨。{% endif %}</p>
+  {% set item = {"item_id": product.id, "item_name": product.name, "item_brand": brand.name_zh,
+                 "item_category": product.category, "price": product.price, "quantity": qty} %}
+  {% if size %}{% set _ = item.update({"item_variant": size}) %}{% endif %}
   <script id="purchase-data" type="application/json">{{ {
     "transaction_id": trade_no,
     "value": amount,
     "currency": shop.currency,
-    "items": [{"item_id": product.id, "item_name": product.name, "item_brand": brand.name_zh, "item_category": product.category, "price": product.price, "quantity": qty}]
+    "items": [item]
   } | tojson }}</script>
   {% else %}
   <h1>付款沒有完成</h1>

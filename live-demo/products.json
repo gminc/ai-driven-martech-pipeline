@@ -37,16 +37,23 @@
       "price": 180,
       "compare_at_price": 220,
       "badge": "經典款",
-      "image": "img/sock-crew.svg",
-      "gallery": ["img/sock-crew.svg", "img/sock-crew-detail.svg"],
+      "image": "img/sock-crew.jpg",
+      "gallery": [
+        "img/sock-crew.jpg",
+        "img/sock-crew-detail.jpg"
+      ],
       "summary": "中等厚度、透氣舒適，適合外出與日常穿搭。",
       "details": "精梳棉混紡 · 成人中性尺寸 · 台灣織造",
       "story": "襪口採用低張力羅紋，脫下後腳踝不留一圈壓痕；腳趾以平織手法收邊，減少走一整天後的摩擦感。",
       "material": "精梳棉 78%、聚酯纖維 20%、彈性纖維 2%",
-      "size": "適合足長 23–27 cm",
+      "size": "適合足長 22–28 cm，共 S / M / L 三種尺寸",
       "care": "30°C 以下溫水手洗或洗衣袋機洗，不可漂白，陰乾",
       "made_in": "彰化社頭",
-      "colors": ["霧灰綠", "原棉白", "焙茶棕"]
+      "size_options": [
+        "S 22-24 cm",
+        "M 24-26 cm",
+        "L 26-28 cm"
+      ]
     },
     {
       "id": "sock-towel-training",
@@ -56,16 +63,22 @@
       "price": 260,
       "compare_at_price": null,
       "badge": "運動選用",
-      "image": "img/sock-towel.svg",
-      "gallery": ["img/sock-towel.svg", "img/sock-towel-detail.svg"],
+      "image": "img/sock-towel.jpg",
+      "gallery": [
+        "img/sock-towel.jpg",
+        "img/sock-towel-detail.jpg"
+      ],
       "summary": "厚底毛巾結構，重訓時穩定、耐穿。",
       "details": "毛巾底加厚 · 成人中性尺寸 · 台灣織造",
       "story": "腳掌下方織入高密度毛圈，硬舉與深蹲時腳掌不會在鞋內滑動；足弓處加上一圈織入式支撐帶，久站也不容易累。",
       "material": "精梳棉 72%、尼龍 25%、彈性纖維 3%",
-      "size": "適合足長 24–28 cm",
+      "size": "適合足長 24–28 cm，共 M / L 兩種尺寸",
       "care": "30°C 以下溫水機洗，翻面洗滌以保護毛圈，陰乾",
       "made_in": "彰化社頭",
-      "colors": ["石墨灰", "薰衣紫"]
+      "size_options": [
+        "M 24-26 cm",
+        "L 26-28 cm"
+      ]
     },
     {
       "id": "towel-face-cotton",
@@ -75,16 +88,22 @@
       "price": 220,
       "compare_at_price": null,
       "badge": "每日必備",
-      "image": "img/towel-face.svg",
-      "gallery": ["img/towel-face.svg", "img/towel-face-detail.svg"],
+      "image": "img/towel-face.jpg",
+      "gallery": [
+        "img/towel-face.jpg",
+        "img/towel-face-detail.jpg"
+      ],
       "summary": "柔軟吸水，每天洗臉都舒服。",
       "details": "34 × 76 cm · 純棉 · 台灣織造",
       "story": "以無撚紗織成，纖維之間留有空氣，第一次使用就能吸水，洗過幾次之後會更蓬鬆。邊緣採用細針收邊，不易脫線。",
       "material": "100% 有機棉（無撚紗）",
-      "size": "34 × 76 cm，約 95 g",
+      "size": "標準 34 × 76 cm（約 95 g）；加長 34 × 90 cm",
       "care": "初次使用前單獨洗滌，不使用柔軟精以保留吸水力",
       "made_in": "雲林虎尾",
-      "colors": ["晨霧白", "苔綠"]
+      "size_options": [
+        "標準 34x76 cm",
+        "加長 34x90 cm"
+      ]
     },
     {
       "id": "towel-bath-cotton",
@@ -94,16 +113,22 @@
       "price": 690,
       "compare_at_price": 780,
       "badge": "人氣商品",
-      "image": "img/towel-bath.svg",
-      "gallery": ["img/towel-bath.svg", "img/towel-bath-detail.svg"],
+      "image": "img/towel-bath.jpg",
+      "gallery": [
+        "img/towel-bath.jpg",
+        "img/towel-bath-detail.jpg"
+      ],
       "summary": "大尺寸、厚實包覆，洗完澡的第一份溫暖。",
       "details": "70 × 140 cm · 純棉 · 台灣織造",
       "story": "雙面毛圈讓浴巾兩面都能擦，厚度控制在 480 g 上下——足夠包覆，又不會厚到洗完晾不乾。",
       "material": "100% 有機棉",
-      "size": "70 × 140 cm，約 480 g",
+      "size": "標準 70 × 140 cm（約 480 g）；加大 80 × 160 cm",
       "care": "30°C 以下機洗，不使用柔軟精，可低溫烘乾",
       "made_in": "雲林虎尾",
-      "colors": ["原棉白", "燕麥"]
+      "size_options": [
+        "標準 70x140 cm",
+        "加大 80x160 cm"
+      ]
     },
     {
       "id": "set-starter",
@@ -113,16 +138,22 @@
       "price": 890,
       "compare_at_price": 1020,
       "badge": "組合省 130",
-      "image": "img/set-starter.svg",
-      "gallery": ["img/set-starter.svg", "img/set-starter-detail.svg"],
+      "image": "img/set-starter.jpg",
+      "gallery": [
+        "img/set-starter.jpg",
+        "img/hero-weave.jpg"
+      ],
       "summary": "中筒襪兩雙＋洗臉毛巾兩條，送禮自用都合適。",
       "details": "組合內容可能依庫存調整 · 台灣織造",
       "story": "想先認識我們的話，從這組開始最剛好：一雙上班穿、一雙在家穿，兩條毛巾一條放浴室、一條放健身包。附素面紙盒，可直接送人。",
       "material": "依組合內單品材質",
-      "size": "中筒襪 23–27 cm、毛巾 34 × 76 cm",
+      "size": "中筒襪 24–28 cm、洗臉毛巾 34 × 76 cm",
       "care": "依各單品洗滌方式",
       "made_in": "彰化社頭 × 雲林虎尾",
-      "colors": ["綜合配色"]
+      "size_options": [
+        "襪款 M 24-26 cm",
+        "襪款 L 26-28 cm"
+      ]
     }
   ],
   "campaigns": [
@@ -135,13 +166,17 @@
       "promotion_name": "秋日棉織專案",
       "creative_name": "autumn-cotton-hero",
       "creative_slot": "lp_hero",
-      "hero_image": "img/campaign-autumn.svg",
+      "hero_image": "img/towel-bath.jpg",
       "bullets": [
         "無撚紗織法，洗過越多次越蓬鬆",
         "低敏染整，敏感肌與嬰幼兒都適用",
         "彰化社頭與雲林虎尾的老廠，低速織機慢慢織"
       ],
-      "product_ids": ["towel-face-cotton", "sock-crew-daily", "set-starter"]
+      "product_ids": [
+        "towel-face-cotton",
+        "sock-crew-daily",
+        "set-starter"
+      ]
     },
     {
       "slug": "training-socks",
@@ -152,13 +187,16 @@
       "promotion_name": "重訓襪專案",
       "creative_name": "training-socks-hero",
       "creative_slot": "lp_hero",
-      "hero_image": "img/campaign-training.svg",
+      "hero_image": "img/sock-towel-detail.jpg",
       "bullets": [
         "腳掌高密度毛圈，出力時不打滑",
         "織入式足弓支撐帶，久站不易累",
         "腳趾平織接縫，長時間穿不磨腳"
       ],
-      "product_ids": ["sock-towel-training", "sock-crew-daily"]
+      "product_ids": [
+        "sock-towel-training",
+        "sock-crew-daily"
+      ]
     }
   ]
 }

@@ -12,7 +12,7 @@ Day 01 提過本系列採用「雙軌資料架構」：軌道 B 用合成器灌�
 
 今日核心交付目標：
 
-1. 以 **Cloud Run 單一服務** 部署一個有品牌故事、商品詳情頁與活動著陸頁的紡織小店 Live Demo（襪子、毛巾、浴巾共 5 款）。
+1. 以 **Cloud Run 單一服務** 部署一個有品牌故事、商品詳情頁與活動著陸頁的紡織小店 Live Demo（襪子、毛巾、浴巾與一組入門組合，共 5 款）。
 2. 串接 **綠界 ECPay 測試環境**，由伺服器計算金額與 CheckMacValue，並驗證付款回呼。
 3. 埋設 **GA4 電子商務四大事件**：`view_item_list`、`view_item`、`begin_checkout`、`purchase`，並規劃每日匯出到 BigQuery。
 
@@ -33,7 +33,7 @@ Day 01 提過本系列採用「雙軌資料架構」：軌道 B 用合成器灌�
 💡 **核心工程理念**：
 
 1. **一個容器搞定前後台**：Cloud Run 上只跑一個 Flask 服務，同時負責商品頁、結帳簽章、付款通知與感謝頁。不需要另外架資料庫或 Functions，部署、權限與成本都只有一份。
-2. **金額只相信伺服器**：價格寫在伺服器端的 `products.json`，前端只能傳「商品 ID」與「數量」，金額與簽章都在後台計算，使用者改網址也改不了價錢。
+2. **金額只相信伺服器**：價格寫在伺服器端的 `products.json`，前端只能傳「商品 ID」、「數量」與「尺寸」，三者都要通過伺服器端的白名單驗證，金額與簽章一律在後台計算，使用者改網址也改不了價錢。
 3. **事件與金流分工**：瀏覽器上的 `gtag` 事件直送 GA4，負責行為分析；綠界的付款通知打到伺服器，寫進 Cloud Logging，負責「真的有付款」的紀錄。兩邊用同一個訂單編號對帳。
 4. **沒人造訪就不收費**：Cloud Run 最少 0 個執行個體、請求制計費，展示站閒置時費用為零；最多 2 個執行個體，避免被灌流量時燒錢。
 
@@ -46,7 +46,10 @@ Day 01 提過本系列採用「雙軌資料架構」：軌道 B 用合成器灌�
 | `/about` | 品牌故事、三大工藝主張、常見問題 | 瀏覽深度、跳出率對照 |
 | `/lp/<活動代號>` | 活動著陸頁 | Day 18 落地頁與廣告素材一致性 |
 | `/checkout/<商品 ID>` | 產生綠界簽章表單 | 結帳事件 |
-| `/ecpay/return`、`/ecpay/result` | 付款通知與感謝頁 | 購買事件與付款紀錄 |
+| `/ecpay/return`、`/ecpay/result` | 付款通知與感謝頁（**僅接受 POST**，手動用瀏覽器開會得到 405） | 購買事件與付款紀錄 |
+| `/health` | 健康檢查，回 `{"status":"ok"}` | 部署驗證（為什麼不是 `/healthz` 見第 6 章） |
+
+**商品圖怎麼來？** 這是一個虛構品牌，沒有實拍素材可用，所以商品與情境照都是在本機用 [Pollinations.ai](https://pollinations.ai/)（Flux 模型，免金鑰）生成後，壓成 JPEG 直接放進 `static/img/`：商品與情境照約 40–75 KB，全幅主視覺 325 KB（手機版另備一張 78 KB 的窄版），整個 `static/img/` 合計約 960 KB，沒有任何外部圖床。圖上保留生成服務的浮水印，一方面是對生成來源誠實，另一方面也提醒讀者：這是展示站，不是真的在賣東西。要注意的是，Day 14 之後要做素材特徵抽取時，這種「同一組提示詞產出的圖」變異度偏低，到時候會再補一批風格差異更大的素材。
 
 程式碼全部放在儲存庫的 `live-demo/` 目錄：
 
@@ -58,7 +61,7 @@ live-demo/
 ├── products.json        # 品牌文案、5 款商品、2 檔活動
 ├── templates/           # base 版型、首頁、商品頁、品牌頁、活動頁、感謝頁
 ├── static/analytics.js  # GA4 電子商務事件埋設
-├── static/img/          # 商品與情境插圖（SVG，無外部資源）
+├── static/img/          # 商品與情境照片（本機產圖後壓成 JPEG，無外部資源）
 ├── tests/               # pytest：官方範例驗章、路由與防竄改測試
 └── Dockerfile           # python:3.12-slim + gunicorn
 ```
@@ -73,21 +76,28 @@ live-demo/
 
 ```json
 {
-  "id": "sock-towel-training",
+  "id": "sock-towel-training",           // 節錄，完整欄位見 products.json
   "name": "厚底毛巾訓練襪",
   "subtitle": "毛圈底 × 足弓支撐",
   "category": "襪子",
   "price": 260,
-  "image": "img/sock-towel.svg",
-  "gallery": ["img/sock-towel.svg", "img/sock-towel-detail.svg"],
+  "image": "img/sock-towel.jpg",
+  "gallery": ["img/sock-towel.jpg", "img/sock-towel-detail.jpg"],
+  "summary": "毛圈底吸震，久站或重訓都撐得住。",
+  "details": "毛圈厚底 · 足弓彈性帶 · 台灣織造",
   "material": "精梳棉 72%、尼龍 25%、彈性纖維 3%",
-  "size": "適合足長 24–28 cm",
+  "size": "適合足長 24–28 cm，共 M / L 兩種尺寸",
+  "size_options": ["M 24-26 cm", "L 26-28 cm"],
   "care": "30°C 以下溫水機洗，翻面洗滌以保護毛圈，陰乾",
   "made_in": "彰化社頭"
 }
 ```
 
-`catalog.py` 載入時會檢查商品 ID 不可重複、活動代號不可重複、活動指到的商品必須存在、價格必須為正整數；數量只接受 1 到 5，其他任何輸入（空白、負數、小數、文字）一律視為 1。這些檢查放在啟動時，設定寫錯會讓容器直接起不來，而不是等到使用者結帳才出錯。之後 Day 05 的合成器也會沿用同一份商品 ID，讓真實事件與模擬日誌可以直接 JOIN。
+`size_options` 是詳情頁上唯一可以挑的商品變體。這裡刻意不做「顏色」而做「尺寸」，因為顏色一旦可選，圖片就得跟著換，對一個只想驗證資料流的 Demo 站來說是不必要的成本；尺寸則可以共用同一組照片，卻一樣能產生「同商品、不同變體」的事件，剛好對應 GA4 電子商務的 `item_variant` 欄位。
+
+驗證同樣只信伺服器端：`Product.resolve_size()` 只接受清單內的字串，網址上塞任何自己寫的尺寸都會退回預設值，不會被原封不動帶進金流參數。
+
+`catalog.py` 載入時會檢查商品 ID 不可重複、活動代號不可重複、活動指到的商品必須存在、價格必須為正整數、每個商品至少要有一個且不重複的尺寸選項；數量只接受 1 到 5，其他任何輸入（空白、負數、小數、文字）一律視為 1。這些檢查放在啟動時，設定寫錯會讓容器直接起不來，而不是等到使用者結帳才出錯。之後 Day 05 的合成器也會沿用同一份商品 ID，讓真實事件與模擬日誌可以直接 JOIN。
 
 ## 3.2 綠界測試金流：伺服器簽章與雙重回呼
 
@@ -104,7 +114,7 @@ live-demo/
 7. 綠界把使用者瀏覽器導回 `OrderResultURL`（`/ecpay/result`），同樣帶著付款結果與簽章。
 8. 伺服器驗章、確認 `RtnCode` 為 `1`、金額等於目錄價 × 數量、訂單編號格式與時間合理，全部通過才在感謝頁輸出購買資料，觸發 GA4 `purchase`。
 
-組參數的核心程式碼如下（`ecpay.py`）：
+組參數的核心程式碼如下（`ecpay.py`，節錄）：
 
 ```python
 params = {
@@ -114,23 +124,31 @@ params = {
     "PaymentType": "aio",
     "TotalAmount": str(int(total_amount)),            # 新台幣整數
     "TradeDesc": "iThome ironman live demo",
-    "ItemName": item_name[:400],
+    "ItemName": item_name[:400],          # 先把綠界的分隔字元 # 與 ^ 換掉再截斷
     "ReturnURL": return_url,              # 伺服器對伺服器通知
     "OrderResultURL": order_result_url,   # 付款完成導回瀏覽器
     "ClientBackURL": client_back_url,
     "ChoosePayment": "Credit",
     "EncryptType": "1",                   # SHA256
     "CustomField1": product_id,           # 自訂欄位：商品 ID
-    "CustomField2": qty,                  # 自訂欄位：數量
+    "CustomField2": f"{qty}|{size_index}",# 自訂欄位：數量與尺寸索引
     "CustomField3": ga_client_id,         # 自訂欄位：GA client_id
     "CustomField4": traffic_source,       # 自訂欄位：utm 來源|媒介|活動
 }
 params["CheckMacValue"] = check_mac_value(params, config.hash_key, config.hash_iv)
 ```
 
-特別說明兩個自訂欄位。`CustomField3` 放 GA4 的 `client_id`，付款通知回來時就能在日誌中知道「這筆付款是哪個 GA 訪客」；`CustomField4` 放進站時記下的 `utm_source|utm_medium|utm_campaign`。後面做歸因分析時，這兩個欄位就是把金流紀錄、行為事件與廣告來源串起來的鑰匙。
+四個自訂欄位在組參數之前就會逐一檢查長度，**超過綠界的 50 字上限直接丟 `ValueError`，而不是靜默截斷**。理由同上：截斷過的欄位回呼時還原不回來，錯誤會延後到付款完成那一刻才爆開；在結帳當下就失敗，至少看得到是哪個欄位出問題。`ItemName` 則是先把 `#` 與 `^` 換成空白再截到 400 字——`#` 是綠界用來分隔多筆商品的字元，品名裡混進去會讓收銀台把一筆訂單顯示成兩筆，金額卻對不上明細，而且簽章照樣有效，不會有任何錯誤提示。
 
-來源是在瀏覽器端記的：訪客第一次帶著 `utm_` 參數進站時，`analytics.js` 會把來源寫進 `sessionStorage`，結帳時再塞進表單的隱藏欄位送回伺服器。伺服器只接受 `[A-Za-z0-9_.|-]` 且長度 50 以內的字串，其餘一律視為空值，避免有人塞奇怪的內容進金流參數。
+綠界只給四個自訂欄位，所以 `CustomField2` 用 `數量|尺寸索引` 的格式一次塞進兩件事，回呼時再用 `partition("|")` 拆開。
+
+這裡有個容易踩到的設計取捨：**自訂欄位裡放的是尺寸的「索引」，不是「加大 80x160 cm」這串中文**。因為自訂欄位的原字串會被納入 CheckMacValue，而驗章是拿回呼帶回來的字面值重算的——只要金流端在任何一個環節對中文或半形空白做過正規化（去掉尾端空白、空白轉 `+`、回傳 percent-encoded 值），簽章就對不起來，整筆付款會在感謝頁被判定失敗，而且失敗得很安靜。純 ASCII 數字沒有這個風險，也順便不可能超過 50 字上限。
+
+還原時用的是 `Product.size_by_index()`，**索引不合法就回空字串，絕不退回預設尺寸**。這跟結帳入口的 `resolve_size()`（不合法退回預設值）是刻意相反的策略：入口端要的是「別讓前端塞任意字串進金流」，回呼端要的是「拿不回真實資料時寧可少顯示，也不要猜一個值當成客人買到的東西」——猜錯的後果是 GA4 把加大款的營收算到標準款頭上，而且沒有任何告警。
+
+特別說明另外兩個自訂欄位。`CustomField3` 放 GA4 的 `client_id`，付款通知回來時就能在日誌中知道「這筆付款是哪個 GA 訪客」；`CustomField4` 放進站時記下的 `utm_source|utm_medium|utm_campaign`。後面做歸因分析時，這兩個欄位就是把金流紀錄、行為事件與廣告來源串起來的鑰匙。
+
+來源是在瀏覽器端記的：訪客帶著 `utm_` 參數進站時，`analytics.js` 就把來源寫進 `sessionStorage`（同一個工作階段內以最後一次為準，也就是 last-touch），結帳時再塞進表單的隱藏欄位送回伺服器。伺服器只接受 `[A-Za-z0-9_.|-]` 且長度 50 以內的字串，其餘一律視為空值，避免有人塞奇怪的內容進金流參數。
 
 ## 3.3 CheckMacValue：讓雙方確認資料沒被竄改
 
@@ -174,7 +192,7 @@ def verify_check_mac_value(params, hash_key, hash_iv):
 `ReturnURL` 的處理原則是：**驗章失敗就不當作付款**。
 
 ```python
-@app.post("/ecpay/return")
+@app.post("/ecpay/return")          # 節錄，實際的 _log 還會帶 TradeNo、PaymentDate 等欄位
 def ecpay_return():
     data = request.form.to_dict()
     verified = ecpay.verify_check_mac_value(data, config.hash_key, config.hash_iv)
@@ -186,6 +204,8 @@ def ecpay_return():
         return "0|CheckMacValue Error", 400
     return "1|OK", 200
 ```
+
+這個端點是公開的，任何人都能對它送 POST，所以 app 層設了 `MAX_CONTENT_LENGTH = 64 KB`，寫進日誌的自訂欄位也都先截到 60 字——不然有人拿它灌 Cloud Logging，帳單會替我們記住這件事。
 
 `_log` 會輸出一行 JSON 到標準輸出，Cloud Run 自動收進 Cloud Logging，並解析成可以查詢的 `jsonPayload` 欄位。本篇先不建資料庫，付款紀錄就放在日誌裡，之後的章節再決定要不要匯入 BigQuery。
 
@@ -200,10 +220,10 @@ def ecpay_return():
 | 事件 | 觸發時機 | 關鍵參數 |
 | --- | --- | --- |
 | `view_item_list` | 任何有商品列表的頁面載入（首頁、活動頁、相關商品） | `item_list_id`、`item_list_name`、`items` |
-| `select_item` | 點擊商品卡片 | `item_list_id`、`items` |
+| `select_item` | 點擊商品卡片 | `item_list_id`、`item_list_name`、`items` |
 | `view_item` | 商品詳情頁載入 | `currency`、`value`、`items` |
 | `view_promotion` / `select_promotion` | 活動著陸頁載入 / 點擊活動按鈕 | `promotion_id`、`promotion_name`、`creative_name`、`creative_slot` |
-| `begin_checkout` | 按下「前往結帳」 | `value` = 單價 × 數量、`items[].quantity` |
+| `begin_checkout` | 按下「前往結帳」 | `value` = 單價 × 數量、`items[].quantity`、`items[].item_variant` = 勾選的尺寸 |
 | `purchase` | 驗章成功的感謝頁 | `transaction_id`、`value`、`currency`、`items` |
 
 `item_list_id` 會隨著列表位置變化（`home_all`、`lp_autumn-cotton`、`related_<商品 ID>`），之後就能回答「從活動頁點進去的人，最後買了什麼」這種問題。`view_promotion` 與 `creative_name` 則是 Day 18 比對「廣告素材」與「落地頁」的接點。
@@ -212,6 +232,13 @@ def ecpay_return():
 
 ```javascript
 form.addEventListener("submit", function (event) {
+  var qty = parseInt(form.querySelector("select[name=qty]").value, 10) || 1;
+  var checkoutItem = Object.assign({}, buyItem, { quantity: qty, item_variant: selectedSize() });
+  // 沒有 GA 就別攔表單：gtag 不存在時 preventDefault 會讓結帳永遠送不出去
+  if (!enabled) {
+    track("begin_checkout", { currency: config.currency, value: buyItem.price * qty, items: [checkoutItem] });
+    return;
+  }
   event.preventDefault();
   var submitted = false;
   function go() { if (!submitted) { submitted = true; form.submit(); } }
@@ -220,7 +247,7 @@ form.addEventListener("submit", function (event) {
     form.querySelector("input[name=cid]").value = clientId || "";
     window.gtag("event", "begin_checkout", {
       currency: config.currency,
-      value: item.price * qty,
+      value: buyItem.price * qty,
       items: [checkoutItem],
       event_callback: go          // 事件送出後才跳轉
     });
@@ -232,6 +259,7 @@ form.addEventListener("submit", function (event) {
 - 先用 `gtag('get', ..., 'client_id')` 取得訪客 ID，帶到伺服器寫進綠界的 `CustomField3`。
 - 用 `event_callback` 等事件送出後再跳轉，避免頁面離開時事件遺失。
 - 加上 1.2 秒的保底計時器，就算廣告攔截器擋掉 GA，結帳也不會卡住。**追蹤是為了生意服務，不能反過來擋住生意。**
+- 最前面那段 `if (!enabled)` 同樣重要：沒設定 GA4 時 `window.gtag` 根本不存在，少了這道判斷，`preventDefault()` 之後的 `gtag(...)` 會直接丟例外，連 `setTimeout` 保底都來不及註冊，表單就永遠送不出去了。
 
 `purchase` 則完全由伺服器決定是否輸出。只有驗章成功、`RtnCode` 為 `1` 的感謝頁，才會在頁面中放入購買資料：
 
@@ -254,7 +282,7 @@ GA4 收到的事件，可以透過官方「BigQuery 連結」每天匯出一次�
 - 匯出位置選 **美國（US）**，和 Day 03 建立的 `martech_dw` 資料集位置一致，之後才能在同一個查詢中 JOIN。
 - 系統會自動建立資料集 `analytics_<資源 ID>`，每天產生一張 `events_YYYYMMDD` 事件表。
 - **只勾選「每日」匯出**：每日匯出不收匯出費（標準版資源每天上限 100 萬個事件，展示站遠遠用不到）；「串流」匯出需另外付費，本系列不需要。
-- 建立連結需要兩個權限：GA4 資源的「編輯者」以上，以及 Google Cloud 專案的「擁有者」。
+- 建立連結需要兩個權限：GA4 資源的「編輯者」以上，以及 Google Cloud 專案的「擁有者」（或官方列出的那組最小權限：`resourcemanager.projects.get`／`getIamPolicy`／`setIamPolicy` 與 `serviceusage.services.enable`／`get`）。
 - 「使用者資料」的每日匯出本篇用不到，可以先不開。
 
 💡 **建議今天就把連結建好**：BigQuery 匯出只從建立連結的那天開始累積，**不會回溯**過去的事件。越早接上，Day 05 之後的歸因分析就有越多真實資料可以用。剛建立連結時在 BigQuery 看不到 `analytics_<資源 ID>` 資料集是正常的，要等網站開始送事件、隔天左右才會出現；想立即確認埋設是否成功，請看 GA4 的即時報表，不要等 BigQuery。
@@ -323,7 +351,7 @@ pip install -r requirements-dev.txt
 python -m pytest -q tests
 ```
 
-- ✅ **成功的樣子**：看到 `20 passed`。其中包含以綠界官方範例驗證 CheckMacValue、竄改金額必須驗章失敗、`ReturnURL` 只有簽章正確才回 `1|OK`、自行算出簽章但金額不符也不送 `purchase`、活動頁帶出正確的 `promotion_id` 等測試。
+- ✅ **成功的樣子**：看到 `26 passed`。其中包含以綠界官方範例驗證 CheckMacValue、竄改金額必須驗章失敗、`ReturnURL` 只有簽章正確才回 `1|OK`、自行算出簽章但金額不符也不送 `purchase`、活動頁帶出正確的 `promotion_id`、尺寸只接受目錄內的值、回呼還原不出尺寸時不會拿預設值冒充、樣板與 CSS 引用的圖片檔都真的存在等測試。
 
 ### 步驟 2：用模擬結帳先看畫面
 

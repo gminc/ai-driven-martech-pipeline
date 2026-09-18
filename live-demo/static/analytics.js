@@ -96,9 +96,14 @@
   var form = detail ? detail.querySelector(".checkout-form") : null;
   if (form) {
     var buyItem = readItem(detail);
+    function selectedSize() {
+      var picked = form.querySelector("input[name=size]:checked");
+      return picked ? picked.value : buyItem.item_variant || "";
+    }
     form.addEventListener("submit", function (event) {
       var qty = parseInt(form.querySelector("select[name=qty]").value, 10) || 1;
-      var checkoutItem = Object.assign({}, buyItem, { quantity: qty });
+      // item_variant 用實際勾選的尺寸，才對得上綠界 CustomField2 回傳的那一筆
+      var checkoutItem = Object.assign({}, buyItem, { quantity: qty, item_variant: selectedSize() });
       var srcField = form.querySelector("input[name=src]");
       if (srcField) { srcField.value = trafficSource(); }
       if (!enabled) {

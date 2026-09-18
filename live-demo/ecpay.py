@@ -40,13 +40,20 @@ def stage_config() -> EcpayConfig:
     return EcpayConfig(STAGE_MERCHANT_ID, STAGE_HASH_KEY, STAGE_HASH_IV, STAGE_ACTION_URL)
 
 
+def dotnet_urlencode(raw: str) -> str:
+    """比照綠界（.NET HttpUtility.UrlEncode）的規則編碼：
+
+    空白轉「+」，「-_.!*()」不編碼，Python 不編的「~」要補成 %7E，最後整串轉小寫。
+    """
+    return urllib.parse.quote_plus(raw, safe=_DOTNET_SAFE_CHARS).replace("~", "%7E").lower()
+
+
 def check_mac_value(params: dict[str, str], hash_key: str, hash_iv: str) -> str:
     """依綠界規則計算 CheckMacValue（SHA256，大寫十六進位）。"""
     fields = {k: str(v) for k, v in params.items() if k != "CheckMacValue"}
     ordered = "&".join(f"{k}={fields[k]}" for k in sorted(fields, key=str.lower))
     raw = f"HashKey={hash_key}&{ordered}&HashIV={hash_iv}"
-    # Python 不編碼「~」，但綠界（.NET / PHP）會編成 %7E，這裡補齊以免含「~」的參數驗章失敗
-    encoded = urllib.parse.quote_plus(raw, safe=_DOTNET_SAFE_CHARS).replace("~", "%7E").lower()
+    encoded = dotnet_urlencode(raw)
     return hashlib.sha256(encoded.encode("utf-8")).hexdigest().upper()
 
 
@@ -93,6 +100,12 @@ def build_order_params(
     """組出 AioCheckOut/V5 所需參數（含 CheckMacValue）。金額一律由伺服器決定。"""
     if total_amount <= 0:
         raise ValueError("total_amount 必須為正整數")
+    # 綠界以 # 分隔多筆商品、^ 為保留字元，品名混進去會讓收銀台把一筆拆成兩筆
+    item_name = item_name.replace("#", " ").replace("^", " ")
+    # 自訂欄位上限 50 字：寧可在結帳當下就失敗，也不要靜默截斷導致回呼時資料對不回來
+    for i, value in enumerate(custom_fields, 1):
+        if len(value) > 50:
+            raise ValueError(f"CustomField{i} 超過綠界 50 字上限：{len(value)}")
     now = now or datetime.now(TAIPEI)
     params = {
         "MerchantID": config.merchant_id,
@@ -107,10 +120,10 @@ def build_order_params(
         "ClientBackURL": client_back_url,
         "ChoosePayment": "Credit",
         "EncryptType": "1",
-        "CustomField1": custom_fields[0][:50],
-        "CustomField2": custom_fields[1][:50],
-        "CustomField3": custom_fields[2][:50],
-        "CustomField4": custom_fields[3][:50],
+        "CustomField1": custom_fields[0],
+        "CustomField2": custom_fields[1],
+        "CustomField3": custom_fields[2],
+        "CustomField4": custom_fields[3],
     }
     params["CheckMacValue"] = check_mac_value(params, config.hash_key, config.hash_iv)
     return params

@@ -1,14 +1,16 @@
 {% extends "base.html" %}
 {% from "_card.html" import product_card %}
-{% block content %}
+{% block fullbleed %}
 <section class="hero-banner">
   <div class="hero-banner-inner">
     <p class="eyebrow eyebrow-light">{{ brand.location }}</p>
-    <h1>把每天碰到皮膚的那幾件，織得好一點</h1>
+    <h1><span class="line">擦拭時的純淨蓬鬆</span><span class="line">行走時的溫柔包覆</span></h1>
     <a class="button button-light" href="#products">看看商品</a>
   </div>
 </section>
+{% endblock %}
 
+{% block content %}
 <section id="products" class="section">
   <div class="section-head">
     <h2>全部商品</h2>
@@ -27,7 +29,7 @@
   <div class="campaign-row">
     {% for c in campaigns %}
     <a class="campaign-card" href="{{ url_for('landing', slug=c.slug) }}">
-      <img src="{{ url_for('static', filename=c.hero_image) }}" alt="{{ c.name }}" width="640" height="360" loading="lazy">
+      <img src="{{ url_for('static', filename=c.hero_image) }}" alt="{{ c.name }}" width="640" height="480" loading="lazy">
       <div>
         <h3>{{ c.name }}</h3>
         <p>{{ c.subhead }}</p>

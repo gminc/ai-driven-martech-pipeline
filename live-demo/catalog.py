@@ -1,6 +1,6 @@
 """商品目錄：從 products.json 載入品牌、商品與活動資料。
 
-價格與品名一律以伺服器端資料為準，前端只能傳商品 ID 與數量。
+價格與品名一律以伺服器端資料為準，前端只能傳商品 ID、數量與尺寸，三者都要通過白名單驗證。
 """
 
 from __future__ import annotations
@@ -31,7 +31,29 @@ class Product:
     size: str
     care: str
     made_in: str
-    colors: tuple[str, ...]
+    # 可選尺寸：第一個為預設值，結帳時只接受清單內的字串
+    size_options: tuple[str, ...]
+
+    def has_size(self, value: str) -> bool:
+        return value in self.size_options
+
+    def resolve_size(self, raw: str | None) -> str:
+        """結帳入口用：回傳合法尺寸；傳入空值或不在清單內時，一律退回預設尺寸。"""
+        raw = (raw or "").strip()
+        fallback = self.size_options[0] if self.size_options else ""
+        return raw if self.has_size(raw) else fallback
+
+    def size_index(self, value: str) -> int:
+        """尺寸在清單中的位置；送進金流自訂欄位的是這個數字，不是中文字串。"""
+        return self.size_options.index(value) if self.has_size(value) else 0
+
+    def size_by_index(self, raw: str) -> str:
+        """回呼用：把索引還原成尺寸。不合法一律回空字串，絕不猜預設值。"""
+        raw = (raw or "").strip()
+        if not raw.isdigit():
+            return ""
+        index = int(raw)
+        return self.size_options[index] if index < len(self.size_options) else ""
 
 
 @dataclass(frozen=True)
@@ -112,7 +134,7 @@ def load_catalog(path: Path = CATALOG_PATH) -> Catalog:
             size=item.get("size", ""),
             care=item.get("care", ""),
             made_in=item.get("made_in", ""),
-            colors=tuple(item.get("colors") or ()),
+            size_options=tuple(item.get("size_options") or ()),
         )
         for item in data["products"]
     )
@@ -121,6 +143,11 @@ def load_catalog(path: Path = CATALOG_PATH) -> Catalog:
         raise ValueError("products.json 內有重複的商品 id")
     if any(p.price <= 0 for p in products):
         raise ValueError("商品價格必須為正整數")
+    for product in products:
+        if not product.size_options:
+            raise ValueError(f"商品 {product.id} 至少要有一個尺寸選項")
+        if len(product.size_options) != len(set(product.size_options)):
+            raise ValueError(f"商品 {product.id} 的尺寸選項重複")
 
     pillars = tuple(Pillar(**item) for item in data.get("pillars", []))
     campaigns = tuple(

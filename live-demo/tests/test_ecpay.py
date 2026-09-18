@@ -35,8 +35,9 @@ def test_verify_round_trip_and_tamper():
 def test_merchant_trade_no_length_and_uniqueness():
     now = datetime(2026, 9, 18, 9, 30, 15, tzinfo=ecpay.TAIPEI)
     numbers = {ecpay.new_merchant_trade_no(now) for _ in range(50)}
-    assert all(len(n) <= 20 and n.isalnum() for n in numbers)
-    assert len(numbers) > 1
+    assert all(len(n) == 20 and n.isalnum() and ecpay.TRADE_NO_PATTERN.match(n) for n in numbers)
+    # 同一秒的亂數只有 16 bits，50 筆理論上有約 2% 機率撞到一次；展示站流量下可接受
+    assert len(numbers) >= 48
 
 
 def test_build_order_params_contains_required_fields():
@@ -63,15 +64,12 @@ def test_build_order_params_rejects_non_positive_amount():
         )
 
 
-def test_tilde_is_encoded_like_dotnet():
-    base = dict(OFFICIAL_EXAMPLE, ItemName="a~b")
-    mac = ecpay.check_mac_value(base, ecpay.STAGE_HASH_KEY, ecpay.STAGE_HASH_IV)
-    import hashlib, urllib.parse
-    fields = sorted(base, key=str.lower)
-    raw = "HashKey=%s&%s&HashIV=%s" % (ecpay.STAGE_HASH_KEY, "&".join(f"{k}={base[k]}" for k in fields), ecpay.STAGE_HASH_IV)
-    encoded = urllib.parse.quote_plus(raw, safe="-_.!*()").replace("~", "%7E").lower()
-    assert "%7e" in encoded
-    assert mac == hashlib.sha256(encoded.encode()).hexdigest().upper()
+def test_dotnet_urlencode_matches_ecpay_rule():
+    """期望值依綠界文件的 .NET UrlEncode 規則逐字寫死，不是拿實作再算一次。"""
+    assert ecpay.dotnet_urlencode("a~b c*d!e(f)g-h_i.j") == "a%7eb+c*d!e(f)g-h_i.j"
+    # UTF-8 逐位元組轉小寫百分號編碼：純 = E7 B4 94、棉 = E6 A3 89
+    assert ecpay.dotnet_urlencode("純棉 34x76") == "%e7%b4%94%e6%a3%89+34x76"
+    assert ecpay.dotnet_urlencode("a/b?c=d&e") == "a%2fb%3fc%3dd%26e"
 
 
 def test_trade_no_is_recent():

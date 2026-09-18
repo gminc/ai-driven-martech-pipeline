@@ -39,7 +39,7 @@
   <rect width="1200" height="620" rx="12" class="bg"/>
   <rect x="1" y="1" width="1198" height="618" rx="12" class="outer"/>
   <text x="40" y="46" class="title">GA4 電子商務事件漏斗：從曝光到購買的五個埋設點</text>
-  <text x="40" y="72" class="subtitle">事件名稱與參數依 GA4 建議事件規格；item_list_id 記錄商品是從哪個列表點進去的，purchase 以綠界訂單編號作為 transaction_id</text>
+  <text x="40" y="72" class="subtitle">事件名稱與參數依 GA4 建議事件規格；item_list_id 記錄商品是從哪個列表點進去的，purchase 以綠界訂單編號作為 transaction_id；活動頁另有 view_promotion／select_promotion 分支</text>
   <rect x="40" y="100" width="208" height="300" rx="8" class="card"/>
   <path d="M41 144 V109 a8 8 0 0 1 8 -8 H239 a8 8 0 0 1 8 8 V144 Z" class="head"/>
   <rect x="54" y="113" width="44.0" height="20" rx="4" class="badge"/>
@@ -72,7 +72,7 @@
   <text x="518" y="228" class="label">觸發：商品頁載入</text>
   <text x="518" y="258" class="body">• currency: TWD</text>
   <text x="518" y="284" class="body">• value: 單價</text>
-  <text x="518" y="310" class="body">• 另有 view_promotion</text>
+  <text x="518" y="310" class="body">• item_variant: 尺寸</text>
   <path d="M714 250 L734 250" class="arrow" marker-end="url(#ah)"/>
   <rect x="736" y="100" width="208" height="300" rx="8" class="card"/>
   <path d="M737 144 V109 a8 8 0 0 1 8 -8 H935 a8 8 0 0 1 8 8 V144 Z" class="head"/>

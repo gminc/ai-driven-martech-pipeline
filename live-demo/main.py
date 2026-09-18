@@ -28,6 +28,13 @@ logging.basicConfig(stream=sys.stdout, level=logging.INFO, format="%(message)s")
 logger = logging.getLogger("live-demo")
 
 
+def split_qty_size(raw: str | None) -> tuple[int, str]:
+    """把綠界 CustomField2 的「數量|尺寸索引」拆回兩段；格式不符時索引為空字串。"""
+    text = raw or ""
+    qty_text, _, index_text = text.partition("|")
+    return catalog_mod.parse_quantity(qty_text), index_text.strip()
+
+
 def _log(event: str, **fields: object) -> None:
     """輸出一行 JSON，Cloud Run 會自動收進 Cloud Logging 的 jsonPayload。"""
     logger.info(json.dumps({"severity": "INFO", "event": event, **fields}, ensure_ascii=False))
@@ -38,6 +45,8 @@ def create_app() -> Flask:
     # Cloud Run 前面有 Google Front End，需信任一層代理的 X-Forwarded-Proto 才能產生正確的 https 網址。
     # 只信任 proto，不信任 host，避免使用者自帶 X-Forwarded-Host 竄改回呼網址。
     app.wsgi_app = ProxyFix(app.wsgi_app, x_proto=1)
+    # /ecpay/return 是公開端點，限制 body 大小避免有人拿它灌 Cloud Logging
+    app.config["MAX_CONTENT_LENGTH"] = 64 * 1024
 
     shop = catalog_mod.load_catalog()
     ga_id = os.environ.get("GA_MEASUREMENT_ID", "").strip()
@@ -73,8 +82,7 @@ def create_app() -> Flask:
 
     @app.get("/")
     def index():
-        featured = shop.products[:4]
-        return render_template("index.html", featured=featured, page_kind="home")
+        return render_template("index.html", page_kind="home")
 
     # 注意：Cloud Run 保留部分以 z 結尾的路徑，常見的 /healthz 會被攔截回 404，所以用 /health
     @app.get("/health")
@@ -112,6 +120,8 @@ def create_app() -> Flask:
         if product is None:
             abort(404)
         qty = catalog_mod.parse_quantity(request.args.get("qty"))
+        # 尺寸只接受商品目錄內的字串，其餘一律退回預設尺寸
+        size = product.resolve_size(request.args.get("size"))
         cid = request.args.get("cid", "")
         cid = cid if GA_CLIENT_ID_PATTERN.match(cid) else ""
         # src 由前端帶回：進站時記下的 utm_source|utm_medium|utm_campaign
@@ -122,27 +132,29 @@ def create_app() -> Flask:
 
         if payment_mode == "simulate":
             _log("simulated_checkout", merchant_trade_no=trade_no, product_id=product.id,
-                 qty=qty, amount=amount, ga_client_id=cid, traffic_source=src)
+                 qty=qty, size=size, amount=amount, ga_client_id=cid, traffic_source=src)
             return render_template(
                 "thanks.html", success=True, simulated=True, trade_no=trade_no,
-                amount=amount, product=product, qty=qty, page_kind="thanks",
+                amount=amount, product=product, qty=qty, size=size, page_kind="thanks",
             )
 
         params = ecpay.build_order_params(
             config=config,
             merchant_trade_no=trade_no,
             total_amount=amount,
-            item_name=f"{product.name} x {qty}",
+            item_name=f"{product.name} {size} x {qty}",
             return_url=url_for("ecpay_return", _external=True),
             order_result_url=url_for("ecpay_result", _external=True),
             client_back_url=url_for("index", _external=True),
-            custom_fields=(product.id, str(qty), cid, src),
+            # CustomField2 帶「數量|尺寸索引」。刻意只放 ASCII 數字：自訂欄位原字串會進 CheckMacValue，
+            # 一旦金流端對中文或空白做了任何正規化，整筆回呼就會驗章失敗。
+            custom_fields=(product.id, f"{qty}|{product.size_index(size)}", cid, src),
         )
         _log("ecpay_order_created", merchant_trade_no=trade_no, product_id=product.id,
-             qty=qty, amount=amount, ga_client_id=cid, traffic_source=src)
+             qty=qty, size=size, amount=amount, ga_client_id=cid, traffic_source=src)
         return render_template("checkout_redirect.html", action_url=config.action_url,
-                               params=params, product=product, qty=qty, amount=amount,
-                               page_kind="checkout")
+                               params=params, product=product, qty=qty, size=size,
+                               amount=amount, page_kind="checkout")
 
     @app.post("/ecpay/return")
     def ecpay_return():
@@ -158,10 +170,10 @@ def create_app() -> Flask:
             trade_amt=data.get("TradeAmt", ""),
             payment_date=data.get("PaymentDate", ""),
             simulate_paid=data.get("SimulatePaid", ""),
-            product_id=data.get("CustomField1", ""),
-            qty=data.get("CustomField2", ""),
-            ga_client_id=data.get("CustomField3", ""),
-            traffic_source=data.get("CustomField4", ""),
+            product_id=data.get("CustomField1", "")[:60],
+            qty_size=data.get("CustomField2", "")[:60],
+            ga_client_id=data.get("CustomField3", "")[:60],
+            traffic_source=data.get("CustomField4", "")[:60],
             received_at=datetime.now(ecpay.TAIPEI).isoformat(),
         )
         if not verified:
@@ -175,7 +187,9 @@ def create_app() -> Flask:
         verified = ecpay.verify_check_mac_value(data, config.hash_key, config.hash_iv)
         trade_no = data.get("MerchantTradeNo", "")
         product = shop.get(data.get("CustomField1", ""))
-        qty = catalog_mod.parse_quantity(data.get("CustomField2"))
+        qty, size_index = split_qty_size(data.get("CustomField2"))
+        # 還原不出來就留空，寧可少顯示一個欄位，也不要猜一個預設尺寸當成客人買到的東西
+        size = product.size_by_index(size_index) if product is not None else ""
         try:
             amount = int(data.get("TradeAmt", "0"))
         except ValueError:
@@ -186,11 +200,11 @@ def create_app() -> Flask:
         trade_no_recent = ecpay.trade_no_is_recent(trade_no)
         success = verified and data.get("RtnCode") == "1" and amount_match and trade_no_recent
         _log("ecpay_result_page", verified=verified, success=success, amount_match=amount_match,
-             trade_no_recent=trade_no_recent, merchant_trade_no=trade_no,
+             trade_no_recent=trade_no_recent, merchant_trade_no=trade_no, size=size,
              rtn_code=data.get("RtnCode", ""), traffic_source=data.get("CustomField4", ""))
         return render_template(
             "thanks.html", success=success, simulated=False,
-            trade_no=trade_no, amount=amount, product=product, qty=qty,
+            trade_no=trade_no, amount=amount, product=product, qty=qty, size=size,
             rtn_msg=data.get("RtnMsg", ""), page_kind="thanks",
         )
 
