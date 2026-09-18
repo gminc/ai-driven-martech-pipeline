@@ -1,29 +1,12 @@
 {% extends "base.html" %}
 {% from "_card.html" import product_card %}
 {% block content %}
-<section class="hero">
-  <div class="hero-text">
-    <p class="eyebrow">{{ brand.location }}</p>
+<section class="hero-banner">
+  <div class="hero-banner-inner">
+    <p class="eyebrow eyebrow-light">{{ brand.location }}</p>
     <h1>把每天碰到皮膚的那幾件，織得好一點</h1>
-    <p class="lede">{{ brand.lede }}</p>
-    <p class="hero-cta">
-      <a class="button" href="#products">看看商品</a>
-      <a class="text-link" href="{{ url_for('about') }}">我們怎麼織 →</a>
-    </p>
+    <a class="button button-light" href="#products">看看商品</a>
   </div>
-  <div class="hero-media">
-    <img src="{{ url_for('static', filename='img/hero-weave.svg') }}" alt="織布紋理特寫" width="720" height="560">
-  </div>
-</section>
-
-<section class="pillars" aria-label="工藝與材質主張">
-  {% for pillar in shop.pillars %}
-  <article class="pillar">
-    <p class="pillar-en">{{ pillar.title_en }}</p>
-    <h2>{{ pillar.title }}</h2>
-    <p>{{ pillar.body }}</p>
-  </article>
-  {% endfor %}
 </section>
 
 <section id="products" class="section">
@@ -36,20 +19,10 @@
   </div>
 </section>
 
-<section class="story-band">
-  <div>
-    <h2>織一條毛巾，我們會先想它第三十次洗過之後的樣子</h2>
-    <p>{{ brand.story }}</p>
-    <p><a class="text-link" href="{{ url_for('about') }}">認識我們的織造夥伴 →</a></p>
-  </div>
-  <img src="{{ url_for('static', filename='img/loom.svg') }}" alt="低速織機示意" width="520" height="380" loading="lazy">
-</section>
-
 {% if campaigns %}
 <section class="section">
   <div class="section-head">
     <h2>當期專案</h2>
-    <p>依季節與使用情境挑選的組合。</p>
   </div>
   <div class="campaign-row">
     {% for c in campaigns %}

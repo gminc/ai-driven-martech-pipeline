@@ -47,7 +47,7 @@
   <text x="93.0" y="128" class="card-title">瀏覽器（手機 / 桌機）</text>
   <rect x="58" y="164" width="264" height="60" rx="6" class="inner"/>
   <text x="72" y="188" class="label">首頁 / 品牌頁</text>
-  <text x="72" y="209" class="muted">品牌故事、工藝主張、商品列表</text>
+  <text x="72" y="209" class="muted">全幅主視覺、商品列表、品牌故事</text>
   <rect x="58" y="240" width="264" height="60" rx="6" class="inner"/>
   <text x="72" y="264" class="label">商品詳情頁 / 活動著陸頁</text>
   <text x="72" y="285" class="muted">多圖與規格；活動素材與 utm 來源</text>

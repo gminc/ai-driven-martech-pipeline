@@ -34,7 +34,8 @@ def test_index_renders_products_and_gtag(client):
     assert "日常中筒襪" in html and "純棉大浴巾" in html
     assert "googletagmanager.com/gtag/js?id=G-TEST1234" in html
     assert "測試環境" in html
-    assert "原質溯源" in html  # 三大工藝主張
+    assert 'class="hero-banner"' in html  # 首頁是全幅 banner，品牌敘述留在關於頁
+    assert "原質溯源" not in html
     assert 'data-list-id="home_all"' in html
 
 

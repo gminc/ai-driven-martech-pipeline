@@ -32,15 +32,42 @@ a { color: inherit; }
 
 main { max-width: 1120px; margin: 0 auto; padding: 0 24px 72px; }
 
-.hero { display: grid; grid-template-columns: 1fr 1fr; gap: 48px; align-items: center; padding: 64px 0 56px; }
+.hero-banner {
+  /* 全幅去邊：抵銷 main 的左右內距 */
+  position: relative;
+  margin: 0 calc(50% - 50vw) 8px;
+  width: 100vw;
+  min-height: min(76vh, 640px);
+  background-image: url("img/hero-banner.jpg");
+  background-size: cover;
+  background-position: center;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+}
+.hero-banner::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(180deg, rgba(250, 248, 244, .62) 0%, rgba(250, 248, 244, .34) 55%, rgba(250, 248, 244, .10) 100%);
+}
+.hero-banner-inner { position: relative; z-index: 1; padding: 40px 24px; max-width: 780px; }
+.hero-banner h1 {
+  font-family: var(--serif);
+  font-size: clamp(28px, 4.4vw, 50px);
+  line-height: 1.45;
+  font-weight: 600;
+  color: var(--text);
+  margin: 0 0 32px;
+  text-shadow: 0 1px 14px rgba(250, 248, 244, .7);
+}
 .eyebrow { margin: 0 0 12px; color: var(--muted); font-size: 12px; letter-spacing: .24em; text-transform: uppercase; }
-.hero h1 { font-family: var(--serif); font-size: clamp(30px, 4.2vw, 46px); line-height: 1.4; margin: 0 0 20px; font-weight: 600; }
+.eyebrow-light { color: var(--muted); text-shadow: 0 1px 10px rgba(250, 248, 244, .8); }
 .lede { color: var(--muted); font-size: 16px; margin: 0 0 24px; }
-.hero-cta { display: flex; align-items: center; gap: 22px; margin: 0; }
-.hero-media img { border-radius: var(--radius); display: block; }
-
 .button { display: inline-block; background: var(--accent); color: #fff; text-decoration: none; padding: 12px 26px; border-radius: 999px; font-size: 15px; border: 0; cursor: pointer; }
 .button:hover { background: var(--accent-dark); }
+.button-light { padding: 14px 38px; font-size: 16px; box-shadow: 0 6px 20px rgba(43, 39, 35, .18); }
 .text-link { color: var(--accent); text-decoration: none; font-size: 15px; }
 .text-link:hover { text-decoration: underline; }
 
@@ -142,10 +169,10 @@ code { background: var(--sand); padding: 2px 8px; border-radius: 4px; word-break
 .footer-note { margin: 0 0 8px; }
 
 @media (max-width: 860px) {
-  .hero, .product-detail, .story-band, .about-band, .lp-hero { grid-template-columns: 1fr; gap: 28px; }
+  .product-detail, .story-band, .about-band, .lp-hero { grid-template-columns: 1fr; gap: 28px; }
+  .hero-banner { min-height: 58vh; background-image: url("img/hero-banner-mobile.jpg"); }
   .pillars { grid-template-columns: 1fr; gap: 20px; }
   .footer-inner { grid-template-columns: repeat(2, 1fr); }
-  .hero { padding: 40px 0 32px; }
   .story-band { padding: 28px; }
   main { padding: 0 16px 56px; }
   .header-inner { padding: 10px 16px; flex-direction: column; align-items: flex-start; gap: 8px; }

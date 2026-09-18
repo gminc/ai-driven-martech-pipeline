@@ -26,8 +26,8 @@
   </defs>
   <rect width="640" height="480" fill="url(#bgGrad)"/>
   <rect width="640" height="480" fill="url(#linen)"/>
-  <defs><pattern id="weave71285" width="52" height="52" patternUnits="userSpaceOnUse"><rect x="0" y="0" width="22" height="22" rx="5" fill="#e4e0ee"/><rect x="26" y="0" width="22" height="22" rx="5" fill="#d3cde6" fill-opacity="0.68"/><rect x="0" y="26" width="22" height="22" rx="5" fill="#d3cde6" fill-opacity="0.68"/><rect x="26" y="26" width="22" height="22" rx="5" fill="#e4e0ee"/></pattern></defs>
-  <rect width="640" height="480" fill="url(#weave71285)"/>
+  <defs><pattern id="weave2951" width="52" height="52" patternUnits="userSpaceOnUse"><rect x="0" y="0" width="22" height="22" rx="5" fill="#e4e0ee"/><rect x="26" y="0" width="22" height="22" rx="5" fill="#d3cde6" fill-opacity="0.68"/><rect x="0" y="26" width="22" height="22" rx="5" fill="#d3cde6" fill-opacity="0.68"/><rect x="26" y="26" width="22" height="22" rx="5" fill="#e4e0ee"/></pattern></defs>
+  <rect width="640" height="480" fill="url(#weave2951)"/>
   <g filter="url(#soft-sm)"><rect x="56" y="330" width="286" height="86" rx="10" fill="#f7f3ec" fill-opacity="0.95"/></g>
   <text x="80" y="366" font-family="Noto Serif TC, Songti TC, serif" font-size="17" fill="#2b2723" text-anchor="start">腳掌高密度毛圈</text>  <text x="80" y="394" font-family="Noto Serif TC, Songti TC, serif" font-size="13" fill="#8c8375" text-anchor="start">出力時腳掌不在鞋內滑動</text>
 </svg>

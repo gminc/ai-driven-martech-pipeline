@@ -27,8 +27,8 @@
   <rect width="720" height="540" fill="url(#bgGrad)"/>
   <rect width="720" height="540" fill="url(#linen)"/>
   <rect width="720" height="540" fill="#e6dbc7"/>
-  <defs><pattern id="weave30157" width="52" height="52" patternUnits="userSpaceOnUse"><rect x="0" y="0" width="22" height="22" rx="5" fill="#dcc9a8"/><rect x="26" y="0" width="22" height="22" rx="5" fill="#cbb68f" fill-opacity="0.68"/><rect x="0" y="26" width="22" height="22" rx="5" fill="#cbb68f" fill-opacity="0.68"/><rect x="26" y="26" width="22" height="22" rx="5" fill="#dcc9a8"/></pattern></defs>
-  <rect width="720" height="540" fill="url(#weave30157)"/>
+  <defs><pattern id="weave46194" width="52" height="52" patternUnits="userSpaceOnUse"><rect x="0" y="0" width="22" height="22" rx="5" fill="#dcc9a8"/><rect x="26" y="0" width="22" height="22" rx="5" fill="#cbb68f" fill-opacity="0.68"/><rect x="0" y="26" width="22" height="22" rx="5" fill="#cbb68f" fill-opacity="0.68"/><rect x="26" y="26" width="22" height="22" rx="5" fill="#dcc9a8"/></pattern></defs>
+  <rect width="720" height="540" fill="url(#weave46194)"/>
   <rect y="380" width="720" height="160" fill="#3f6b5b" fill-opacity="0.12"/>
   <g filter="url(#soft)">
   <rect x="90" y="140" width="300" height="200" rx="10" fill="#dfe7e2"/>
