@@ -4,7 +4,7 @@
 <section class="panel">
   <h1>正在前往綠界測試環境…</h1>
   <p class="order-line">
-    <img src="{{ url_for('static', filename=product.image) }}" alt="" width="96" height="72">
+    <img src="{{ url_for('static', filename=product.image) }}" alt="" width="96" height="67">
     <span>{{ product.name }}{% if size %}（{{ size }}）{% endif %} × {{ qty }}<br><strong>NT$ {{ "{:,}".format(amount) }}</strong></span>
   </p>
   <p class="hint">測試卡號 4311-9522-2222-2222，有效期限填未來月份，CVV 任意三碼，3D 驗證碼 1234。</p>

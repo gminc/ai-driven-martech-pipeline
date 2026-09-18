@@ -9,12 +9,12 @@
 <section class="product-detail"
          data-item='{{ {"item_id": product.id, "item_name": product.name, "item_category": product.category, "price": product.price, "item_variant": product.size_options[0]} | tojson }}'>
   <div class="gallery">
-    <img class="gallery-main" id="gallery-main" src="{{ url_for('static', filename=product.gallery[0]) }}" alt="{{ product.name }}" width="800" height="600">
+    <img class="gallery-main" id="gallery-main" src="{{ url_for('static', filename=product.gallery[0]) }}" alt="{{ product.name }}" width="886" height="615">
     {% if product.gallery|length > 1 %}
     <div class="gallery-thumbs">
       {% for img in product.gallery %}
       <button type="button" class="thumb{% if loop.first %} is-active{% endif %}" data-src="{{ url_for('static', filename=img) }}">
-        <img src="{{ url_for('static', filename=img) }}" alt="{{ product.name }} 圖 {{ loop.index }}" width="160" height="120" loading="lazy">
+        <img src="{{ url_for('static', filename=img) }}" alt="{{ product.name }} 圖 {{ loop.index }}" width="160" height="111" loading="lazy">
       </button>
       {% endfor %}
     </div>

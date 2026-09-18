@@ -1,7 +1,7 @@
 {% macro product_card(p, list_id, list_name, index) -%}
 <article class="product-card" data-item='{{ {"item_id": p.id, "item_name": p.name, "item_category": p.category, "price": p.price, "index": index, "item_list_id": list_id, "item_list_name": list_name} | tojson }}'>
   <a class="card-media" href="{{ url_for('product_detail', product_id=p.id) }}">
-    <img src="{{ url_for('static', filename=p.image) }}" alt="{{ p.name }}" width="640" height="480" loading="lazy">
+    <img src="{{ url_for('static', filename=p.image) }}" alt="{{ p.name }}" width="640" height="444" loading="lazy">
     {% if p.badge %}<span class="badge">{{ p.badge }}</span>{% endif %}
   </a>
   <div class="card-body">

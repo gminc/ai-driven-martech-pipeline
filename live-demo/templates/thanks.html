@@ -7,7 +7,7 @@
   <h1>謝謝你的訂購{% if simulated %}（模擬結帳）{% endif %}</h1>
   <p>訂單編號 <code>{{ trade_no }}</code></p>
   <p class="order-line">
-    <img src="{{ url_for('static', filename=product.image) }}" alt="" width="96" height="72">
+    <img src="{{ url_for('static', filename=product.image) }}" alt="" width="96" height="67">
     <span>{{ product.name }}{% if size %}（{{ size }}）{% endif %} × {{ qty }}<br><strong>NT$ {{ "{:,}".format(amount) }}</strong></span>
   </p>
   <p class="hint">{% if simulated %}本筆為模擬結帳，沒有經過任何金流。{% else %}本筆為綠界測試環境交易，不會實際扣款，商品也不會出貨。{% endif %}</p>

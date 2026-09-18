@@ -70,6 +70,7 @@ def test_index_renders_products_and_gtag(client):
     assert "日常中筒襪" in html and "純棉大浴巾" in html
     assert "googletagmanager.com/gtag/js?id=G-TEST1234" in html
     assert "測試環境" in html
+    assert "Pollinations.ai 生成" in html  # 圖片出處標示在最上方的展示站說明列
     assert 'class="hero-banner"' in html  # 首頁是全幅 banner，品牌敘述留在關於頁
     assert "原質溯源" not in html
     # 主標固定兩行、不帶標點

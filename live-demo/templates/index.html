@@ -29,7 +29,7 @@
   <div class="campaign-row">
     {% for c in campaigns %}
     <a class="campaign-card" href="{{ url_for('landing', slug=c.slug) }}">
-      <img src="{{ url_for('static', filename=c.hero_image) }}" alt="{{ c.name }}" width="640" height="480" loading="lazy">
+      <img src="{{ url_for('static', filename=c.hero_image) }}" alt="{{ c.name }}" width="640" height="444" loading="lazy">
       <div>
         <h3>{{ c.name }}</h3>
         <p>{{ c.subhead }}</p>
