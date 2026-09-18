@@ -70,7 +70,7 @@ def test_index_renders_products_and_gtag(client):
     assert "日常中筒襪" in html and "純棉大浴巾" in html
     assert "googletagmanager.com/gtag/js?id=G-TEST1234" in html
     assert "測試環境" in html
-    assert "Pollinations.ai 生成" in html  # 圖片出處標示在最上方的展示站說明列
+    assert "Pollinations.ai 與 Gemini 生成" in html  # 圖片出處標示在最上方的展示站說明列
     assert 'class="hero-banner"' in html  # 首頁是全幅 banner，品牌敘述留在關於頁
     assert "原質溯源" not in html
     # 主標固定兩行、不帶標點
@@ -154,7 +154,7 @@ def test_split_qty_size_handles_broken_custom_field():
 
 
 def test_size_by_index_never_guesses_a_default():
-    """回呼還原不出尺寸時必須留空，不能拿預設尺寸冒充客人買到的東西。"""
+    """付款結果回程還原不出尺寸時必須留空，不能拿預設尺寸冒充客人買到的東西。"""
     socks = catalog.load_catalog().get("sock-crew-daily")
     assert socks.size_by_index("0") == "S 22-24 cm"
     assert socks.size_by_index("2") == "L 26-28 cm"

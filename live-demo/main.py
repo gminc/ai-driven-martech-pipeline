@@ -1,6 +1,6 @@
 """Day 04 即時驗證軌：織日常 Live Demo 商店（Flask，部署於 Cloud Run 單一服務）。
 
-頁面：首頁、商品詳情、品牌介紹、活動著陸頁；結帳走綠界測試環境，付款結果回到感謝頁。
+頁面：首頁、商品詳情、品牌介紹、活動頁；結帳走綠界測試環境，付款結果回到感謝頁。
 所有 GA4 事件只在設定 GA_MEASUREMENT_ID 後才會送出；未設定時網站仍可正常操作。
 """
 
@@ -43,7 +43,7 @@ def _log(event: str, **fields: object) -> None:
 def create_app() -> Flask:
     app = Flask(__name__)
     # Cloud Run 前面有 Google Front End，需信任一層代理的 X-Forwarded-Proto 才能產生正確的 https 網址。
-    # 只信任 proto，不信任 host，避免使用者自帶 X-Forwarded-Host 竄改回呼網址。
+    # 只信任 proto，不信任 host，避免使用者自帶 X-Forwarded-Host 竄改回程網址。
     app.wsgi_app = ProxyFix(app.wsgi_app, x_proto=1)
     # /ecpay/return 是公開端點，限制 body 大小避免有人拿它灌 Cloud Logging
     app.config["MAX_CONTENT_LENGTH"] = 64 * 1024
@@ -147,7 +147,7 @@ def create_app() -> Flask:
             order_result_url=url_for("ecpay_result", _external=True),
             client_back_url=url_for("index", _external=True),
             # CustomField2 帶「數量|尺寸索引」。刻意只放 ASCII 數字：自訂欄位原字串會進 CheckMacValue，
-            # 一旦金流端對中文或空白做了任何正規化，整筆回呼就會驗章失敗。
+            # 一旦金流端對中文或空白做了任何正規化，整筆付款結果通知就會驗章失敗。
             custom_fields=(product.id, f"{qty}|{product.size_index(size)}", cid, src),
         )
         _log("ecpay_order_created", merchant_trade_no=trade_no, product_id=product.id,
@@ -195,13 +195,13 @@ def create_app() -> Flask:
         except ValueError:
             amount = 0
         # 注意：公開測試特店的 HashKey / HashIV 人人可得，驗章在這裡只能確認演算法與資料完整，
-        # 無法防止有人自己算簽章偽造。所以再加上「訂單編號格式與時間」與「金額必須等於目錄價 × 數量」兩道檢查。
+        # 無法防止有人自己算簽章偽造。所以再加上「訂單編號格式與時間」與「金額必須等於定價 × 數量」兩道檢查。
         amount_match = product is not None and amount == product.price * qty
         trade_no_recent = ecpay.trade_no_is_recent(trade_no)
         success = verified and data.get("RtnCode") == "1" and amount_match and trade_no_recent
         _log("ecpay_result_page", verified=verified, success=success, amount_match=amount_match,
              trade_no_recent=trade_no_recent, merchant_trade_no=trade_no, size=size,
-             rtn_code=data.get("RtnCode", ""), traffic_source=data.get("CustomField4", ""))
+             rtn_code=data.get("RtnCode", ""), traffic_source=data.get("CustomField4", "")[:60])
         return render_template(
             "thanks.html", success=success, simulated=False,
             trade_no=trade_no, amount=amount, product=product, qty=qty, size=size,

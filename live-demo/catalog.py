@@ -48,7 +48,7 @@ class Product:
         return self.size_options.index(value) if self.has_size(value) else 0
 
     def size_by_index(self, raw: str) -> str:
-        """回呼用：把索引還原成尺寸。不合法一律回空字串，絕不猜預設值。"""
+        """付款結果回程用：把索引還原成尺寸。不合法一律回空字串，絕不猜預設值。"""
         raw = (raw or "").strip()
         if not raw.isdigit():
             return ""

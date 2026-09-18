@@ -49,7 +49,7 @@
   <text x="72" y="188" class="label">首頁 / 品牌頁</text>
   <text x="72" y="209" class="muted">全幅主視覺、商品列表、品牌故事</text>
   <rect x="58" y="240" width="264" height="60" rx="6" class="inner"/>
-  <text x="72" y="264" class="label">商品詳情頁 / 活動著陸頁</text>
+  <text x="72" y="264" class="label">商品詳情頁 / 活動頁</text>
   <text x="72" y="285" class="muted">多圖與規格；活動素材與 utm 來源</text>
   <rect x="58" y="316" width="264" height="60" rx="6" class="inner"/>
   <text x="72" y="340" class="label">analytics.js</text>
@@ -68,7 +68,7 @@
   <text x="482" y="216" class="muted">品牌故事與商品列表</text>
   <rect x="468" y="238" width="284" height="52" rx="6" class="inner-accent"/>
   <text x="482" y="259" class="code">GET /product/&lt;商品&gt;・/lp/&lt;活動&gt;</text>
-  <text x="482" y="278" class="muted">詳情頁與活動著陸頁</text>
+  <text x="482" y="278" class="muted">詳情頁與活動頁</text>
   <rect x="468" y="300" width="284" height="52" rx="6" class="inner-accent"/>
   <text x="482" y="321" class="code">GET /checkout/&lt;商品&gt;</text>
   <text x="482" y="340" class="muted">伺服器算金額 + CheckMacValue</text>
@@ -95,7 +95,7 @@
   <text x="898" y="358" class="code">payment-stage.ecpay.com.tw</text>
   <text x="898" y="386" class="body">官方公開測試特店 3002607</text>
   <text x="898" y="410" class="body">測試卡號付款，不會實際扣款</text>
-  <text x="898" y="434" class="muted">付款後回呼 ReturnURL</text>
+  <text x="898" y="434" class="muted">付款結果通知 ReturnURL</text>
   <text x="898" y="454" class="muted">與 OrderResultURL</text>
   <path d="M340 190 L450 190" class="arrow" marker-end="url(#ah)"/>
   <text x="395" y="180" class="arrow-label">HTTPS 瀏覽</text>

@@ -1,4 +1,4 @@
-// Day 04：GA4 電子商務事件埋設
+// Day 04：GA4 電子商務事件追蹤
 // 列表曝光 view_item_list → 點商品 select_item → 商品頁 view_item →
 // 活動頁 view_promotion / select_promotion → 結帳 begin_checkout → 感謝頁 purchase
 (function () {
@@ -82,7 +82,7 @@
     });
   }
 
-  // ── 3. 活動著陸頁：view_promotion / select_promotion ───────────────────
+  // ── 3. 活動頁：view_promotion / select_promotion ───────────────────
   var lp = document.querySelector(".lp-hero");
   if (lp) {
     var promotion = JSON.parse(lp.getAttribute("data-promotion"));

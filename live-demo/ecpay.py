@@ -15,6 +15,7 @@ from dataclasses import dataclass
 from datetime import datetime, timedelta, timezone
 
 STAGE_ACTION_URL = "https://payment-stage.ecpay.com.tw/Cashier/AioCheckOut/V5"
+# 正式收款網址僅列出作為對照，本系列只示範測試環境，程式沒有任何路徑會用到它
 PROD_ACTION_URL = "https://payment.ecpay.com.tw/Cashier/AioCheckOut/V5"
 
 # 綠界官方公開的「測試特店」資料，任何人都能使用，只能連到測試環境，不會真的扣款。
@@ -102,7 +103,7 @@ def build_order_params(
         raise ValueError("total_amount 必須為正整數")
     # 綠界以 # 分隔多筆商品、^ 為保留字元，品名混進去會讓收銀台把一筆拆成兩筆
     item_name = item_name.replace("#", " ").replace("^", " ")
-    # 自訂欄位上限 50 字：寧可在結帳當下就失敗，也不要靜默截斷導致回呼時資料對不回來
+    # 自訂欄位上限 50 字：寧可在結帳當下就失敗，也不要靜默截斷導致回程時資料對不回來
     for i, value in enumerate(custom_fields, 1):
         if len(value) > 50:
             raise ValueError(f"CustomField{i} 超過綠界 50 字上限：{len(value)}")

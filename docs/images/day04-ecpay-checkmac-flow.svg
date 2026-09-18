@@ -38,7 +38,7 @@
 
   <rect width="1200" height="620" rx="12" class="bg"/>
   <rect x="1" y="1" width="1198" height="618" rx="12" class="outer"/>
-  <text x="40" y="46" class="title">綠界 ECPay 測試金流：伺服器簽章、瀏覽器轉址、雙重回呼驗章</text>
+  <text x="40" y="46" class="title">綠界 ECPay 測試金流：伺服器簽章、瀏覽器轉址、雙重驗章</text>
   <text x="40" y="72" class="subtitle">CheckMacValue 讓雙方確認資料完整；ReturnURL 給伺服器記帳，OrderResultURL 讓瀏覽器帶著結果回到感謝頁</text>
   <rect x="40" y="96" width="310" height="46" rx="8" class="card"/>
   <path d="M41 140 V105 a8 8 0 0 1 8 -8 H341 a8 8 0 0 1 8 8 V140 Z" class="head"/>
@@ -80,7 +80,7 @@
   <path d="M195 456 L600 456" class="arrow-green" marker-end="url(#ahg)"/>
   <text x="397.5" y="448" class="arrow-label-green">⑧ POST /ecpay/result</text>
   <rect x="450" y="464" width="300" height="40" rx="6" class="inner-green"/>
-  <text x="600" y="481" class="green-text" text-anchor="middle">驗章、RtnCode = 1、金額 = 目錄價 × 數量</text>
+  <text x="600" y="481" class="green-text" text-anchor="middle">驗章、RtnCode = 1、金額 = 定價 × 數量</text>
   <text x="600" y="497" class="green-text" text-anchor="middle">訂單編號格式與時間合理</text>
   <path d="M600 528 L195 528" class="arrow-green" marker-end="url(#ahg)"/>
   <text x="397.5" y="520" class="arrow-label-green">⑨ 感謝頁送出 GA4 purchase</text>
