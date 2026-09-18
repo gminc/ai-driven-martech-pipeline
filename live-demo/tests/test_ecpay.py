@@ -45,7 +45,7 @@ def test_build_order_params_contains_required_fields():
         config=ecpay.stage_config(), merchant_trade_no="DM20260918093015ABCD", total_amount=360,
         item_name="日常中筒襪 x 2", return_url="https://example.com/ecpay/return",
         order_result_url="https://example.com/ecpay/result", client_back_url="https://example.com/",
-        custom_fields=("sock-crew-daily", "2", "123.456"), now=now,
+        custom_fields=("sock-crew-daily", "2", "123.456", "google|cpc|autumn"), now=now,
     )
     for key in ["MerchantID", "MerchantTradeNo", "MerchantTradeDate", "PaymentType", "TotalAmount",
                 "TradeDesc", "ItemName", "ReturnURL", "ChoosePayment", "EncryptType", "CheckMacValue"]:

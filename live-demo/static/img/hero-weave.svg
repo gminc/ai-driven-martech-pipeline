@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 480" width="640" height="480">
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 720 560" width="720" height="560">
   <defs>
     <linearGradient id="bgGrad" x1="0" y1="0" x2="0" y2="1">
       <stop offset="0" stop-color="#f7f3ec"/>
@@ -24,32 +24,27 @@
       <feDropShadow dx="0" dy="5" stdDeviation="6" flood-color="#2b2723" flood-opacity="0.12"/>
     </filter>
   </defs>
-  <rect width="640" height="480" fill="url(#bgGrad)"/>
-  <rect width="640" height="480" fill="url(#linen)"/>
-  <rect x="0" y="352" width="640" height="128" fill="#e6dbc7" fill-opacity="0.55"/>
-  <rect x="0" y="352" width="640" height="128" fill="url(#linen)"/>
-  <path d="M0 352 H640" stroke="#2b2723" stroke-opacity="0.08"/>
+  <rect width="720" height="560" fill="url(#bgGrad)"/>
+  <rect width="720" height="560" fill="url(#linen)"/>
+  <defs><pattern id="weave73876" width="52" height="52" patternUnits="userSpaceOnUse"><rect x="0" y="0" width="22" height="22" rx="5" fill="#dfe7e2"/><rect x="26" y="0" width="22" height="22" rx="5" fill="#f0e6d6" fill-opacity="0.68"/><rect x="0" y="26" width="22" height="22" rx="5" fill="#f0e6d6" fill-opacity="0.68"/><rect x="26" y="26" width="22" height="22" rx="5" fill="#dfe7e2"/></pattern></defs>
+  <rect width="720" height="560" fill="url(#weave73876)"/>
+  <rect width="720" height="560" fill="#f7f3ec" fill-opacity="0.18"/>
   <g filter="url(#soft)">
-  <rect x="70" y="190" width="250" height="160" rx="10" fill="#dfe7e2"/>
-  <rect x="70" y="190" width="250" height="160" rx="10" fill="url(#terry)"/>
-  <rect x="70" y="228.4" width="250" height="25.6" fill="#3f6b5b" fill-opacity="0.5"/>
-  <rect x="70" y="289.2" width="250" height="14.4" fill="#3f6b5b" fill-opacity="0.32"/>
-  <path d="M70 270.0 H320" stroke="#2b2723" stroke-opacity="0.07" stroke-width="2"/>
-  <rect x="70" y="190" width="250" height="160" rx="10" fill="none" stroke="#2b2723" stroke-opacity="0.16"/>
+  <rect x="120" y="150" width="300" height="190" rx="10" fill="#f7f3ec"/>
+  <rect x="120" y="150" width="300" height="190" rx="10" fill="url(#terry)"/>
+  <rect x="120" y="195.6" width="300" height="30.4" fill="#3f6b5b" fill-opacity="0.5"/>
+  <rect x="120" y="267.8" width="300" height="17.1" fill="#3f6b5b" fill-opacity="0.32"/>
+  <path d="M120 245.0 H420" stroke="#2b2723" stroke-opacity="0.07" stroke-width="2"/>
+  <rect x="120" y="150" width="300" height="190" rx="10" fill="none" stroke="#2b2723" stroke-opacity="0.16"/>
   </g>
-  <g transform="translate(350 110) scale(1.0) rotate(-8 70 90)" filter="url(#soft)">
+  <rect x="336.0" y="286.8" width="48.0" height="22.8" rx="3" fill="#f7f3ec" stroke="#2b2723" stroke-opacity="0.2"/>
+  <path d="M345.0 298.2 h30.0" stroke="#3f6b5b" stroke-opacity="0.65" stroke-width="2"/>
+  <g transform="translate(430 190) scale(1.15) rotate(-8 70 90)" filter="url(#soft)">
   <path d="M24 6 h56 a6 6 0 0 1 6 6 v104 c0 13 5 20 17 27 l30 18 c17 10 12 38 -9 38 H49 c-17 0 -28 -12 -28 -29 V12 a6 6 0 0 1 6 -6 z" fill="#f0e6d6" stroke="#2b2723" stroke-opacity="0.22" stroke-width="2.5" stroke-linejoin="round"/>
   <path d="M24 6 h56 a6 6 0 0 1 6 6 v104 c0 13 5 20 17 27 l30 18 c17 10 12 38 -9 38 H49 c-17 0 -28 -12 -28 -29 V12 a6 6 0 0 1 6 -6 z" fill="url(#rib)" fill-opacity="0.45"/>
   <rect x="24" y="6" width="62" height="26" rx="4" fill="#b07a45" fill-opacity="0.85"/>
   <rect x="24" y="6" width="62" height="26" rx="4" fill="url(#rib)"/>
   <path d="M24 118 q22 10 34 6" stroke="#2b2723" stroke-opacity="0.12" stroke-width="2" fill="none"/>
   </g>
-  <g transform="translate(470 140) scale(0.9) rotate(-8 70 90)" filter="url(#soft)">
-  <path d="M24 6 h56 a6 6 0 0 1 6 6 v104 c0 13 5 20 17 27 l30 18 c17 10 12 38 -9 38 H49 c-17 0 -28 -12 -28 -29 V12 a6 6 0 0 1 6 -6 z" fill="#dfe7e2" stroke="#2b2723" stroke-opacity="0.22" stroke-width="2.5" stroke-linejoin="round"/>
-  <path d="M24 6 h56 a6 6 0 0 1 6 6 v104 c0 13 5 20 17 27 l30 18 c17 10 12 38 -9 38 H49 c-17 0 -28 -12 -28 -29 V12 a6 6 0 0 1 6 -6 z" fill="url(#rib)" fill-opacity="0.45"/>
-  <rect x="24" y="6" width="62" height="26" rx="4" fill="#3f6b5b" fill-opacity="0.85"/>
-  <rect x="24" y="6" width="62" height="26" rx="4" fill="url(#rib)"/>
-  <path d="M24 118 q22 10 34 6" stroke="#2b2723" stroke-opacity="0.12" stroke-width="2" fill="none"/>
-  </g>
-  <text x="44" y="440" font-family="Noto Serif TC, Songti TC, serif" font-size="15" fill="#8c8375" text-anchor="start">日常入門組合 · 襪 ×2 ＋ 毛巾 ×2</text>
+  <text x="52" y="500" font-family="Noto Serif TC, Songti TC, serif" font-size="16" fill="#2b2723" text-anchor="start">天然纖維 · 低速織造</text>
 </svg>

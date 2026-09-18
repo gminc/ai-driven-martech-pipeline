@@ -1,6 +1,6 @@
-"""Day 04 即時驗證軌：極簡 Live Demo 電商站（Flask，部署於 Cloud Run 單一服務）。
+"""Day 04 即時驗證軌：織日常 Live Demo 商店（Flask，部署於 Cloud Run 單一服務）。
 
-流程：商品列表 → 前往結帳（伺服器計算金額）→ 綠界測試環境付款 → 回到感謝頁觸發 GA4 purchase。
+頁面：首頁、商品詳情、品牌介紹、活動著陸頁；結帳走綠界測試環境，付款結果回到感謝頁。
 所有 GA4 事件只在設定 GA_MEASUREMENT_ID 後才會送出；未設定時網站仍可正常操作。
 """
 
@@ -21,6 +21,8 @@ import ecpay
 
 GA_ID_PATTERN = re.compile(r"^G-[A-Z0-9]{4,}$")
 GA_CLIENT_ID_PATTERN = re.compile(r"^\d{1,20}\.\d{1,20}$")
+# 行銷來源只接受安全字元，長度比照綠界自訂欄位上限
+TRAFFIC_SOURCE_PATTERN = re.compile(r"^[A-Za-z0-9_.|-]{1,50}$")
 
 logging.basicConfig(stream=sys.stdout, level=logging.INFO, format="%(message)s")
 logger = logging.getLogger("live-demo")
@@ -54,8 +56,14 @@ def create_app() -> Flask:
 
     @app.context_processor
     def inject_globals() -> dict[str, object]:
-        return {"shop": shop, "ga_id": ga_id, "payment_mode": payment_mode,
-                "max_quantity": catalog_mod.MAX_QUANTITY}
+        return {
+            "shop": shop,
+            "brand": shop.brand,
+            "ga_id": ga_id,
+            "payment_mode": payment_mode,
+            "max_quantity": catalog_mod.MAX_QUANTITY,
+            "campaigns": shop.campaigns,
+        }
 
     @app.after_request
     def security_headers(response):
@@ -65,12 +73,38 @@ def create_app() -> Flask:
 
     @app.get("/")
     def index():
-        return render_template("index.html")
+        featured = shop.products[:4]
+        return render_template("index.html", featured=featured, page_kind="home")
 
     # 注意：Cloud Run 保留部分以 z 結尾的路徑，常見的 /healthz 會被攔截回 404，所以用 /health
     @app.get("/health")
     def health():
         return {"status": "ok"}
+
+    @app.get("/product/<product_id>")
+    def product_detail(product_id: str):
+        product = shop.get(product_id)
+        if product is None:
+            abort(404)
+        return render_template(
+            "product.html", product=product, related=shop.related(product), page_kind="product"
+        )
+
+    @app.get("/about")
+    def about():
+        return render_template("about.html", page_kind="about")
+
+    @app.get("/lp/<slug>")
+    def landing(slug: str):
+        campaign = shop.campaign(slug)
+        if campaign is None:
+            abort(404)
+        return render_template(
+            "landing.html",
+            campaign=campaign,
+            products=shop.campaign_products(campaign),
+            page_kind="landing",
+        )
 
     @app.get("/checkout/<product_id>")
     def checkout(product_id: str):
@@ -80,15 +114,18 @@ def create_app() -> Flask:
         qty = catalog_mod.parse_quantity(request.args.get("qty"))
         cid = request.args.get("cid", "")
         cid = cid if GA_CLIENT_ID_PATTERN.match(cid) else ""
+        # src 由前端帶回：進站時記下的 utm_source|utm_medium|utm_campaign
+        src = request.args.get("src", "")
+        src = src if TRAFFIC_SOURCE_PATTERN.match(src) else ""
         amount = product.price * qty  # 金額只在伺服器端計算，前端傳什麼都不採信
         trade_no = ecpay.new_merchant_trade_no()
 
         if payment_mode == "simulate":
             _log("simulated_checkout", merchant_trade_no=trade_no, product_id=product.id,
-                 qty=qty, amount=amount, ga_client_id=cid)
+                 qty=qty, amount=amount, ga_client_id=cid, traffic_source=src)
             return render_template(
                 "thanks.html", success=True, simulated=True, trade_no=trade_no,
-                amount=amount, product=product, qty=qty,
+                amount=amount, product=product, qty=qty, page_kind="thanks",
             )
 
         params = ecpay.build_order_params(
@@ -99,12 +136,13 @@ def create_app() -> Flask:
             return_url=url_for("ecpay_return", _external=True),
             order_result_url=url_for("ecpay_result", _external=True),
             client_back_url=url_for("index", _external=True),
-            custom_fields=(product.id, str(qty), cid),
+            custom_fields=(product.id, str(qty), cid, src),
         )
         _log("ecpay_order_created", merchant_trade_no=trade_no, product_id=product.id,
-             qty=qty, amount=amount, ga_client_id=cid)
+             qty=qty, amount=amount, ga_client_id=cid, traffic_source=src)
         return render_template("checkout_redirect.html", action_url=config.action_url,
-                               params=params, product=product, qty=qty, amount=amount)
+                               params=params, product=product, qty=qty, amount=amount,
+                               page_kind="checkout")
 
     @app.post("/ecpay/return")
     def ecpay_return():
@@ -123,6 +161,7 @@ def create_app() -> Flask:
             product_id=data.get("CustomField1", ""),
             qty=data.get("CustomField2", ""),
             ga_client_id=data.get("CustomField3", ""),
+            traffic_source=data.get("CustomField4", ""),
             received_at=datetime.now(ecpay.TAIPEI).isoformat(),
         )
         if not verified:
@@ -147,12 +186,17 @@ def create_app() -> Flask:
         trade_no_recent = ecpay.trade_no_is_recent(trade_no)
         success = verified and data.get("RtnCode") == "1" and amount_match and trade_no_recent
         _log("ecpay_result_page", verified=verified, success=success, amount_match=amount_match,
-             trade_no_recent=trade_no_recent, merchant_trade_no=trade_no, rtn_code=data.get("RtnCode", ""))
+             trade_no_recent=trade_no_recent, merchant_trade_no=trade_no,
+             rtn_code=data.get("RtnCode", ""), traffic_source=data.get("CustomField4", ""))
         return render_template(
             "thanks.html", success=success, simulated=False,
             trade_no=trade_no, amount=amount, product=product, qty=qty,
-            rtn_msg=data.get("RtnMsg", ""),
+            rtn_msg=data.get("RtnMsg", ""), page_kind="thanks",
         )
+
+    @app.errorhandler(404)
+    def not_found(_error):
+        return render_template("not_found.html", page_kind="404"), 404
 
     return app
 

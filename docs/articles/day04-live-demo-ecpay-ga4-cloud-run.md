@@ -12,7 +12,7 @@ Day 01 提過本系列採用「雙軌資料架構」：軌道 B 用合成器灌�
 
 今日核心交付目標：
 
-1. 以 **Cloud Run 單一服務** 部署一個 5 款商品的紡織小店 Live Demo（襪子、毛巾、浴巾）。
+1. 以 **Cloud Run 單一服務** 部署一個有品牌故事、商品詳情頁與活動著陸頁的紡織小店 Live Demo（襪子、毛巾、浴巾共 5 款）。
 2. 串接 **綠界 ECPay 測試環境**，由伺服器計算金額與 CheckMacValue，並驗證付款回呼。
 3. 埋設 **GA4 電子商務四大事件**：`view_item_list`、`view_item`、`begin_checkout`、`purchase`，並規劃每日匯出到 BigQuery。
 
@@ -37,16 +37,28 @@ Day 01 提過本系列採用「雙軌資料架構」：軌道 B 用合成器灌�
 3. **事件與金流分工**：瀏覽器上的 `gtag` 事件直送 GA4，負責行為分析；綠界的付款通知打到伺服器，寫進 Cloud Logging，負責「真的有付款」的紀錄。兩邊用同一個訂單編號對帳。
 4. **沒人造訪就不收費**：Cloud Run 最少 0 個執行個體、請求制計費，展示站閒置時費用為零；最多 2 個執行個體，避免被灌流量時燒錢。
 
+**為什麼不做成一頁式的陽春頁面？** 因為後面幾天的分析都要靠它產生資料：Day 07 的多觸點歸因需要「從廣告進站 → 逛商品 → 結帳」這種有層次的瀏覽路徑，Day 18 要拿廣告素材和落地頁做一致性比對，就得真的有一張落地頁。所以站台長這樣：
+
+| 路徑 | 頁面 | 這一頁在後面幾天的用途 |
+| --- | --- | --- |
+| `/` | 首頁：品牌故事、三大工藝主張、商品列表 | 列表曝光與商品點擊 |
+| `/product/<商品 ID>` | 商品詳情：多圖、材質規格、洗滌方式 | 商品檢視、Day 14 素材特徵抽取 |
+| `/about` | 品牌與織造介紹 | 瀏覽深度、跳出率對照 |
+| `/lp/<活動代號>` | 活動著陸頁 | Day 18 落地頁與廣告素材一致性 |
+| `/checkout/<商品 ID>` | 產生綠界簽章表單 | 結帳事件 |
+| `/ecpay/return`、`/ecpay/result` | 付款通知與感謝頁 | 購買事件與付款紀錄 |
+
 程式碼全部放在儲存庫的 `live-demo/` 目錄：
 
 ```text
 live-demo/
-├── main.py              # Flask 路由：商品頁、結帳、綠界回呼
+├── main.py              # Flask 路由：首頁、商品頁、活動頁、結帳、綠界回呼
 ├── ecpay.py             # 綠界參數組裝與 CheckMacValue（純函式，好測試）
-├── catalog.py           # 讀取 products.json、數量檢查
-├── products.json        # 品牌與 5 款示範商品
-├── templates/           # 商品頁、結帳轉址頁、感謝頁
+├── catalog.py           # 讀取 products.json：商品、工藝主張、活動
+├── products.json        # 品牌文案、5 款商品、2 檔活動
+├── templates/           # base 版型、首頁、商品頁、品牌頁、活動頁、感謝頁
 ├── static/analytics.js  # GA4 電子商務事件埋設
+├── static/img/          # 商品與情境插圖（SVG，無外部資源）
 ├── tests/               # pytest：官方範例驗章、路由與防竄改測試
 └── Dockerfile           # python:3.12-slim + gunicorn
 ```
@@ -57,19 +69,25 @@ live-demo/
 
 ## 3.1 商品目錄與伺服器端定價
 
-`products.json` 定義品牌與 5 款商品，每一款都有 `id`、名稱、分類、價格、圖片與說明：
+`products.json` 一次定義品牌文案、三大工藝主張、5 款商品與 2 檔活動。商品欄位除了價格，也包含材質、尺寸、洗滌方式這些會出現在詳情頁的資料：
 
 ```json
 {
   "id": "sock-towel-training",
   "name": "厚底毛巾訓練襪",
+  "subtitle": "毛圈底 × 足弓支撐",
   "category": "襪子",
   "price": 260,
-  "image": "img/sock-towel.svg"
+  "image": "img/sock-towel.svg",
+  "gallery": ["img/sock-towel.svg", "img/sock-towel-detail.svg"],
+  "material": "精梳棉 72%、尼龍 25%、彈性纖維 3%",
+  "size": "適合足長 24–28 cm",
+  "care": "30°C 以下溫水機洗，翻面洗滌以保護毛圈，陰乾",
+  "made_in": "彰化社頭"
 }
 ```
 
-`catalog.py` 載入時會檢查商品 ID 不可重複、價格必須為正整數；數量只接受 1 到 5，其他任何輸入（空白、負數、小數、文字）一律視為 1。之後 Day 05 的合成器也會沿用同一份商品 ID，讓真實事件與模擬日誌可以直接 JOIN。
+`catalog.py` 載入時會檢查商品 ID 不可重複、活動代號不可重複、活動指到的商品必須存在、價格必須為正整數；數量只接受 1 到 5，其他任何輸入（空白、負數、小數、文字）一律視為 1。這些檢查放在啟動時，設定寫錯會讓容器直接起不來，而不是等到使用者結帳才出錯。之後 Day 05 的合成器也會沿用同一份商品 ID，讓真實事件與模擬日誌可以直接 JOIN。
 
 ## 3.2 綠界測試金流：伺服器簽章與雙重回呼
 
@@ -105,11 +123,14 @@ params = {
     "CustomField1": product_id,           # 自訂欄位：商品 ID
     "CustomField2": qty,                  # 自訂欄位：數量
     "CustomField3": ga_client_id,         # 自訂欄位：GA client_id
+    "CustomField4": traffic_source,       # 自訂欄位：utm 來源|媒介|活動
 }
 params["CheckMacValue"] = check_mac_value(params, config.hash_key, config.hash_iv)
 ```
 
-特別說明 `CustomField3`：我們把 GA4 的 `client_id` 一起帶進綠界，付款通知回來時就能在日誌中知道「這筆付款是哪個 GA 訪客」。後面做歸因分析時，這就是把金流紀錄和行為事件串起來的鑰匙。
+特別說明兩個自訂欄位。`CustomField3` 放 GA4 的 `client_id`，付款通知回來時就能在日誌中知道「這筆付款是哪個 GA 訪客」；`CustomField4` 放進站時記下的 `utm_source|utm_medium|utm_campaign`。後面做歸因分析時，這兩個欄位就是把金流紀錄、行為事件與廣告來源串起來的鑰匙。
+
+來源是在瀏覽器端記的：訪客第一次帶著 `utm_` 參數進站時，`analytics.js` 會把來源寫進 `sessionStorage`，結帳時再塞進表單的隱藏欄位送回伺服器。伺服器只接受 `[A-Za-z0-9_.|-]` 且長度 50 以內的字串，其餘一律視為空值，避免有人塞奇怪的內容進金流參數。
 
 ## 3.3 CheckMacValue：讓雙方確認資料沒被竄改
 
@@ -172,16 +193,20 @@ def ecpay_return():
 
 ## 3.4 GA4 電子商務事件埋設
 
-![GA4 電子商務事件漏斗與埋設點](https://raw.githubusercontent.com/gminc/ai-driven-martech-pipeline/main/docs/images/day04-ga4-ecommerce-event-flow.svg)
+![GA4 電子商務事件漏斗與五個埋設點](https://raw.githubusercontent.com/gminc/ai-driven-martech-pipeline/main/docs/images/day04-ga4-ecommerce-event-flow.svg)
 
 事件名稱與參數依 GA4 建議的電子商務事件規格，全部寫在 `static/analytics.js`：
 
 | 事件 | 觸發時機 | 關鍵參數 |
 | --- | --- | --- |
-| `view_item_list` | 首頁載入 | `item_list_id`、`items`（5 款商品） |
-| `view_item` | 展開「查看商品細節」（每張卡片只送一次） | `currency`、`value`、`items` |
+| `view_item_list` | 任何有商品列表的頁面載入（首頁、活動頁、相關商品） | `item_list_id`、`item_list_name`、`items` |
+| `select_item` | 點擊商品卡片 | `item_list_id`、`items` |
+| `view_item` | 商品詳情頁載入 | `currency`、`value`、`items` |
+| `view_promotion` / `select_promotion` | 活動著陸頁載入 / 點擊活動按鈕 | `promotion_id`、`promotion_name`、`creative_name`、`creative_slot` |
 | `begin_checkout` | 按下「前往結帳」 | `value` = 單價 × 數量、`items[].quantity` |
 | `purchase` | 驗章成功的感謝頁 | `transaction_id`、`value`、`currency`、`items` |
+
+`item_list_id` 會隨著列表位置變化（`home_all`、`lp_autumn-cotton`、`related_<商品 ID>`），之後就能回答「從活動頁點進去的人，最後買了什麼」這種問題。`view_promotion` 與 `creative_name` 則是 Day 18 比對「廣告素材」與「落地頁」的接點。
 
 最需要小心的是 `begin_checkout`，因為它發生在「離開網站前的最後一刻」：
 
@@ -298,7 +323,7 @@ pip install -r requirements-dev.txt
 python -m pytest -q tests
 ```
 
-- ✅ **成功的樣子**：看到 `17 passed`。其中包含以綠界官方範例驗證 CheckMacValue、竄改金額必須驗章失敗、`ReturnURL` 只有簽章正確才回 `1|OK`、自行算出簽章但金額不符也不送 `purchase` 等測試。
+- ✅ **成功的樣子**：看到 `20 passed`。其中包含以綠界官方範例驗證 CheckMacValue、竄改金額必須驗章失敗、`ReturnURL` 只有簽章正確才回 `1|OK`、自行算出簽章但金額不符也不送 `purchase`、活動頁帶出正確的 `promotion_id` 等測試。
 
 ### 步驟 2：用模擬結帳先看畫面
 
@@ -368,7 +393,7 @@ gcloud logging read 'resource.type="cloud_run_revision" AND jsonPayload.event="e
 
 ### 確認 GA4 事件
 
-設定了 `GA_MEASUREMENT_ID` 的話，打開 GA4「報表 → 即時總覽」，應該能看到 `view_item_list`、`begin_checkout`、`purchase` 等事件陸續出現；想逐筆檢查參數可以用 GA4 的 DebugView，但一般瀏覽不會出現在 DebugView，需要先安裝 Google Analytics Debugger 擴充功能，或在 gtag 設定中加上 `debug_mode: true`。BigQuery 每日匯出的第一張事件表，通常要到隔天才會出現。
+設定了 `GA_MEASUREMENT_ID` 的話，打開 GA4「報表 → 即時總覽」，從首頁點進商品頁再結帳，應該能依序看到 `view_item_list`、`select_item`、`view_item`、`begin_checkout`、`purchase`；帶著 `?utm_source=demo&utm_medium=test&utm_campaign=day04` 進站，還能順便驗證來源有沒有被記到綠界的 `CustomField4`。想逐筆檢查參數可以用 GA4 的 DebugView，但一般瀏覽不會出現在 DebugView，需要先安裝 Google Analytics Debugger 擴充功能，或在 gtag 設定中加上 `debug_mode: true`。BigQuery 每日匯出的第一張事件表，通常要到隔天才會出現。
 
 ## 5.5 不用了？指令全部清除
 

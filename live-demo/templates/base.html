@@ -4,8 +4,12 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="robots" content="noindex">
-  <title>{% block title %}{{ shop.brand_name_zh }} {{ shop.brand_name_en }}{% endblock %}</title>
+  <title>{% block title %}{{ brand.name_zh }}｜{{ brand.tagline }}{% endblock %}</title>
+  <meta name="description" content="{{ brand.lede }}">
   <link rel="icon" href="{{ url_for('static', filename='img/logo.svg') }}" type="image/svg+xml">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+TC:wght@400;600&family=Noto+Sans+TC:wght@400;500;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
   {% if ga_id %}
   <script async src="https://www.googletagmanager.com/gtag/js?id={{ ga_id }}"></script>
@@ -16,7 +20,7 @@
     gtag('config', '{{ ga_id }}');
   </script>
   {% endif %}
-  <script id="demo-config" type="application/json">{{ {"gaId": ga_id, "currency": shop.currency, "brand": shop.brand_name_zh} | tojson }}</script>
+  <script id="demo-config" type="application/json">{{ {"gaId": ga_id, "currency": shop.currency, "brand": brand.name_zh, "pageKind": page_kind} | tojson }}</script>
   <script defer src="{{ url_for('static', filename='analytics.js') }}"></script>
 </head>
 <body>
@@ -24,18 +28,42 @@
     iThome 鐵人賽技術展示站：使用綠界「測試環境」，不會實際扣款，商品不會出貨。
   </div>
   <header class="site-header">
-    <a class="brand" href="{{ url_for('index') }}">
-      <img src="{{ url_for('static', filename='img/logo.svg') }}" alt="" width="40" height="40">
-      <span><strong>{{ shop.brand_name_zh }}</strong><small>{{ shop.brand_name_en }}</small></span>
-    </a>
-    <p class="tagline">{{ shop.tagline }}</p>
+    <div class="header-inner">
+      <a class="brand" href="{{ url_for('index') }}">
+        <img src="{{ url_for('static', filename='img/logo.svg') }}" alt="" width="36" height="36">
+        <span><strong>{{ brand.name_zh }}</strong><small>{{ brand.name_en }}</small></span>
+      </a>
+      <nav class="site-nav" aria-label="主選單">
+        <a href="{{ url_for('index') }}#products">全部商品</a>
+        <a href="{{ url_for('about') }}">關於織日常</a>
+        {% if campaigns %}<a href="{{ url_for('landing', slug=campaigns[0].slug) }}">當期專案</a>{% endif %}
+      </nav>
+    </div>
   </header>
   <main>
     {% block content %}{% endblock %}
   </main>
   <footer class="site-footer">
-    <p>本站為 2026 iThome 鐵人賽「AI-Driven MarTech」系列的 Live Demo，品牌與商品皆為示範用途。</p>
-    <p>付款模式：{% if payment_mode == "simulate" %}模擬結帳{% else %}綠界 ECPay 測試環境{% endif %}{% if not ga_id %} ・GA4 尚未設定，事件不會送出{% endif %}</p>
+    <div class="footer-inner">
+      <div>
+        <p class="footer-brand">{{ brand.name_zh }} · {{ brand.name_en }}</p>
+        <p>{{ brand.location }}</p>
+      </div>
+      <div>
+        <p class="footer-title">商品</p>
+        {% for p in shop.products %}<a href="{{ url_for('product_detail', product_id=p.id) }}">{{ p.name }}</a>{% endfor %}
+      </div>
+      <div>
+        <p class="footer-title">關於</p>
+        <a href="{{ url_for('about') }}">品牌與織造</a>
+        {% for c in campaigns %}<a href="{{ url_for('landing', slug=c.slug) }}">{{ c.name }}</a>{% endfor %}
+      </div>
+      <div>
+        <p class="footer-title">說明</p>
+        <p class="footer-note">本站為 2026 iThome 鐵人賽「AI-Driven MarTech」系列的 Live Demo，品牌與商品皆為示範用途。</p>
+        <p class="footer-note">付款模式：{% if payment_mode == "simulate" %}模擬結帳{% else %}綠界 ECPay 測試環境{% endif %}{% if not ga_id %} ・GA4 尚未設定，事件不會送出{% endif %}</p>
+      </div>
+    </div>
   </footer>
 </body>
 </html>

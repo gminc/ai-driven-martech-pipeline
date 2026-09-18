@@ -26,17 +26,8 @@
   </defs>
   <rect width="640" height="480" fill="url(#bgGrad)"/>
   <rect width="640" height="480" fill="url(#linen)"/>
-  <rect x="0" y="330" width="640" height="150" fill="#e6dbc7" fill-opacity="0.55"/>
-  <rect x="0" y="330" width="640" height="150" fill="url(#linen)"/>
-  <path d="M0 330 H640" stroke="#2b2723" stroke-opacity="0.08"/>
-  <g transform="translate(230 100) scale(1.35) rotate(-8 70 90)" filter="url(#soft)">
-  <path d="M24 6 h56 a6 6 0 0 1 6 6 v104 c0 13 5 20 17 27 l30 18 c17 10 12 38 -9 38 H49 c-17 0 -28 -12 -28 -29 V12 a6 6 0 0 1 6 -6 z" fill="#e4e0ee" stroke="#2b2723" stroke-opacity="0.22" stroke-width="2.5" stroke-linejoin="round"/>
-  <path d="M24 6 h56 a6 6 0 0 1 6 6 v104 c0 13 5 20 17 27 l30 18 c17 10 12 38 -9 38 H49 c-17 0 -28 -12 -28 -29 V12 a6 6 0 0 1 6 -6 z" fill="url(#rib)" fill-opacity="0.45"/>
-  <rect x="24" y="6" width="62" height="26" rx="4" fill="#6c6288" fill-opacity="0.85"/>
-  <rect x="24" y="6" width="62" height="26" rx="4" fill="url(#rib)"/>
-  <path d="M30 168 h84" stroke="#6c6288" stroke-width="16" stroke-linecap="round" stroke-opacity="0.75"/>
-  <path d="M30 168 h84" stroke="url(#terry)" stroke-width="16" stroke-linecap="round"/>
-  <path d="M24 118 q22 10 34 6" stroke="#2b2723" stroke-opacity="0.12" stroke-width="2" fill="none"/>
-  </g>
-  <text x="44" y="440" font-family="Noto Serif TC, Songti TC, serif" font-size="15" fill="#8c8375" text-anchor="start">厚底毛巾訓練襪 · 毛圈底</text>
+  <defs><pattern id="weave71285" width="52" height="52" patternUnits="userSpaceOnUse"><rect x="0" y="0" width="22" height="22" rx="5" fill="#e4e0ee"/><rect x="26" y="0" width="22" height="22" rx="5" fill="#d3cde6" fill-opacity="0.68"/><rect x="0" y="26" width="22" height="22" rx="5" fill="#d3cde6" fill-opacity="0.68"/><rect x="26" y="26" width="22" height="22" rx="5" fill="#e4e0ee"/></pattern></defs>
+  <rect width="640" height="480" fill="url(#weave71285)"/>
+  <g filter="url(#soft-sm)"><rect x="56" y="330" width="286" height="86" rx="10" fill="#f7f3ec" fill-opacity="0.95"/></g>
+  <text x="80" y="366" font-family="Noto Serif TC, Songti TC, serif" font-size="17" fill="#2b2723" text-anchor="start">腳掌高密度毛圈</text>  <text x="80" y="394" font-family="Noto Serif TC, Songti TC, serif" font-size="13" fill="#8c8375" text-anchor="start">出力時腳掌不在鞋內滑動</text>
 </svg>

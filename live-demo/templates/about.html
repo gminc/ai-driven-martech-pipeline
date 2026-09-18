@@ -1,0 +1,40 @@
+{% extends "base.html" %}
+{% block title %}關於織日常｜{{ brand.name_zh }}{% endblock %}
+{% block content %}
+<section class="page-head">
+  <p class="eyebrow">關於我們</p>
+  <h1>{{ brand.lede }}</h1>
+  <p class="lede">{{ brand.story }}</p>
+</section>
+
+<section class="about-band">
+  <img src="{{ url_for('static', filename='img/loom.svg') }}" alt="低速織機示意" width="520" height="380">
+  <div>
+    <h2>一台織機一天織得出的量有限</h2>
+    <p>我們和彰化社頭的織襪廠、雲林虎尾的毛巾廠合作，把織機轉速降下來。速度慢，紗線受到的張力小，織出來的結構才留得住空氣——這就是毛巾蓬鬆、襪子不勒腳的原因。</p>
+    <p>{{ brand.location }}</p>
+  </div>
+</section>
+
+<section class="section">
+  <div class="section-head"><h2>三大工藝與材質主張</h2></div>
+  <div class="pillars pillars-page">
+    {% for pillar in shop.pillars %}
+    <article class="pillar">
+      <p class="pillar-en">{{ pillar.title_en }}</p>
+      <h3>{{ pillar.title }}</h3>
+      <p>{{ pillar.body }}</p>
+    </article>
+    {% endfor %}
+  </div>
+</section>
+
+<section class="section">
+  <div class="section-head"><h2>常見問題</h2></div>
+  <div class="faq">
+    <details><summary>毛巾第一次使用前要先洗嗎？</summary><p>建議單獨洗一次，把織造過程中的短纖維洗掉，吸水力會更好。</p></details>
+    <details><summary>可以用柔軟精嗎？</summary><p>不建議。柔軟精會在纖維表面留下一層膜，讓毛巾越洗越不吸水。</p></details>
+    <details><summary>襪子會縮水嗎？</summary><p>棉纖維會有些微收縮，我們在織造時已預留尺寸，以 30°C 以下清洗、陰乾即可。</p></details>
+  </div>
+</section>
+{% endblock %}

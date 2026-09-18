@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 480" width="640" height="480">
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 520 380" width="520" height="380">
   <defs>
     <linearGradient id="bgGrad" x1="0" y1="0" x2="0" y2="1">
       <stop offset="0" stop-color="#f7f3ec"/>
@@ -24,20 +24,18 @@
       <feDropShadow dx="0" dy="5" stdDeviation="6" flood-color="#2b2723" flood-opacity="0.12"/>
     </filter>
   </defs>
-  <rect width="640" height="480" fill="url(#bgGrad)"/>
-  <rect width="640" height="480" fill="url(#linen)"/>
-  <rect x="0" y="352" width="640" height="128" fill="#e6dbc7" fill-opacity="0.55"/>
-  <rect x="0" y="352" width="640" height="128" fill="url(#linen)"/>
-  <path d="M0 352 H640" stroke="#2b2723" stroke-opacity="0.08"/>
+  <rect width="520" height="380" fill="url(#bgGrad)"/>
+  <rect width="520" height="380" fill="url(#linen)"/>
+  <rect x="0" y="300" width="520" height="80" fill="#e6dbc7" fill-opacity="0.55"/>
+  <rect x="0" y="300" width="520" height="80" fill="url(#linen)"/>
+  <path d="M0 300 H520" stroke="#2b2723" stroke-opacity="0.08"/>
   <g filter="url(#soft)">
-  <rect x="150" y="150" width="340" height="210" rx="10" fill="#dfe7e2"/>
-  <rect x="150" y="150" width="340" height="210" rx="10" fill="url(#terry)"/>
-  <rect x="150" y="200.4" width="340" height="33.6" fill="#3f6b5b" fill-opacity="0.5"/>
-  <rect x="150" y="280.2" width="340" height="18.9" fill="#3f6b5b" fill-opacity="0.32"/>
-  <path d="M150 255.0 H490" stroke="#2b2723" stroke-opacity="0.07" stroke-width="2"/>
-  <rect x="150" y="150" width="340" height="210" rx="10" fill="none" stroke="#2b2723" stroke-opacity="0.16"/>
+    <rect x="70" y="80" width="380" height="200" rx="8" fill="#f7f3ec" stroke="#2b2723" stroke-opacity="0.18"/>
+    <path d="M70 120 H450 M70 150 H450 M70 180 H450 M70 210 H450" stroke="#b07a45" stroke-opacity="0.45" stroke-width="3"/>
+    <path d="M130 80 V280 M200 80 V280 M270 80 V280 M340 80 V280 M400 80 V280" stroke="#2b2723" stroke-opacity="0.12" stroke-width="2"/>
+    <rect x="60" y="188" width="400" height="18" rx="6" fill="#3f6b5b" fill-opacity="0.8"/>
+    <circle cx="96" cy="197" r="16" fill="#e6dbc7" stroke="#2b2723" stroke-opacity="0.2"/>
+    <circle cx="424" cy="197" r="16" fill="#e6dbc7" stroke="#2b2723" stroke-opacity="0.2"/>
   </g>
-  <rect x="394.8" y="301.2" width="54.4" height="25.2" rx="3" fill="#f7f3ec" stroke="#2b2723" stroke-opacity="0.2"/>
-  <path d="M405.0 313.8 h34.0" stroke="#3f6b5b" stroke-opacity="0.65" stroke-width="2"/>
-  <text x="44" y="440" font-family="Noto Serif TC, Songti TC, serif" font-size="15" fill="#8c8375" text-anchor="start">純棉洗臉毛巾 · 34 × 76 cm</text>
+  <text x="70" y="330" font-family="Noto Serif TC, Songti TC, serif" font-size="14" fill="#8c8375" text-anchor="start">彰化社頭 · 雲林虎尾的合作織廠</text>
 </svg>

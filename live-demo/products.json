@@ -2,54 +2,163 @@
   "brand": {
     "name_zh": "織日常",
     "name_en": "Everyday Weave",
-    "tagline": "台灣織造的日常好物"
+    "tagline": "台灣織造的日常好物",
+    "lede": "誕生於對天然纖維的執著。我們把大自然原野中的蓬鬆、透氣與植物生命力，轉化為一梭一線的親膚日常。",
+    "story": "從晨起洗臉擦拭的第一道水氣，到返家卸下一整天疲憊、雙腳套入柔軟棉線的瞬間，我們以恰如其分的溫潤包覆，為你接住生活的真實與安心。",
+    "location": "彰化社頭・台灣織造"
   },
+  "pillars": [
+    {
+      "id": "natural-origin",
+      "title": "原質溯源",
+      "title_en": "Natural Origin",
+      "body": "嚴選天然有機棉、亞麻與植物纖維，保留纖維未經破壞的天然微孔與強韌韌性。減少不必要的精煉漂白，呈現帶著自然原色與淡淡纖維清香的純淨質地。"
+    },
+    {
+      "id": "pure-comfort",
+      "title": "肌膚零負擔",
+      "title_en": "Pure Comfort",
+      "body": "溫和低敏的染整標準，為敏感肌膚與長時間穿著設計。毛巾講求瞬吸、快乾、越洗越蓬鬆；襪款注重腳踝無壓痕束口與腳趾平織接縫，讓身體在織物中自在呼吸。"
+    },
+    {
+      "id": "slow-weaving",
+      "title": "慢速織造",
+      "title_en": "Slow Weaving",
+      "body": "與彰化社頭的織襪廠、雲林的毛巾廠合作，以低速織機換取更蓬鬆的紗線結構。一台織機一天只織得出有限的數量，但每一條都禁得起每天使用。"
+    }
+  ],
   "currency": "TWD",
   "products": [
     {
       "id": "sock-crew-daily",
       "name": "日常中筒襪",
+      "subtitle": "精梳棉 × 無壓痕束口",
       "category": "襪子",
       "price": 180,
+      "compare_at_price": 220,
+      "badge": "經典款",
       "image": "img/sock-crew.svg",
+      "gallery": ["img/sock-crew.svg", "img/sock-crew-detail.svg"],
       "summary": "中等厚度、透氣舒適，適合外出與日常穿搭。",
-      "details": "精梳棉混紡 · 成人中性尺寸 · 台灣織造"
+      "details": "精梳棉混紡 · 成人中性尺寸 · 台灣織造",
+      "story": "襪口採用低張力羅紋，脫下後腳踝不留一圈壓痕；腳趾以平織手法收邊，減少走一整天後的摩擦感。",
+      "material": "精梳棉 78%、聚酯纖維 20%、彈性纖維 2%",
+      "size": "適合足長 23–27 cm",
+      "care": "30°C 以下溫水手洗或洗衣袋機洗，不可漂白，陰乾",
+      "made_in": "彰化社頭",
+      "colors": ["霧灰綠", "原棉白", "焙茶棕"]
     },
     {
       "id": "sock-towel-training",
       "name": "厚底毛巾訓練襪",
+      "subtitle": "毛圈底 × 足弓支撐",
       "category": "襪子",
       "price": 260,
+      "compare_at_price": null,
+      "badge": "運動選用",
       "image": "img/sock-towel.svg",
+      "gallery": ["img/sock-towel.svg", "img/sock-towel-detail.svg"],
       "summary": "厚底毛巾結構，重訓時穩定、耐穿。",
-      "details": "毛巾底加厚 · 成人中性尺寸 · 台灣織造"
+      "details": "毛巾底加厚 · 成人中性尺寸 · 台灣織造",
+      "story": "腳掌下方織入高密度毛圈，硬舉與深蹲時腳掌不會在鞋內滑動；足弓處加上一圈織入式支撐帶，久站也不容易累。",
+      "material": "精梳棉 72%、尼龍 25%、彈性纖維 3%",
+      "size": "適合足長 24–28 cm",
+      "care": "30°C 以下溫水機洗，翻面洗滌以保護毛圈，陰乾",
+      "made_in": "彰化社頭",
+      "colors": ["石墨灰", "薰衣紫"]
     },
     {
       "id": "towel-face-cotton",
       "name": "純棉洗臉毛巾",
+      "subtitle": "無撚紗 × 瞬吸快乾",
       "category": "毛巾",
       "price": 220,
+      "compare_at_price": null,
+      "badge": "每日必備",
       "image": "img/towel-face.svg",
+      "gallery": ["img/towel-face.svg", "img/towel-face-detail.svg"],
       "summary": "柔軟吸水，每天洗臉都舒服。",
-      "details": "34 × 76 cm · 純棉 · 台灣織造"
+      "details": "34 × 76 cm · 純棉 · 台灣織造",
+      "story": "以無撚紗織成，纖維之間留有空氣，第一次使用就能吸水，洗過幾次之後會更蓬鬆。邊緣採用細針收邊，不易脫線。",
+      "material": "100% 有機棉（無撚紗）",
+      "size": "34 × 76 cm，約 95 g",
+      "care": "初次使用前單獨洗滌，不使用柔軟精以保留吸水力",
+      "made_in": "雲林虎尾",
+      "colors": ["晨霧白", "苔綠"]
     },
     {
       "id": "towel-bath-cotton",
       "name": "純棉大浴巾",
+      "subtitle": "雙面毛圈 × 厚實包覆",
       "category": "浴巾",
       "price": 690,
+      "compare_at_price": 780,
+      "badge": "人氣商品",
       "image": "img/towel-bath.svg",
+      "gallery": ["img/towel-bath.svg", "img/towel-bath-detail.svg"],
       "summary": "大尺寸、厚實包覆，洗完澡的第一份溫暖。",
-      "details": "70 × 140 cm · 純棉 · 台灣織造"
+      "details": "70 × 140 cm · 純棉 · 台灣織造",
+      "story": "雙面毛圈讓浴巾兩面都能擦，厚度控制在 480 g 上下——足夠包覆，又不會厚到洗完晾不乾。",
+      "material": "100% 有機棉",
+      "size": "70 × 140 cm，約 480 g",
+      "care": "30°C 以下機洗，不使用柔軟精，可低溫烘乾",
+      "made_in": "雲林虎尾",
+      "colors": ["原棉白", "燕麥"]
     },
     {
       "id": "set-starter",
       "name": "日常入門組合",
+      "subtitle": "中筒襪 ×2 ＋ 洗臉毛巾 ×2",
       "category": "組合",
       "price": 890,
+      "compare_at_price": 1020,
+      "badge": "組合省 130",
       "image": "img/set-starter.svg",
+      "gallery": ["img/set-starter.svg", "img/set-starter-detail.svg"],
       "summary": "中筒襪兩雙＋洗臉毛巾兩條，送禮自用都合適。",
-      "details": "組合內容可能依庫存調整 · 台灣織造"
+      "details": "組合內容可能依庫存調整 · 台灣織造",
+      "story": "想先認識我們的話，從這組開始最剛好：一雙上班穿、一雙在家穿，兩條毛巾一條放浴室、一條放健身包。附素面紙盒，可直接送人。",
+      "material": "依組合內單品材質",
+      "size": "中筒襪 23–27 cm、毛巾 34 × 76 cm",
+      "care": "依各單品洗滌方式",
+      "made_in": "彰化社頭 × 雲林虎尾",
+      "colors": ["綜合配色"]
+    }
+  ],
+  "campaigns": [
+    {
+      "slug": "autumn-cotton",
+      "name": "秋日棉織專案",
+      "headline": "換季的第一件事，先把每天碰到皮膚的東西換好",
+      "subhead": "入秋選品：無撚紗毛巾與中筒襪，滿 NT$ 600 免運。",
+      "promotion_id": "AUTUMN2026",
+      "promotion_name": "秋日棉織專案",
+      "creative_name": "autumn-cotton-hero",
+      "creative_slot": "lp_hero",
+      "hero_image": "img/campaign-autumn.svg",
+      "bullets": [
+        "無撚紗織法，洗過越多次越蓬鬆",
+        "低敏染整，敏感肌與嬰幼兒都適用",
+        "彰化社頭與雲林虎尾的老廠，低速織機慢慢織"
+      ],
+      "product_ids": ["towel-face-cotton", "sock-crew-daily", "set-starter"]
+    },
+    {
+      "slug": "training-socks",
+      "name": "重訓襪專案",
+      "headline": "腳掌在鞋裡滑一次，那一組就白做了",
+      "subhead": "厚底毛圈與足弓支撐，為硬舉與深蹲設計的訓練襪。",
+      "promotion_id": "TRAIN2026",
+      "promotion_name": "重訓襪專案",
+      "creative_name": "training-socks-hero",
+      "creative_slot": "lp_hero",
+      "hero_image": "img/campaign-training.svg",
+      "bullets": [
+        "腳掌高密度毛圈，出力時不打滑",
+        "織入式足弓支撐帶，久站不易累",
+        "腳趾平織接縫，長時間穿不磨腳"
+      ],
+      "product_ids": ["sock-towel-training", "sock-crew-daily"]
     }
   ]
 }

@@ -46,17 +46,17 @@
   <text x="68.5" y="127" class="badge-text">訪客</text>
   <text x="93.0" y="128" class="card-title">瀏覽器（手機 / 桌機）</text>
   <rect x="58" y="164" width="264" height="60" rx="6" class="inner"/>
-  <text x="72" y="188" class="label">商品列表頁</text>
-  <text x="72" y="209" class="muted">5 款襪子、毛巾、浴巾示範商品</text>
+  <text x="72" y="188" class="label">首頁 / 品牌頁</text>
+  <text x="72" y="209" class="muted">品牌故事、工藝主張、商品列表</text>
   <rect x="58" y="240" width="264" height="60" rx="6" class="inner"/>
-  <text x="72" y="264" class="label">analytics.js</text>
-  <text x="72" y="285" class="muted">view_item_list / view_item / begin_checkout</text>
+  <text x="72" y="264" class="label">商品詳情頁 / 活動著陸頁</text>
+  <text x="72" y="285" class="muted">多圖與規格；活動素材與 utm 來源</text>
   <rect x="58" y="316" width="264" height="60" rx="6" class="inner"/>
-  <text x="72" y="340" class="label">結帳自動轉址頁</text>
-  <text x="72" y="361" class="muted">隱藏表單 POST 到綠界測試環境</text>
+  <text x="72" y="340" class="label">analytics.js</text>
+  <text x="72" y="361" class="muted">列表曝光 → 點擊 → 檢視 → 結帳</text>
   <rect x="58" y="392" width="264" height="60" rx="6" class="inner"/>
-  <text x="72" y="416" class="label">感謝頁</text>
-  <text x="72" y="437" class="muted">伺服器驗證成功才送 purchase</text>
+  <text x="72" y="416" class="label">結帳轉址頁 / 感謝頁</text>
+  <text x="72" y="437" class="muted">簽章表單、驗證成功才送 purchase</text>
   <rect x="450" y="100" width="320" height="380" rx="8" class="card-accent"/>
   <path d="M451 144 V109 a8 8 0 0 1 8 -8 H761 a8 8 0 0 1 8 8 V144 Z" class="head-accent"/>
   <rect x="464" y="113" width="81.5" height="20" rx="4" class="badge"/>
@@ -64,17 +64,17 @@
   <text x="555.5" y="128" class="card-title">martech-live-demo</text>
   <text x="466" y="160" class="muted">asia-east1｜最少 0、最多 2 個執行個體</text>
   <rect x="468" y="176" width="284" height="52" rx="6" class="inner-accent"/>
-  <text x="482" y="197" class="code">GET /</text>
-  <text x="482" y="216" class="muted">商品頁（價格來自 products.json）</text>
+  <text x="482" y="197" class="code">GET / ・/about</text>
+  <text x="482" y="216" class="muted">品牌故事與商品列表</text>
   <rect x="468" y="238" width="284" height="52" rx="6" class="inner-accent"/>
-  <text x="482" y="259" class="code">GET /checkout/&lt;商品&gt;</text>
-  <text x="482" y="278" class="muted">伺服器算金額 + CheckMacValue</text>
+  <text x="482" y="259" class="code">GET /product/&lt;商品&gt;・/lp/&lt;活動&gt;</text>
+  <text x="482" y="278" class="muted">詳情頁與活動著陸頁</text>
   <rect x="468" y="300" width="284" height="52" rx="6" class="inner-accent"/>
-  <text x="482" y="321" class="code">POST /ecpay/return</text>
-  <text x="482" y="340" class="muted">付款通知驗章，回應 1|OK</text>
+  <text x="482" y="321" class="code">GET /checkout/&lt;商品&gt;</text>
+  <text x="482" y="340" class="muted">伺服器算金額 + CheckMacValue</text>
   <rect x="468" y="362" width="284" height="52" rx="6" class="inner-accent"/>
-  <text x="482" y="383" class="code">POST /ecpay/result</text>
-  <text x="482" y="402" class="muted">驗章後輸出 purchase 資料</text>
+  <text x="482" y="383" class="code">POST /ecpay/return ・/result</text>
+  <text x="482" y="402" class="muted">驗章、回應 1|OK、輸出 purchase</text>
   <rect x="468" y="428" width="284" height="40" rx="6" class="inner"/>
   <text x="482" y="453" class="body">結構化 JSON 日誌 → Cloud Logging</text>
   <rect x="880" y="100" width="280" height="170" rx="8" class="card"/>

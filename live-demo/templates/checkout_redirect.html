@@ -1,9 +1,12 @@
 {% extends "base.html" %}
-{% block title %}前往綠界測試環境付款｜{{ shop.brand_name_zh }}{% endblock %}
+{% block title %}前往綠界測試環境付款｜{{ brand.name_zh }}{% endblock %}
 {% block content %}
 <section class="panel">
   <h1>正在前往綠界測試環境…</h1>
-  <p>{{ product.name }} × {{ qty }}，金額 NT$ {{ "{:,}".format(amount) }}</p>
+  <p class="order-line">
+    <img src="{{ url_for('static', filename=product.image) }}" alt="" width="96" height="72">
+    <span>{{ product.name }} × {{ qty }}<br><strong>NT$ {{ "{:,}".format(amount) }}</strong></span>
+  </p>
   <p class="hint">測試卡號 4311-9522-2222-2222，有效期限填未來月份，CVV 任意三碼，3D 驗證碼 1234。</p>
   <form id="ecpay-form" method="post" action="{{ action_url }}">
     {% for key, value in params.items() %}

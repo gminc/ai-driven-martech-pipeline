@@ -26,30 +26,23 @@
   </defs>
   <rect width="640" height="480" fill="url(#bgGrad)"/>
   <rect width="640" height="480" fill="url(#linen)"/>
-  <rect x="0" y="352" width="640" height="128" fill="#e6dbc7" fill-opacity="0.55"/>
-  <rect x="0" y="352" width="640" height="128" fill="url(#linen)"/>
-  <path d="M0 352 H640" stroke="#2b2723" stroke-opacity="0.08"/>
+  <rect x="80" y="90" width="480" height="300" rx="12" fill="#e6dbc7" filter="url(#soft)"/>
+  <rect x="80" y="90" width="480" height="300" rx="12" fill="url(#linen)"/>
+  <path d="M320 90 V390" stroke="#2b2723" stroke-opacity="0.1" stroke-dasharray="6 6"/>
   <g filter="url(#soft)">
-  <rect x="70" y="190" width="250" height="160" rx="10" fill="#dfe7e2"/>
-  <rect x="70" y="190" width="250" height="160" rx="10" fill="url(#terry)"/>
-  <rect x="70" y="228.4" width="250" height="25.6" fill="#3f6b5b" fill-opacity="0.5"/>
-  <rect x="70" y="289.2" width="250" height="14.4" fill="#3f6b5b" fill-opacity="0.32"/>
-  <path d="M70 270.0 H320" stroke="#2b2723" stroke-opacity="0.07" stroke-width="2"/>
-  <rect x="70" y="190" width="250" height="160" rx="10" fill="none" stroke="#2b2723" stroke-opacity="0.16"/>
+  <rect x="110" y="130" width="180" height="110" rx="10" fill="#dfe7e2"/>
+  <rect x="110" y="130" width="180" height="110" rx="10" fill="url(#terry)"/>
+  <rect x="110" y="156.4" width="180" height="17.6" fill="#3f6b5b" fill-opacity="0.5"/>
+  <rect x="110" y="198.2" width="180" height="9.9" fill="#3f6b5b" fill-opacity="0.32"/>
+  <path d="M110 185.0 H290" stroke="#2b2723" stroke-opacity="0.07" stroke-width="2"/>
+  <rect x="110" y="130" width="180" height="110" rx="10" fill="none" stroke="#2b2723" stroke-opacity="0.16"/>
   </g>
-  <g transform="translate(350 110) scale(1.0) rotate(-8 70 90)" filter="url(#soft)">
+  <g transform="translate(360 120) scale(0.85) rotate(-8 70 90)" filter="url(#soft)">
   <path d="M24 6 h56 a6 6 0 0 1 6 6 v104 c0 13 5 20 17 27 l30 18 c17 10 12 38 -9 38 H49 c-17 0 -28 -12 -28 -29 V12 a6 6 0 0 1 6 -6 z" fill="#f0e6d6" stroke="#2b2723" stroke-opacity="0.22" stroke-width="2.5" stroke-linejoin="round"/>
   <path d="M24 6 h56 a6 6 0 0 1 6 6 v104 c0 13 5 20 17 27 l30 18 c17 10 12 38 -9 38 H49 c-17 0 -28 -12 -28 -29 V12 a6 6 0 0 1 6 -6 z" fill="url(#rib)" fill-opacity="0.45"/>
   <rect x="24" y="6" width="62" height="26" rx="4" fill="#b07a45" fill-opacity="0.85"/>
   <rect x="24" y="6" width="62" height="26" rx="4" fill="url(#rib)"/>
   <path d="M24 118 q22 10 34 6" stroke="#2b2723" stroke-opacity="0.12" stroke-width="2" fill="none"/>
   </g>
-  <g transform="translate(470 140) scale(0.9) rotate(-8 70 90)" filter="url(#soft)">
-  <path d="M24 6 h56 a6 6 0 0 1 6 6 v104 c0 13 5 20 17 27 l30 18 c17 10 12 38 -9 38 H49 c-17 0 -28 -12 -28 -29 V12 a6 6 0 0 1 6 -6 z" fill="#dfe7e2" stroke="#2b2723" stroke-opacity="0.22" stroke-width="2.5" stroke-linejoin="round"/>
-  <path d="M24 6 h56 a6 6 0 0 1 6 6 v104 c0 13 5 20 17 27 l30 18 c17 10 12 38 -9 38 H49 c-17 0 -28 -12 -28 -29 V12 a6 6 0 0 1 6 -6 z" fill="url(#rib)" fill-opacity="0.45"/>
-  <rect x="24" y="6" width="62" height="26" rx="4" fill="#3f6b5b" fill-opacity="0.85"/>
-  <rect x="24" y="6" width="62" height="26" rx="4" fill="url(#rib)"/>
-  <path d="M24 118 q22 10 34 6" stroke="#2b2723" stroke-opacity="0.12" stroke-width="2" fill="none"/>
-  </g>
-  <text x="44" y="440" font-family="Noto Serif TC, Songti TC, serif" font-size="15" fill="#8c8375" text-anchor="start">日常入門組合 · 襪 ×2 ＋ 毛巾 ×2</text>
+  <text x="110" y="300" font-family="Noto Serif TC, Songti TC, serif" font-size="15" fill="#8c8375" text-anchor="start">素面紙盒包裝，可直接送人</text>
 </svg>

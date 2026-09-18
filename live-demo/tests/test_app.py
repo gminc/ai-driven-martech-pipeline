@@ -21,6 +21,9 @@ def signed(params):
 def test_catalog_loads_and_quantity_is_clamped():
     shop = catalog.load_catalog()
     assert len(shop.products) == 5 and shop.currency == "TWD"
+    assert len(shop.campaigns) == 2 and len(shop.pillars) == 3
+    assert shop.campaign("autumn-cotton") is not None and shop.campaign("nope") is None
+    assert len(shop.related(shop.get("sock-crew-daily"))) == 3
     assert catalog.parse_quantity("3") == 3
     for bad in [None, "", "0", "6", "-1", "abc", "2.5"]:
         assert catalog.parse_quantity(bad) == 1
@@ -31,6 +34,27 @@ def test_index_renders_products_and_gtag(client):
     assert "日常中筒襪" in html and "純棉大浴巾" in html
     assert "googletagmanager.com/gtag/js?id=G-TEST1234" in html
     assert "測試環境" in html
+    assert "原質溯源" in html  # 三大工藝主張
+    assert 'data-list-id="home_all"' in html
+
+
+def test_product_page_has_view_item_payload_and_specs(client):
+    html = client.get("/product/towel-face-cotton").get_data(as_text=True)
+    assert "無撚紗" in html and "34 × 76 cm" in html
+    assert '"item_id": "towel-face-cotton"' in html
+    assert 'data-list-id="related_towel-face-cotton"' in html
+    assert client.get("/product/nope").status_code == 404
+
+
+def test_landing_page_carries_promotion(client):
+    html = client.get("/lp/autumn-cotton").get_data(as_text=True)
+    assert '"promotion_id": "AUTUMN2026"' in html and "秋日棉織專案" in html
+    assert client.get("/lp/nope").status_code == 404
+
+
+def test_about_page_and_404_template(client):
+    assert "慢速織造" in client.get("/about").get_data(as_text=True)
+    assert "找不到這個頁面" in client.get("/nope").get_data(as_text=True)
 
 
 def test_invalid_ga_id_disables_gtag(monkeypatch):
@@ -40,20 +64,23 @@ def test_invalid_ga_id_disables_gtag(monkeypatch):
 
 
 def test_checkout_builds_signed_form_with_server_side_amount(client):
-    html = client.get("/checkout/towel-bath-cotton?qty=2&cid=123.456", base_url="https://demo.example").get_data(as_text=True)
+    html = client.get("/checkout/towel-bath-cotton?qty=2&cid=123.456&src=google%7Ccpc%7Cautumn",
+                      base_url="https://demo.example").get_data(as_text=True)
     fields = dict(re.findall(r'name="([A-Za-z0-9]+)" value="([^"]*)"', html))
     assert ecpay.STAGE_ACTION_URL in html
     assert fields["TotalAmount"] == "1380"
     assert fields["CustomField1"] == "towel-bath-cotton" and fields["CustomField3"] == "123.456"
+    assert fields["CustomField4"] == "google|cpc|autumn"
     assert fields["ReturnURL"] == "https://demo.example/ecpay/return"
     assert ecpay.verify_check_mac_value(fields, ecpay.STAGE_HASH_KEY, ecpay.STAGE_HASH_IV)
 
 
 def test_checkout_rejects_unknown_product_and_bad_cid(client):
     assert client.get("/checkout/nope").status_code == 404
-    html = client.get("/checkout/sock-crew-daily?qty=99&cid=<script>").get_data(as_text=True)
+    html = client.get("/checkout/sock-crew-daily?qty=99&cid=<script>&src=<script>").get_data(as_text=True)
     fields = dict(re.findall(r'name="([A-Za-z0-9]+)" value="([^"]*)"', html))
     assert fields["TotalAmount"] == "180" and fields["CustomField3"] == ""
+    assert fields["CustomField4"] == ""
 
 
 def test_return_url_acknowledges_only_valid_signature(client):

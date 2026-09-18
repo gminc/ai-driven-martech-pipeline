@@ -38,61 +38,72 @@
 
   <rect width="1200" height="620" rx="12" class="bg"/>
   <rect x="1" y="1" width="1198" height="618" rx="12" class="outer"/>
-  <text x="40" y="46" class="title">GA4 電子商務事件漏斗：從曝光到購買的四個埋設點</text>
-  <text x="40" y="72" class="subtitle">事件名稱與參數依 GA4 建議事件規格；purchase 以綠界訂單編號作為 transaction_id，同一使用者重複送出時 GA4 報表會去重</text>
-  <rect x="40" y="100" width="255" height="300" rx="8" class="card"/>
-  <path d="M41 144 V109 a8 8 0 0 1 8 -8 H286 a8 8 0 0 1 8 8 V144 Z" class="head"/>
+  <text x="40" y="46" class="title">GA4 電子商務事件漏斗：從曝光到購買的五個埋設點</text>
+  <text x="40" y="72" class="subtitle">事件名稱與參數依 GA4 建議事件規格；item_list_id 記錄商品是從哪個列表點進去的，purchase 以綠界訂單編號作為 transaction_id</text>
+  <rect x="40" y="100" width="208" height="300" rx="8" class="card"/>
+  <path d="M41 144 V109 a8 8 0 0 1 8 -8 H239 a8 8 0 0 1 8 8 V144 Z" class="head"/>
   <rect x="54" y="113" width="44.0" height="20" rx="4" class="badge"/>
   <text x="76.0" y="127" class="badge-text">步驟 1</text>
-  <text x="108.0" y="128" class="card-title">商品列表曝光</text>
-  <rect x="56" y="160" width="223" height="40" rx="6" class="inner-accent"/>
-  <text x="70" y="186" class="code">view_item_list</text>
-  <text x="56" y="228" class="label">觸發：首頁載入</text>
-  <text x="56" y="258" class="body">• item_list_id: home</text>
-  <text x="56" y="284" class="body">• items[5]: id / 名稱 / 分類 / 價格</text>
-  <path d="M297 250 L323 250" class="arrow" marker-end="url(#ah)"/>
-  <rect x="328" y="100" width="255" height="300" rx="8" class="card"/>
-  <path d="M329 144 V109 a8 8 0 0 1 8 -8 H574 a8 8 0 0 1 8 8 V144 Z" class="head"/>
-  <rect x="342" y="113" width="44.0" height="20" rx="4" class="badge"/>
-  <text x="364.0" y="127" class="badge-text">步驟 2</text>
-  <text x="396.0" y="128" class="card-title">查看商品細節</text>
-  <rect x="344" y="160" width="223" height="40" rx="6" class="inner-accent"/>
-  <text x="358" y="186" class="code">view_item</text>
-  <text x="344" y="228" class="label">觸發：展開「查看商品細節」</text>
-  <text x="344" y="258" class="body">• currency: TWD</text>
-  <text x="344" y="284" class="body">• value: 單價</text>
-  <text x="344" y="310" class="body">• 每張卡片只送一次</text>
-  <path d="M585 250 L611 250" class="arrow" marker-end="url(#ah)"/>
-  <rect x="616" y="100" width="255" height="300" rx="8" class="card"/>
-  <path d="M617 144 V109 a8 8 0 0 1 8 -8 H862 a8 8 0 0 1 8 8 V144 Z" class="head"/>
-  <rect x="630" y="113" width="44.0" height="20" rx="4" class="badge"/>
-  <text x="652.0" y="127" class="badge-text">步驟 3</text>
-  <text x="684.0" y="128" class="card-title">開始結帳</text>
-  <rect x="632" y="160" width="223" height="40" rx="6" class="inner-accent"/>
-  <text x="646" y="186" class="code">begin_checkout</text>
-  <text x="632" y="228" class="label">觸發：按下「前往結帳」</text>
-  <text x="632" y="258" class="body">• value: 單價 × 數量</text>
-  <text x="632" y="284" class="body">• 取得 client_id 帶到伺服器</text>
-  <text x="632" y="310" class="body">• 最多等 1.2 秒就轉址</text>
-  <path d="M873 250 L899 250" class="arrow" marker-end="url(#ah)"/>
-  <rect x="904" y="100" width="255" height="300" rx="8" class="card-accent"/>
-  <path d="M905 144 V109 a8 8 0 0 1 8 -8 H1150 a8 8 0 0 1 8 8 V144 Z" class="head-accent"/>
-  <rect x="918" y="113" width="44.0" height="20" rx="4" class="badge-green"/>
-  <text x="940.0" y="127" class="badge-text">步驟 4</text>
-  <text x="972.0" y="128" class="card-title">購買完成</text>
-  <rect x="920" y="160" width="223" height="40" rx="6" class="inner-accent"/>
-  <text x="934" y="186" class="code">purchase</text>
-  <text x="920" y="228" class="label">觸發：驗章成功的感謝頁</text>
-  <text x="920" y="258" class="body">• transaction_id: 訂單編號</text>
-  <text x="920" y="284" class="body">• value: 綠界回傳 TradeAmt</text>
-  <text x="920" y="310" class="body">• 付款失敗不送出</text>
+  <text x="108.0" y="128" class="card-title">列表曝光</text>
+  <rect x="54" y="160" width="180" height="40" rx="6" class="inner-accent"/>
+  <text x="66" y="186" class="code">view_item_list</text>
+  <text x="54" y="228" class="label">觸發：首頁 / 活動頁 / 相關商品</text>
+  <text x="54" y="258" class="body">• item_list_id: home_all</text>
+  <text x="54" y="284" class="body">• lp_&lt;活動&gt; ・related_&lt;商品&gt;</text>
+  <path d="M250 250 L270 250" class="arrow" marker-end="url(#ah)"/>
+  <rect x="272" y="100" width="208" height="300" rx="8" class="card"/>
+  <path d="M273 144 V109 a8 8 0 0 1 8 -8 H471 a8 8 0 0 1 8 8 V144 Z" class="head"/>
+  <rect x="286" y="113" width="44.0" height="20" rx="4" class="badge"/>
+  <text x="308.0" y="127" class="badge-text">步驟 2</text>
+  <text x="340.0" y="128" class="card-title">點擊商品</text>
+  <rect x="286" y="160" width="180" height="40" rx="6" class="inner-accent"/>
+  <text x="298" y="186" class="code">select_item</text>
+  <text x="286" y="228" class="label">觸發：點下商品卡片</text>
+  <text x="286" y="258" class="body">• item_list_id 一併帶上</text>
+  <text x="286" y="284" class="body">• 知道人是從哪個列表進去的</text>
+  <path d="M482 250 L502 250" class="arrow" marker-end="url(#ah)"/>
+  <rect x="504" y="100" width="208" height="300" rx="8" class="card"/>
+  <path d="M505 144 V109 a8 8 0 0 1 8 -8 H703 a8 8 0 0 1 8 8 V144 Z" class="head"/>
+  <rect x="518" y="113" width="44.0" height="20" rx="4" class="badge"/>
+  <text x="540.0" y="127" class="badge-text">步驟 3</text>
+  <text x="572.0" y="128" class="card-title">商品詳情</text>
+  <rect x="518" y="160" width="180" height="40" rx="6" class="inner-accent"/>
+  <text x="530" y="186" class="code">view_item</text>
+  <text x="518" y="228" class="label">觸發：商品頁載入</text>
+  <text x="518" y="258" class="body">• currency: TWD</text>
+  <text x="518" y="284" class="body">• value: 單價</text>
+  <text x="518" y="310" class="body">• 另有 view_promotion</text>
+  <path d="M714 250 L734 250" class="arrow" marker-end="url(#ah)"/>
+  <rect x="736" y="100" width="208" height="300" rx="8" class="card"/>
+  <path d="M737 144 V109 a8 8 0 0 1 8 -8 H935 a8 8 0 0 1 8 8 V144 Z" class="head"/>
+  <rect x="750" y="113" width="44.0" height="20" rx="4" class="badge"/>
+  <text x="772.0" y="127" class="badge-text">步驟 4</text>
+  <text x="804.0" y="128" class="card-title">開始結帳</text>
+  <rect x="750" y="160" width="180" height="40" rx="6" class="inner-accent"/>
+  <text x="762" y="186" class="code">begin_checkout</text>
+  <text x="750" y="228" class="label">觸發：按下「前往結帳」</text>
+  <text x="750" y="258" class="body">• value: 單價 × 數量</text>
+  <text x="750" y="284" class="body">• 帶 client_id 與 utm 來源</text>
+  <text x="750" y="310" class="body">• 最多等 1.2 秒就轉址</text>
+  <path d="M946 250 L966 250" class="arrow" marker-end="url(#ah)"/>
+  <rect x="968" y="100" width="208" height="300" rx="8" class="card-accent"/>
+  <path d="M969 144 V109 a8 8 0 0 1 8 -8 H1167 a8 8 0 0 1 8 8 V144 Z" class="head-accent"/>
+  <rect x="982" y="113" width="44.0" height="20" rx="4" class="badge-green"/>
+  <text x="1004.0" y="127" class="badge-text">步驟 5</text>
+  <text x="1036.0" y="128" class="card-title">購買完成</text>
+  <rect x="982" y="160" width="180" height="40" rx="6" class="inner-accent"/>
+  <text x="994" y="186" class="code">purchase</text>
+  <text x="982" y="228" class="label">觸發：驗章成功的感謝頁</text>
+  <text x="982" y="258" class="body">• transaction_id: 訂單編號</text>
+  <text x="982" y="284" class="body">• value: 綠界回傳 TradeAmt</text>
+  <text x="982" y="310" class="body">• 付款失敗不送出</text>
   <rect x="40" y="418" width="540" height="118" rx="8" class="card"/>
   <path d="M41 462 V427 a8 8 0 0 1 8 -8 H571 a8 8 0 0 1 8 8 V462 Z" class="head"/>
   <rect x="54" y="431" width="29.0" height="20" rx="4" class="badge"/>
   <text x="68.5" y="445" class="badge-text">去向</text>
   <text x="93.0" y="446" class="card-title">GA4 資源 → BigQuery 每日匯出</text>
   <text x="58" y="486" class="body">事件表 analytics_&lt;資源 ID&gt;.events_YYYYMMDD，每天一張日期分片資料表</text>
-  <text x="58" y="510" class="muted">Day 05 起與合成日誌對齊欄位，Day 07 起用於多觸點歸因</text>
+  <text x="58" y="510" class="muted">Day 05 起與合成日誌對齊欄位，Day 07 起用於多觸點歸因，Day 18 比對落地頁與素材</text>
   <rect x="620" y="418" width="540" height="118" rx="8" class="card"/>
   <path d="M621 462 V427 a8 8 0 0 1 8 -8 H1151 a8 8 0 0 1 8 8 V462 Z" class="head"/>
   <rect x="634" y="431" width="29.0" height="20" rx="4" class="badge-warn"/>

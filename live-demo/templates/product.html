@@ -1,0 +1,64 @@
+{% extends "base.html" %}
+{% from "_card.html" import product_card %}
+{% block title %}{{ product.name }}｜{{ brand.name_zh }}{% endblock %}
+{% block content %}
+<nav class="breadcrumb" aria-label="麵包屑">
+  <a href="{{ url_for('index') }}">首頁</a> / <a href="{{ url_for('index') }}#products">{{ product.category }}</a> / <span>{{ product.name }}</span>
+</nav>
+
+<section class="product-detail"
+         data-item='{{ {"item_id": product.id, "item_name": product.name, "item_category": product.category, "price": product.price} | tojson }}'>
+  <div class="gallery">
+    <img class="gallery-main" id="gallery-main" src="{{ url_for('static', filename=product.gallery[0]) }}" alt="{{ product.name }}" width="800" height="600">
+    {% if product.gallery|length > 1 %}
+    <div class="gallery-thumbs">
+      {% for img in product.gallery %}
+      <button type="button" class="thumb{% if loop.first %} is-active{% endif %}" data-src="{{ url_for('static', filename=img) }}">
+        <img src="{{ url_for('static', filename=img) }}" alt="{{ product.name }} 圖 {{ loop.index }}" width="160" height="120" loading="lazy">
+      </button>
+      {% endfor %}
+    </div>
+    {% endif %}
+  </div>
+
+  <div class="buy-box">
+    {% if product.badge %}<span class="badge badge-inline">{{ product.badge }}</span>{% endif %}
+    <h1>{{ product.name }}</h1>
+    <p class="subtitle">{{ product.subtitle }}</p>
+    <p class="price">
+      NT$ {{ "{:,}".format(product.price) }}
+      {% if product.compare_at_price %}<s>NT$ {{ "{:,}".format(product.compare_at_price) }}</s>{% endif %}
+    </p>
+    <p class="summary">{{ product.summary }}</p>
+    {% if product.story %}<p class="story">{{ product.story }}</p>{% endif %}
+    {% if product.colors %}
+    <p class="colors">顏色：{% for c in product.colors %}<span class="color-chip">{{ c }}</span>{% endfor %}</p>
+    {% endif %}
+    <form class="checkout-form" method="get" action="{{ url_for('checkout', product_id=product.id) }}">
+      <label>數量
+        <select name="qty">
+          {% for n in range(1, max_quantity + 1) %}<option value="{{ n }}">{{ n }}</option>{% endfor %}
+        </select>
+      </label>
+      <input type="hidden" name="cid" value="">
+      <input type="hidden" name="src" value="">
+      <button type="submit">前往結帳</button>
+    </form>
+    <p class="hint">結帳會導向綠界測試環境，不會實際扣款，商品也不會出貨。</p>
+
+    <dl class="spec">
+      <div><dt>材質</dt><dd>{{ product.material }}</dd></div>
+      <div><dt>尺寸</dt><dd>{{ product.size }}</dd></div>
+      <div><dt>洗滌</dt><dd>{{ product.care }}</dd></div>
+      <div><dt>織造地</dt><dd>{{ product.made_in }}</dd></div>
+    </dl>
+  </div>
+</section>
+
+<section class="section">
+  <div class="section-head"><h2>也許你也會喜歡</h2></div>
+  <div class="product-grid" data-list-id="related_{{ product.id }}" data-list-name="相關商品">
+    {% for p in related %}{{ product_card(p, "related_" ~ product.id, "相關商品", loop.index0) }}{% endfor %}
+  </div>
+</section>
+{% endblock %}

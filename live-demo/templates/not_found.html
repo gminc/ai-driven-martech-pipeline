@@ -1,0 +1,9 @@
+{% extends "base.html" %}
+{% block title %}找不到頁面｜{{ brand.name_zh }}{% endblock %}
+{% block content %}
+<section class="page-head">
+  <h1>找不到這個頁面</h1>
+  <p class="lede">可能是網址輸入有誤，或這件商品已經下架。</p>
+  <p><a class="button" href="{{ url_for('index') }}">回到首頁</a></p>
+</section>
+{% endblock %}

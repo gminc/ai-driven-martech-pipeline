@@ -1,0 +1,25 @@
+{% extends "base.html" %}
+{% from "_card.html" import product_card %}
+{% block title %}{{ campaign.name }}｜{{ brand.name_zh }}{% endblock %}
+{% block content %}
+<section class="lp-hero"
+         data-promotion='{{ {"promotion_id": campaign.promotion_id, "promotion_name": campaign.promotion_name, "creative_name": campaign.creative_name, "creative_slot": campaign.creative_slot} | tojson }}'>
+  <div>
+    <p class="eyebrow">{{ campaign.name }}</p>
+    <h1>{{ campaign.headline }}</h1>
+    <p class="lede">{{ campaign.subhead }}</p>
+    <ul class="lp-bullets">
+      {% for b in campaign.bullets %}<li>{{ b }}</li>{% endfor %}
+    </ul>
+    <p><a class="button" href="#lp-products">看專案商品</a></p>
+  </div>
+  <img src="{{ url_for('static', filename=campaign.hero_image) }}" alt="{{ campaign.name }} 主視覺" width="720" height="540">
+</section>
+
+<section id="lp-products" class="section">
+  <div class="section-head"><h2>專案商品</h2></div>
+  <div class="product-grid" data-list-id="lp_{{ campaign.slug }}" data-list-name="{{ campaign.name }}">
+    {% for p in products %}{{ product_card(p, "lp_" ~ campaign.slug, campaign.name, loop.index0) }}{% endfor %}
+  </div>
+</section>
+{% endblock %}

@@ -87,7 +87,7 @@ def build_order_params(
     return_url: str,
     order_result_url: str,
     client_back_url: str,
-    custom_fields: tuple[str, str, str] = ("", "", ""),
+    custom_fields: tuple[str, str, str, str] = ("", "", "", ""),
     now: datetime | None = None,
 ) -> dict[str, str]:
     """組出 AioCheckOut/V5 所需參數（含 CheckMacValue）。金額一律由伺服器決定。"""
@@ -110,6 +110,7 @@ def build_order_params(
         "CustomField1": custom_fields[0][:50],
         "CustomField2": custom_fields[1][:50],
         "CustomField3": custom_fields[2][:50],
+        "CustomField4": custom_fields[3][:50],
     }
     params["CheckMacValue"] = check_mac_value(params, config.hash_key, config.hash_iv)
     return params

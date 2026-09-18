@@ -1,34 +1,67 @@
 {% extends "base.html" %}
+{% from "_card.html" import product_card %}
 {% block content %}
 <section class="hero">
-  <h1>把台灣織造的溫度，穿進日常</h1>
-  <p>襪子、毛巾、浴巾，從每天都會用到的小東西開始。</p>
+  <div class="hero-text">
+    <p class="eyebrow">{{ brand.location }}</p>
+    <h1>把每天碰到皮膚的那幾件，織得好一點</h1>
+    <p class="lede">{{ brand.lede }}</p>
+    <p class="hero-cta">
+      <a class="button" href="#products">看看商品</a>
+      <a class="text-link" href="{{ url_for('about') }}">我們怎麼織 →</a>
+    </p>
+  </div>
+  <div class="hero-media">
+    <img src="{{ url_for('static', filename='img/hero-weave.svg') }}" alt="織布紋理特寫" width="720" height="560">
+  </div>
 </section>
 
-<section class="product-grid" aria-label="商品列表" data-list-id="home" data-list-name="首頁商品列表">
-  {% for p in shop.products %}
-  <article class="product-card" data-item='{{ {"item_id": p.id, "item_name": p.name, "item_category": p.category, "price": p.price, "index": loop.index0} | tojson }}'>
-    <img src="{{ url_for('static', filename=p.image) }}" alt="{{ p.name }} 示意插圖" width="320" height="240" loading="lazy">
-    <div class="product-body">
-      <span class="badge">{{ p.category }}</span>
-      <h2>{{ p.name }}</h2>
-      <p class="summary">{{ p.summary }}</p>
-      <details class="product-details">
-        <summary>查看商品細節</summary>
-        <p>{{ p.details }}</p>
-      </details>
-      <form class="checkout-form" method="get" action="{{ url_for('checkout', product_id=p.id) }}">
-        <p class="price">NT$ {{ "{:,}".format(p.price) }}</p>
-        <label>數量
-          <select name="qty">
-            {% for n in range(1, max_quantity + 1) %}<option value="{{ n }}">{{ n }}</option>{% endfor %}
-          </select>
-        </label>
-        <input type="hidden" name="cid" value="">
-        <button type="submit">前往結帳</button>
-      </form>
-    </div>
+<section class="pillars" aria-label="工藝與材質主張">
+  {% for pillar in shop.pillars %}
+  <article class="pillar">
+    <p class="pillar-en">{{ pillar.title_en }}</p>
+    <h2>{{ pillar.title }}</h2>
+    <p>{{ pillar.body }}</p>
   </article>
   {% endfor %}
 </section>
+
+<section id="products" class="section">
+  <div class="section-head">
+    <h2>全部商品</h2>
+    <p>襪子、毛巾、浴巾，從每天都會用到的小東西開始。</p>
+  </div>
+  <div class="product-grid" data-list-id="home_all" data-list-name="首頁全部商品">
+    {% for p in shop.products %}{{ product_card(p, "home_all", "首頁全部商品", loop.index0) }}{% endfor %}
+  </div>
+</section>
+
+<section class="story-band">
+  <div>
+    <h2>織一條毛巾，我們會先想它第三十次洗過之後的樣子</h2>
+    <p>{{ brand.story }}</p>
+    <p><a class="text-link" href="{{ url_for('about') }}">認識我們的織造夥伴 →</a></p>
+  </div>
+  <img src="{{ url_for('static', filename='img/loom.svg') }}" alt="低速織機示意" width="520" height="380" loading="lazy">
+</section>
+
+{% if campaigns %}
+<section class="section">
+  <div class="section-head">
+    <h2>當期專案</h2>
+    <p>依季節與使用情境挑選的組合。</p>
+  </div>
+  <div class="campaign-row">
+    {% for c in campaigns %}
+    <a class="campaign-card" href="{{ url_for('landing', slug=c.slug) }}">
+      <img src="{{ url_for('static', filename=c.hero_image) }}" alt="{{ c.name }}" width="640" height="360" loading="lazy">
+      <div>
+        <h3>{{ c.name }}</h3>
+        <p>{{ c.subhead }}</p>
+      </div>
+    </a>
+    {% endfor %}
+  </div>
+</section>
+{% endif %}
 {% endblock %}
