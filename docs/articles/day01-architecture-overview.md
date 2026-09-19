@@ -18,7 +18,7 @@
 
 為了同時驗證「即時性與真實性」並支撐「大數據分析深度」，我們設計了企業級的**雙軌資料管線**：
 
-- **軌道 A（即時驗證軌 - Live Demo）**：建置極簡且真實運作的電商展示介面（部署於 Firebase / Cloud Run），串接真實 GA4 追蹤與 Stripe Test Mode 交易事件。每次讀者點擊與結帳，皆能即時送入資料管線，證明系統真實暢通。
+- **軌道 A（即時驗證軌 - Live Demo）**：建置極簡且真實運作的電商展示介面（部署於 Cloud Run），串接真實 GA4 追蹤與綠界 ECPay 測試金流。每次讀者點擊與結帳，皆能即時送入資料管線，證明系統真實暢通。
 - **軌道 B（歷史規模軌 - Data Synthesizer）**：透過自研的 Python 合成管線，注入符合真實電商統計指標（CTR 1.5–3.5%、CVR 1.8–2.5%、客單價常態分佈）的 **90 天、50 萬筆跨通路日誌**，讓 BigQuery 多觸點歸因、顧客分群與 AI 模型擁有具說服力的大樣本基底。
 
 ---
@@ -33,7 +33,7 @@
 
 | 架構分層 | 核心技術 / 服務 | 核心任務 |
 | :--- | :--- | :--- |
-| **前端展示與事件** | Firebase Hosting, GA4, Stripe API | 承載 Live Demo、發送真實用戶互動與轉換事件 |
+| **前端展示與事件** | Cloud Run, GA4, 綠界 ECPay 測試環境 | 承載 Live Demo、發送真實用戶互動與轉換事件 |
 | **資料倉儲與建模** | BigQuery, BigQuery ML, Cloud Storage | 跨通路日誌清洗、多觸點歸因計算、分區分群最佳化 |
 | **AI 核心引擎** | Vertex AI（Agent Platform）, Gemini 3.x（Flash-Lite / Flash / Pro） | SQL 遠端直接診斷、素材視覺特徵結構化解析、Context Caching 降本 |
 | **自動化與 AI 代理** | Function Calling, Cloud Run, Cloud Workflows | 自然語言查報表、異常指標自動巡檢、Slack 警報全流程整合 |
