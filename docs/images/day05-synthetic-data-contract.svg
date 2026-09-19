@@ -1,0 +1,113 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 640" width="1200" height="640">
+  <defs>
+    <style>
+      .bg { fill: #f8fafd; }
+      .outer { fill: none; stroke: #e0e6ed; stroke-width: 1.5; }
+      .title { font-family: -apple-system, BlinkMacSystemFont, &quot;Segoe UI&quot;, Roboto, &quot;Noto Sans TC&quot;, &quot;PingFang TC&quot;, &quot;Microsoft JhengHei&quot;, sans-serif; font-weight: 700; font-size: 22px; fill: #1a73e8; }
+      .subtitle { font-family: -apple-system, BlinkMacSystemFont, &quot;Segoe UI&quot;, Roboto, &quot;Noto Sans TC&quot;, &quot;PingFang TC&quot;, &quot;Microsoft JhengHei&quot;, sans-serif; font-size: 13.5px; fill: #5f6368; }
+      .card { fill: #ffffff; stroke: #e0e6ed; stroke-width: 1.5; }
+      .card-accent { fill: #ffffff; stroke: #1a73e8; stroke-width: 1.8; }
+      .head { fill: #f1f5fb; }
+      .head-accent { fill: #e8f0fe; }
+      .badge { fill: #1a73e8; }
+      .badge-green { fill: #188038; }
+      .badge-warn { fill: #f29900; }
+      .badge-text { font-family: -apple-system, BlinkMacSystemFont, &quot;Segoe UI&quot;, Roboto, &quot;Noto Sans TC&quot;, &quot;PingFang TC&quot;, &quot;Microsoft JhengHei&quot;, sans-serif; font-weight: 700; font-size: 11px; fill: #ffffff; text-anchor: middle; }
+      .card-title { font-family: -apple-system, BlinkMacSystemFont, &quot;Segoe UI&quot;, Roboto, &quot;Noto Sans TC&quot;, &quot;PingFang TC&quot;, &quot;Microsoft JhengHei&quot;, sans-serif; font-weight: 700; font-size: 15px; fill: #202124; }
+      .label { font-family: -apple-system, BlinkMacSystemFont, &quot;Segoe UI&quot;, Roboto, &quot;Noto Sans TC&quot;, &quot;PingFang TC&quot;, &quot;Microsoft JhengHei&quot;, sans-serif; font-weight: 600; font-size: 12.5px; fill: #202124; }
+      .body { font-family: -apple-system, BlinkMacSystemFont, &quot;Segoe UI&quot;, Roboto, &quot;Noto Sans TC&quot;, &quot;PingFang TC&quot;, &quot;Microsoft JhengHei&quot;, sans-serif; font-size: 12px; fill: #3c4043; }
+      .muted { font-family: -apple-system, BlinkMacSystemFont, &quot;Segoe UI&quot;, Roboto, &quot;Noto Sans TC&quot;, &quot;PingFang TC&quot;, &quot;Microsoft JhengHei&quot;, sans-serif; font-size: 11px; fill: #5f6368; }
+      .code { font-family: &quot;SFMono-Regular&quot;, Consolas, &quot;Liberation Mono&quot;, Menlo, monospace; font-size: 11.5px; fill: #1557b0; }
+      .inner { fill: #f8fafd; stroke: #e0e6ed; stroke-width: 1; }
+      .inner-accent { fill: #f1f5fb; stroke: #1a73e8; stroke-width: 1; }
+      .inner-green { fill: #e6f4ea; stroke: #188038; stroke-width: 1; }
+      .inner-danger { fill: #fce8e6; stroke: #d93025; stroke-width: 1; }
+      .arrow { stroke: #1a73e8; stroke-width: 2; fill: none; stroke-linecap: round; stroke-linejoin: round; }
+      .arrow-green { stroke: #188038; stroke-width: 2; stroke-dasharray: 6,4; fill: none; stroke-linecap: round; stroke-linejoin: round; }
+      .arrow-label { font-family: -apple-system, BlinkMacSystemFont, &quot;Segoe UI&quot;, Roboto, &quot;Noto Sans TC&quot;, &quot;PingFang TC&quot;, &quot;Microsoft JhengHei&quot;, sans-serif; font-weight: 600; font-size: 11.5px; fill: #1a73e8; text-anchor: middle; }
+      .arrow-label-green { font-family: -apple-system, BlinkMacSystemFont, &quot;Segoe UI&quot;, Roboto, &quot;Noto Sans TC&quot;, &quot;PingFang TC&quot;, &quot;Microsoft JhengHei&quot;, sans-serif; font-weight: 600; font-size: 11.5px; fill: #188038; text-anchor: middle; }
+      .foot { fill: #ffffff; stroke: #e0e6ed; stroke-width: 1.2; }
+      .foot-text { font-family: -apple-system, BlinkMacSystemFont, &quot;Segoe UI&quot;, Roboto, &quot;Noto Sans TC&quot;, &quot;PingFang TC&quot;, &quot;Microsoft JhengHei&quot;, sans-serif; font-size: 12.5px; fill: #3c4043; }
+      .danger-text { font-family: -apple-system, BlinkMacSystemFont, &quot;Segoe UI&quot;, Roboto, &quot;Noto Sans TC&quot;, &quot;PingFang TC&quot;, &quot;Microsoft JhengHei&quot;, sans-serif; font-weight: 600; font-size: 12px; fill: #d93025; }
+      .green-text { font-family: -apple-system, BlinkMacSystemFont, &quot;Segoe UI&quot;, Roboto, &quot;Noto Sans TC&quot;, &quot;PingFang TC&quot;, &quot;Microsoft JhengHei&quot;, sans-serif; font-weight: 600; font-size: 12px; fill: #188038; }
+    </style>
+    <marker id="ah" markerWidth="9" markerHeight="7" refX="8" refY="3.5" orient="auto"><polygon points="0 0, 9 3.5, 0 7" fill="#1a73e8"/></marker>
+    <marker id="ahg" markerWidth="9" markerHeight="7" refX="8" refY="3.5" orient="auto"><polygon points="0 0, 9 3.5, 0 7" fill="#188038"/></marker>
+  </defs>
+
+  <rect width="1200" height="640" rx="12" class="bg"/>
+  <rect x="1" y="1" width="1198" height="638" rx="12" class="outer"/>
+  <text x="40" y="46" class="title">Day 05 合成器資料契約：三份設定檔 → 合成器 → 五張原始表</text>
+  <text x="40" y="72" class="subtitle">商品與活動直接讀 Live Demo 的設定，植入的訊號寫在答案表，同一個亂數種子一定產生一模一樣的資料</text>
+  <rect x="40" y="100" width="300" height="400" rx="8" class="card"/>
+  <path d="M41 144 V109 a8 8 0 0 1 8 -8 H331 a8 8 0 0 1 8 8 V144 Z" class="head"/>
+  <rect x="54" y="113" width="32" height="20" rx="4" class="badge"/>
+  <text x="70.0" y="127" class="badge-text">契約</text>
+  <text x="96" y="128" class="card-title">三份設定檔</text>
+  <rect x="58" y="160" width="264" height="96" rx="6" class="inner"/>
+  <text x="72" y="186" class="code">live-demo/products.json</text>
+  <text x="72" y="210" class="body">5 款商品、定價、尺寸、2 檔活動</text>
+  <text x="72" y="232" class="muted">Live Demo 與合成器共用</text>
+  <rect x="58" y="272" width="264" height="96" rx="6" class="inner"/>
+  <text x="72" y="298" class="code">creatives.json</text>
+  <text x="72" y="322" class="body">30 則素材：24 則圖片、6 則搜尋廣告</text>
+  <text x="72" y="344" class="muted">設計屬性與生圖提示詞</text>
+  <rect x="58" y="384" width="264" height="96" rx="6" class="inner-green"/>
+  <text x="72" y="410" class="code">ground_truth.json</text>
+  <text x="72" y="434" class="body">七個植入訊號 S1–S7 的參數</text>
+  <text x="72" y="456" class="muted">同時是分析篇的標準答案</text>
+  <rect x="450" y="100" width="300" height="400" rx="8" class="card-accent"/>
+  <path d="M451 144 V109 a8 8 0 0 1 8 -8 H741 a8 8 0 0 1 8 8 V144 Z" class="head-accent"/>
+  <rect x="464" y="113" width="53.0" height="20" rx="4" class="badge"/>
+  <text x="490.5" y="127" class="badge-text">Python</text>
+  <text x="527.0" y="128" class="card-title">synthetic_pipeline.py</text>
+  <text x="466" y="162" class="muted">只用標準函式庫｜--seed 固定｜約 10–20 秒</text>
+  <rect x="468" y="178" width="264" height="56" rx="6" class="inner-accent"/>
+  <text x="482" y="201" class="label">1  廣告每日成效</text>
+  <text x="482" y="221" class="muted">曝光、點擊、花費（S1、S3、S4）</text>
+  <rect x="468" y="240" width="264" height="56" rx="6" class="inner-accent"/>
+  <text x="482" y="263" class="label">2  造訪與訪客旅程</text>
+  <text x="482" y="283" class="muted">新訪客比例、14 天回訪（S6）</text>
+  <rect x="468" y="302" width="264" height="56" rx="6" class="inner-accent"/>
+  <text x="482" y="325" class="label">3  顧客類型與成交</text>
+  <text x="482" y="345" class="muted">四種顧客、檔期權重（S5、S7）</text>
+  <rect x="468" y="364" width="264" height="56" rx="6" class="inner-accent"/>
+  <text x="482" y="387" class="label">4  展開成 GA4 事件</text>
+  <text x="482" y="407" class="muted">first_visit → purchase（S2）</text>
+  <rect x="468" y="426" width="264" height="56" rx="6" class="inner-accent"/>
+  <text x="482" y="449" class="label">5  截到期間內輸出</text>
+  <text x="482" y="469" class="muted">6/19–9/16 共 90 天 CSV</text>
+  <rect x="860" y="100" width="300" height="250" rx="8" class="card"/>
+  <path d="M861 144 V109 a8 8 0 0 1 8 -8 H1151 a8 8 0 0 1 8 8 V144 Z" class="head"/>
+  <rect x="874" y="113" width="32" height="20" rx="4" class="badge"/>
+  <text x="890.0" y="127" class="badge-text">輸出</text>
+  <text x="916" y="128" class="card-title">五張原始表</text>
+  <text x="878" y="168" class="code">raw_creatives</text>
+  <text x="1142" y="168" class="body" text-anchor="end">30</text>
+  <text x="878" y="202" class="code">raw_ad_daily</text>
+  <text x="1142" y="202" class="body" text-anchor="end">1,700</text>
+  <text x="878" y="236" class="code">raw_events</text>
+  <text x="1142" y="236" class="body" text-anchor="end">約 52 萬</text>
+  <text x="878" y="270" class="code">raw_orders</text>
+  <text x="1142" y="270" class="body" text-anchor="end">約 3,300</text>
+  <text x="878" y="304" class="code">raw_customers</text>
+  <text x="1142" y="304" class="body" text-anchor="end">約 2,500</text>
+  <rect x="860" y="370" width="300" height="130" rx="8" class="card"/>
+  <path d="M861 414 V379 a8 8 0 0 1 8 -8 H1151 a8 8 0 0 1 8 8 V414 Z" class="head"/>
+  <rect x="874" y="383" width="32" height="20" rx="4" class="badge"/>
+  <text x="890.0" y="397" class="badge-text">明天</text>
+  <text x="916" y="398" class="card-title">Day 06 灌入 BigQuery</text>
+  <text x="878" y="432" class="body">批次載入工作寫進 martech_dw</text>
+  <text x="878" y="456" class="body">Day 07 用 UNNEST 攤平真實事件</text>
+  <text x="878" y="480" class="muted">以 data_source 區分合成與真實</text>
+  <path d="M340 300 L450 300" class="arrow" marker-end="url(#ah)"/>
+  <text x="395" y="290" class="arrow-label">讀取設定</text>
+  <path d="M750 225 L860 225" class="arrow" marker-end="url(#ah)"/>
+  <text x="805" y="215" class="arrow-label">寫出 CSV</text>
+  <path d="M1010 350 L1010 370" class="arrow" marker-end="url(#ah)"/>
+  <path d="M190 500 L190 528 L1060 528 L1060 502" class="arrow-green" marker-end="url(#ahg)"/>
+  <text x="625" y="520" class="arrow-label-green">validate.py：用答案表逐項檢查七個訊號是否植入成功</text>
+  <rect x="40" y="560" width="1120" height="52" rx="6" class="foot"/>
+  <text x="60" y="592" class="foot-text">FinOps：今天全部在 Cloud Shell 執行，不呼叫任何雲端服務，費用為零，明天用批次載入工作灌入 BigQuery，載入本身不收費。</text>
+</svg>

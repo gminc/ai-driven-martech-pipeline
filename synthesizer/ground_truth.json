@@ -1,0 +1,103 @@
+{
+  "_note": "答案表：合成器依這份設定植入訊號，Day 09 起的分析篇在揭曉前不應讀取這個檔案",
+  "S1_cpc_spike": {
+    "description": "meta 重訓襪專案開發新客廣告群組 CPC 翻倍、轉換機率不變，ROAS 理論上腰斬（實際受訂單數少的雜訊影響）",
+    "ad_group_id": "meta-trn-prospecting",
+    "start_date": "2026-08-12",
+    "cpc_multiplier": 2.0
+  },
+  "S2_tracking_outage": {
+    "description": "網站改版導致 purchase 事件整天沒送出，但訂單照常成立（GA4 與金流後台對不上）",
+    "date": "2026-08-27",
+    "dropped_event": "purchase"
+  },
+  "S3_creative_fatigue": {
+    "description": "單一素材 CTR 每週衰退約 8%",
+    "creative_id": "cr-meta-evg-p1",
+    "weekly_ctr_decay": 0.08,
+    "anchor_date": "2026-06-19"
+  },
+  "S4_visual_effects": {
+    "description": "素材設計屬性對 CTR 的乘數，只作用在圖片素材；分析時要排除 S3 素材並控制通路與受眾",
+    "has_person": 1.25,
+    "cta_bottom_right": 1.1,
+    "dominant_color_warm": 1.1,
+    "confounders": {
+      "retargeting_ctr": 1.3,
+      "retargeting_impression_multiplier": 0.35
+    }
+  },
+  "S5_customer_segments": {
+    "description": "四種顧客類型，首購時決定，影響品項、數量與回購節奏",
+    "base_mix": {
+      "sock_regular": 0.3,
+      "bath_bulk": 0.15,
+      "starter_new": 0.2,
+      "dormant": 0.35
+    },
+    "campaign_boost": {
+      "training-socks": {
+        "sock_regular": 2.0
+      },
+      "autumn-cotton": {
+        "starter_new": 1.8
+      }
+    },
+    "sock_regular": {
+      "repeat_prob": 0.75,
+      "interval_days_mean": 25,
+      "interval_days_sd": 6
+    },
+    "starter_new": {
+      "repeat_prob": 0.35,
+      "interval_days_mean": 40,
+      "interval_days_sd": 10
+    },
+    "bath_bulk": {
+      "repeat_prob": 0.1,
+      "interval_days_mean": 60,
+      "interval_days_sd": 12
+    },
+    "dormant": {
+      "repeat_prob": 0.0,
+      "newsletter_converts": false
+    }
+  },
+  "S6_channel_roles": {
+    "description": "各通路帶來新訪客的比例與成交意圖，讓 meta 集中在路徑開頭、google 搜尋集中在最後一步",
+    "new_user_share": {
+      "meta": 0.85,
+      "line": 0.8,
+      "google_cpc": 0.35,
+      "organic": 0.55,
+      "direct": 0.25
+    },
+    "retargeting_new_user_share": 0.05,
+    "base_cvr": {
+      "meta": 0.009,
+      "line": 0.008,
+      "google_cpc": 0.034,
+      "organic": 0.022,
+      "direct": 0.035,
+      "email": 0.03
+    },
+    "touch_multiplier": [
+      0.5,
+      1.0,
+      1.5,
+      1.8
+    ]
+  },
+  "S7_autumn_uplift": {
+    "description": "秋日棉織專案期間專案商品占比上升，包含兩個來源：專案素材帶來的流量（組合包新客權重 ×1.8）與專案商品被選購的權重提高",
+    "promotion_id": "AUTUMN2026",
+    "start_date": "2026-09-01",
+    "end_date": "2026-09-16",
+    "product_ids": [
+      "towel-face-cotton",
+      "sock-crew-daily",
+      "set-starter"
+    ],
+    "weight_multiplier": 2.0
+  }
+}

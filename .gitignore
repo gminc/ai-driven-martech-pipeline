@@ -23,3 +23,7 @@ crash.log
 
 # OS
 .DS_Store
+
+# 合成器輸出
+synthesizer/out/
+synthesizer/sample*/
