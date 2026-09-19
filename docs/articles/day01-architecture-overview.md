@@ -45,13 +45,13 @@
 
 整個參賽旅程將依序推進五大核心模組：
 
-1. **模組一：環境建置、範例網站與雙軌資料工程（Day 01–06）**
+1. **模組一：環境建置、範例網站與雙軌資料工程（Day 01–07）**
    - 從 Terraform 一鍵部署、Live Demo 範例網站搭建，到寫出符合統計分佈的電商日誌合成器與 BigQuery 星狀綱要建模。
-2. **模組二：大數據歸因與 BigQuery × AI 深度整合（Day 07–12）**
+2. **模組二：大數據歸因與 BigQuery × AI 深度整合（Day 08–13）**
    - 實作多觸點歸因（MTA）演算法；直接在 BigQuery 裡用 SQL 遠端呼叫 Gemini 進行 ROAS 異常診斷，並實測 Context Caching 對重複輸入 Token 的降本效果。
-3. **模組三：Gemini 3.x 視覺多模態解構廣告素材（Day 13–19）**
+3. **模組三：Gemini 3.x 視覺多模態解構廣告素材（Day 14–20）**
    - 告別主觀審美！用 Gemini 批次抽取素材色調、文字位置、神情表情，透過 Structured Outputs 轉化為特徵向量，與轉換率進行交叉回歸分析。
-4. **模組四：行銷 Agent 打造與安全合規治理（Day 20–25）**
+4. **模組四：行銷 Agent 打造與安全合規治理（Day 21–25）**
    - 利用 Function Calling 打造能看懂報表與素材的行銷 Agent；建立企業級 Prompt 護欄、PII 去識別化與 Vertex AI 評測機制。
 5. **模組五：無伺服器部署、全自動工作流與完整交付（Day 26–30）**
    - 將 Agent 封裝上 Cloud Run，用 Cloud Workflows 串接每日排程，在 Slack 自動推播異常診斷與最佳化建議，並交付完整 GitHub 開源專案。
@@ -81,15 +81,15 @@ ai-driven-martech-pipeline/
 ├── README.md                # 專案說明與架構總覽
 ├── terraform/               # Day 03: 基礎設施即程式碼 (IaC)
 ├── live-demo/               # Day 04: 極簡電商展示介面 (Firebase / GA4 / Stripe)
-├── data-pipeline/           # Day 05-12: 50萬筆日誌生成器與 BigQuery MTA 歸因
+├── data-pipeline/           # Day 05-13: 50萬筆日誌生成器與 BigQuery MTA 歸因
 │   ├── synthetic/           # 電商數據合成器 (synthetic_pipeline.py)
 │   ├── schemas/             # 星狀綱要 DDL
 │   └── sql/                 # 多觸點歸因與 ML 語法
-├── vertex-ai/               # Day 13-19: Gemini 3.x 視覺多模態與特徵工程
+├── vertex-ai/               # Day 14-20: Gemini 3.x 視覺多模態與特徵工程
 │   ├── vision_extractor/    # 廣告圖文特徵抽取腳本
 │   ├── schemas/             # Structured Outputs 結構化定義
 │   └── caching/             # Context Caching 實測降本
-├── agent/                   # Day 20-25: 決策中樞、資安防護與評測
+├── agent/                   # Day 21-25: 決策中樞、資安防護與評測
 │   ├── tools/               # Function Calling 工具定義
 │   ├── guardrails/          # PII 去識別化與 Prompt 護欄
 │   └── evaluation/          # Vertex AI 評測管線
