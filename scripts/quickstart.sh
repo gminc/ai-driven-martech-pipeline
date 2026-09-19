@@ -14,6 +14,37 @@ echo "🚀 歡迎使用 AI-Driven MarTech GCP 基礎建設一鍵建置精靈"
 echo "========================================================"
 
 # ------------------------------------------------------------------------------
+# 0. 確認 Terraform（Cloud Shell 自 2026/6/20 起不再預設內建，缺少時自動安裝到 ~/bin）
+# ------------------------------------------------------------------------------
+TF_VERSION="1.16.3"
+export PATH="${HOME}/bin:${PATH}"
+if ! command -v terraform >/dev/null 2>&1; then
+  echo "📦 找不到 Terraform，正在安裝 HashiCorp 官方 ${TF_VERSION} 版到 ~/bin ..."
+  case "$(uname -m)" in
+    x86_64) TF_ARCH="amd64" ;;
+    aarch64|arm64) TF_ARCH="arm64" ;;
+    *) echo "❌ 不支援的 CPU 架構：$(uname -m)，請手動安裝 Terraform 後再執行"; exit 1 ;;
+  esac
+  TF_ZIP="terraform_${TF_VERSION}_linux_${TF_ARCH}.zip"
+  command -v unzip >/dev/null 2>&1 || { echo "❌ 找不到 unzip，請先安裝後再執行"; exit 1; }
+  TF_TMP="$(mktemp -d)"
+  trap 'rm -rf "${TF_TMP}"' EXIT
+  if ! curl -fsSL -o "${TF_TMP}/${TF_ZIP}" "https://releases.hashicorp.com/terraform/${TF_VERSION}/${TF_ZIP}" \
+    || ! curl -fsSL -o "${TF_TMP}/SHA256SUMS" "https://releases.hashicorp.com/terraform/${TF_VERSION}/terraform_${TF_VERSION}_SHA256SUMS"; then
+    echo "❌ 下載 Terraform 失敗，請確認網路後重試"; rm -rf "${TF_TMP}"; exit 1
+  fi
+  if ! (cd "${TF_TMP}" && grep " ${TF_ZIP}\$" SHA256SUMS | sha256sum -c - >/dev/null 2>&1); then
+    echo "❌ Terraform 檔案 SHA256 驗證失敗，已停止安裝"; rm -rf "${TF_TMP}"; exit 1
+  fi
+  mkdir -p "${HOME}/bin"
+  unzip -o -q "${TF_TMP}/${TF_ZIP}" terraform -d "${HOME}/bin"
+  rm -rf "${TF_TMP}"
+  grep -qF 'export PATH="$HOME/bin:$PATH"' "${HOME}/.bashrc" 2>/dev/null || echo 'export PATH="$HOME/bin:$PATH"' >> "${HOME}/.bashrc"
+fi
+terraform version >/dev/null 2>&1 || { echo "❌ terraform 無法執行，請檢查 PATH 上的 terraform"; exit 1; }
+echo "🧰 $(terraform version 2>/dev/null | sed -n 1p)"
+
+# ------------------------------------------------------------------------------
 # 1. 偵測目前專案
 # ------------------------------------------------------------------------------
 CURRENT_PROJECT="$(gcloud config get-value project 2>/dev/null || true)"

@@ -62,7 +62,7 @@
 
 為了讓所有讀者都能「**零門檻完整重現**」，本專案完全摒棄複雜的本機環境安裝。我們全程採用 Google Cloud 內建的 **Cloud Shell & Cloud Shell Editor**（瀏覽器版 VS Code）作為核心開發環境：
 
-- **免安裝 SDK**：預載 gcloud、git、terraform、docker 與 python3，省去數小時的環境設定。
+- **免安裝 SDK**：預載 gcloud、git、docker 與 python3，Terraform 則由 Day 03 的腳本一鍵安裝，省去數小時的環境設定。
 - **5GB 永久儲存**：程式碼安全存放在 Cloud Shell 家目錄，關閉瀏覽器也不會遺失。
 - **雲端完整 IDE**：提供如桌面端 VS Code 般的樹狀目錄、語法上色與終端機整合。
 
@@ -80,9 +80,10 @@ ai-driven-martech-pipeline/
 ├── LICENSE                  # MIT 開源授權協議
 ├── README.md                # 專案說明與架構總覽
 ├── terraform/               # Day 03: 基礎設施即程式碼 (IaC)
-├── live-demo/               # Day 04: 極簡電商展示介面 (Firebase / GA4 / Stripe)
-├── data-pipeline/           # Day 05-13: 50萬筆日誌生成器與 BigQuery MTA 歸因
-│   ├── synthetic/           # 電商數據合成器 (synthetic_pipeline.py)
+├── scripts/                 # Day 03-04: 一鍵建置與部署腳本
+├── live-demo/               # Day 04: 極簡電商展示介面 (Cloud Run / GA4 / 綠界 ECPay)
+├── synthesizer/             # Day 05-06: 50萬筆電商數據合成器 (synthetic_pipeline.py) 與分佈驗證
+├── data-pipeline/           # Day 07-13: BigQuery 星狀綱要、MTA 歸因與顧客畫像
 │   ├── schemas/             # 星狀綱要 DDL
 │   └── sql/                 # 多觸點歸因與 ML 語法
 ├── vertex-ai/               # Day 14-20: Gemini 3.x 視覺多模態與特徵工程

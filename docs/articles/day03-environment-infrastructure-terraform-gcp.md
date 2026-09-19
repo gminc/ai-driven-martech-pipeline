@@ -112,7 +112,9 @@ BigQuery 是整個 MarTech 系統的「資料心臟」。在此建立廣告成�
 
 前面我們拆解了每一段 Terraform 程式碼設計考量，這一節要帶大家實際把環境建置起來。即使平常較少接觸終端機也不用擔心，所有操作都在瀏覽器中完成，不需要在自己的電腦安裝任何軟體。
 
-Google Cloud 提供的 **Cloud Shell** 是一台免費的線上 Linux 環境，已預先安裝好 gcloud、bq 與 Terraform 等工具，並附有 5GB 的永久儲存空間，非常適合作為本專案的標準操作環境。
+Google Cloud 提供的 **Cloud Shell** 是一台免費的線上 Linux 環境，已預先安裝好 gcloud 與 bq 等工具，並附有 5GB 的永久儲存空間，非常適合作為本專案的標準操作環境。
+
+要注意的是 Cloud Shell 自 2026/6/20 起不再預設內建 Terraform，需要自己安裝一次，裝在家目錄的 `~/bin` 就會跟著永久儲存空間保留下來，路線 A 的懶人包會自動處理，路線 B 則在步驟 3 手動完成。
 
 我們準備了兩種路線，請依照自己的需求選擇：
 
@@ -147,6 +149,7 @@ cd ~ && if [ -d ai-driven-martech-pipeline/.git ]; then git -C ai-driven-martech
 
 這支 `quickstart.sh` 腳本會自動幫你完成以下工作：
 
+- **確認 Terraform**：找不到 `terraform` 時自動下載 HashiCorp 官方版本，核對 SHA256 後安裝到 `~/bin`
 - **偵測專案與帳單**：讀取目前的專案 ID，檢查帳單是否已啟用；若目前帳號具備建立預算的權限，會依帳戶幣別自動設定預算警報（TWD 帳戶 NT$ 300、USD 帳戶 US$ 10），否則自動略過
 - **產生設定檔**：依照 `terraform.tfvars.example` 的欄位，自動產生 `terraform.tfvars` 並填入上述資訊
 - **預覽變更**：執行 `terraform init` 與 `terraform plan`，列出即將建立的所有資源
@@ -180,7 +183,27 @@ cd ~/ai-driven-martech-pipeline/terraform
 
 - ✅ **成功的樣子**：輸入 `ls` 後，可以看到 `main.tf`、`variables.tf`、`outputs.tf` 等檔案
 
-### 步驟 3：建立並填寫設定檔
+### 步驟 3：安裝 Terraform（只需做一次）
+
+```bash
+TF_VERSION=1.16.3
+cd ~ && curl -fsSLO https://releases.hashicorp.com/terraform/${TF_VERSION}/terraform_${TF_VERSION}_linux_amd64.zip \
+  && curl -fsSLO https://releases.hashicorp.com/terraform/${TF_VERSION}/terraform_${TF_VERSION}_SHA256SUMS \
+  && grep " terraform_${TF_VERSION}_linux_amd64.zip$" terraform_${TF_VERSION}_SHA256SUMS | sha256sum -c - \
+  && mkdir -p ~/bin && unzip -o -q terraform_${TF_VERSION}_linux_amd64.zip terraform -d ~/bin \
+  && rm terraform_${TF_VERSION}_linux_amd64.zip terraform_${TF_VERSION}_SHA256SUMS
+grep -qF 'export PATH="$HOME/bin:$PATH"' ~/.bashrc || echo 'export PATH="$HOME/bin:$PATH"' >> ~/.bashrc
+export PATH="$HOME/bin:$PATH"
+cd ~/ai-driven-martech-pipeline/terraform && terraform version
+```
+
+這段指令從 HashiCorp 官方下載 Terraform，先用官方公布的 SHA256 核對檔案沒有被竄改，再解壓到 `~/bin` 並加進 PATH，之後重開 Cloud Shell 也不用重裝，版本號可以換成[官方下載頁](https://releases.hashicorp.com/terraform/)上的最新穩定版。
+
+- ✅ **成功的樣子**：先看到 `terraform_1.16.3_linux_amd64.zip: OK`，最後一行顯示 `Terraform v1.16.3`
+- 💡 **已經有 Terraform 的話**：輸入 `terraform version` 有顯示版本就可以跳過這一步
+- ⚠️ **看到 `FAILED` 的話**：代表下載的檔案和官方雜湊對不上，不要繼續，先執行 `rm -f ~/terraform_*` 刪掉下載的檔案再重跑一次
+
+### 步驟 4：建立並填寫設定檔
 
 ```bash
 cp terraform.tfvars.example terraform.tfvars
@@ -197,7 +220,7 @@ cloudshell edit terraform.tfvars
 
 🔒 `terraform.tfvars` 已列入 `.gitignore`，填寫的帳單資訊不會被推上 GitHub。
 
-### 步驟 4：初始化與預覽（這一步還不會建立任何資源）
+### 步驟 5：初始化與預覽（這一步還不會建立任何資源）
 
 ```bash
 terraform init
@@ -209,7 +232,7 @@ terraform plan
 
 - ✅ **成功的樣子**：畫面最後出現 `Plan: X to add, 0 to change, 0 to destroy.`
 
-### 步驟 5：正式建置
+### 步驟 6：正式建置
 
 ```bash
 terraform apply
@@ -233,7 +256,8 @@ bq show --connection YOUR_PROJECT_ID.us.vertex_ai_conn
 ### 查看所有建置資訊
 
 ```bash
-terraform output
+export PATH="$HOME/bin:$PATH"
+cd ~/ai-driven-martech-pipeline/terraform && terraform output
 ```
 
 畫面會列出資料集 ID、素材儲存庫名稱、遠端連線 ID 與服務帳號等資訊，後續章節會陸續用到。也可以回到 Console 的 BigQuery 頁面，確認左側已出現 `martech_dw` 資料集。
