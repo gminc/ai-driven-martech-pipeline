@@ -1,0 +1,104 @@
+[
+  {
+    "name": "event_date",
+    "type": "STRING",
+    "mode": "REQUIRED",
+    "description": "事件日期 YYYYMMDD（台北），與 GA4 匯出表相同為字串"
+  },
+  {
+    "name": "event_timestamp",
+    "type": "INT64",
+    "mode": "REQUIRED",
+    "description": "UTC 微秒，與 GA4 匯出表相同"
+  },
+  {
+    "name": "event_name",
+    "type": "STRING",
+    "mode": "REQUIRED",
+    "description": "事件名稱"
+  },
+  {
+    "name": "user_pseudo_id",
+    "type": "STRING",
+    "mode": "REQUIRED",
+    "description": "訪客 ID，形如 數字.數字，必須是字串"
+  },
+  {
+    "name": "ga_session_id",
+    "type": "INT64",
+    "mode": "NULLABLE",
+    "description": "工作階段 ID（秒）"
+  },
+  {
+    "name": "customer_id",
+    "type": "STRING",
+    "mode": "NULLABLE",
+    "description": "顧客 ID，成交後才有"
+  },
+  {
+    "name": "utm_source",
+    "type": "STRING",
+    "mode": "NULLABLE",
+    "description": "來源"
+  },
+  {
+    "name": "utm_medium",
+    "type": "STRING",
+    "mode": "NULLABLE",
+    "description": "媒介"
+  },
+  {
+    "name": "utm_campaign",
+    "type": "STRING",
+    "mode": "NULLABLE",
+    "description": "活動代號"
+  },
+  {
+    "name": "creative_id",
+    "type": "STRING",
+    "mode": "NULLABLE",
+    "description": "素材 ID"
+  },
+  {
+    "name": "promotion_id",
+    "type": "STRING",
+    "mode": "NULLABLE",
+    "description": "專案代號"
+  },
+  {
+    "name": "item_id",
+    "type": "STRING",
+    "mode": "NULLABLE",
+    "description": "商品 ID"
+  },
+  {
+    "name": "item_variant",
+    "type": "STRING",
+    "mode": "NULLABLE",
+    "description": "尺寸原字串"
+  },
+  {
+    "name": "quantity",
+    "type": "INT64",
+    "mode": "NULLABLE",
+    "description": "數量"
+  },
+  {
+    "name": "value",
+    "type": "FLOAT64",
+    "mode": "NULLABLE",
+    "description": "事件金額，與 GA4 相同為浮點數"
+  },
+  {
+    "name": "transaction_id",
+    "type": "STRING",
+    "mode": "NULLABLE",
+    "description": "訂單編號"
+  },
+  {
+    "name": "data_source",
+    "type": "STRING",
+    "mode": "NULLABLE",
+    "description": "固定為 synthetic"
+  }
+]

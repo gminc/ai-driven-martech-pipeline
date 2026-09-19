@@ -1,0 +1,38 @@
+[
+  {
+    "name": "customer_id",
+    "type": "STRING",
+    "mode": "REQUIRED",
+    "description": "顧客 ID"
+  },
+  {
+    "name": "name",
+    "type": "STRING",
+    "mode": "NULLABLE",
+    "description": "假姓名"
+  },
+  {
+    "name": "email",
+    "type": "STRING",
+    "mode": "NULLABLE",
+    "description": "假 email，網域 example.com"
+  },
+  {
+    "name": "phone",
+    "type": "STRING",
+    "mode": "NULLABLE",
+    "description": "假手機，0 開頭，必須是字串"
+  },
+  {
+    "name": "city",
+    "type": "STRING",
+    "mode": "NULLABLE",
+    "description": "縣市"
+  },
+  {
+    "name": "first_order_date",
+    "type": "DATE",
+    "mode": "NULLABLE",
+    "description": "首購日"
+  }
+]

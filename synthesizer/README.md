@@ -21,6 +21,31 @@ python3 -m unittest discover -s tests -v                 # 單元測試（約 1 
 | `--seed` | 20260919 | 亂數種子，同一個種子輸出完全相同 |
 | `--out` | ./out | 輸出資料夾 |
 
+## 載入 BigQuery 與對帳（Day 06）
+
+`bigquery/` 把 90 天資料用批次載入工作灌進 `martech_dw` 的五張 raw 表，再用兩邊對帳確認搬運後資料沒有變。
+
+```bash
+bash bigquery/load.sh                  # 產生（若 ./out 不存在）→ validate.py → 核對標題順序 → 載入 → 比對列數
+python3 bigquery/reconcile.py ./out    # 本機與 BigQuery 各算 55 項指標逐項比對
+```
+
+| 檔案 | 內容 |
+| --- | --- |
+| `bigquery/schemas/raw_*.json` | 五張表的明確綱要，不用自動偵測 |
+| `bigquery/load.sh` | 確認 gcloud 登入與資料集、本機驗證、依綱要載入（`--replace`），最後比對列數 |
+| `bigquery/verify.sql` | 在 BigQuery 端算指標，參數由 reconcile.py 從 `ground_truth.json` 帶入 |
+| `bigquery/reconcile.py` | 本機從 CSV 算同一份指標並比對，整數與字串完全相同、浮點數容許 1e-9 相對誤差 |
+
+型別的幾個決定：
+
+- `event_date` 用 STRING、`event_timestamp` 用 INT64、`value` 用 FLOAT64，和 GA4 匯出表一致，Day 07 合併真實事件時不用轉型
+- `user_pseudo_id` 與 `phone` 必須是 STRING，自動偵測會分別判成 FLOAT 與 INTEGER，造成尾數被捨去與開頭的 0 消失
+- `cost` 用 NUMERIC、訂單金額用 INT64、`order_ts` 用 TIMESTAMP（CSV 帶 `+08:00`）、`has_person` 用 BOOL
+- 主鍵與時間欄位設成 REQUIRED，缺值就讓載入工作失敗
+
+55 項指標分成列數與總量 23 項、期間與型別 9 項、統計分佈 5 項、七個訊號 18 項。S5 的顧客類型（`ground_truth/customer_segments.csv`）不載入倉儲，倉儲這一側只比對每位顧客的訂單數分佈。批次載入不收費，五張表約 63.5 MiB，對帳查詢約處理 43 MB。
+
 ## 資料契約
 
 三份設定檔就是契約，改設定不用改程式：

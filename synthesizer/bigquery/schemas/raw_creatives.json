@@ -1,0 +1,92 @@
+[
+  {
+    "name": "creative_id",
+    "type": "STRING",
+    "mode": "REQUIRED",
+    "description": "素材 ID"
+  },
+  {
+    "name": "channel",
+    "type": "STRING",
+    "mode": "NULLABLE",
+    "description": "通路：meta、line、google_cpc"
+  },
+  {
+    "name": "utm_campaign",
+    "type": "STRING",
+    "mode": "NULLABLE",
+    "description": "活動代號"
+  },
+  {
+    "name": "promotion_id",
+    "type": "STRING",
+    "mode": "NULLABLE",
+    "description": "專案代號，常態素材為空"
+  },
+  {
+    "name": "ad_group_id",
+    "type": "STRING",
+    "mode": "NULLABLE",
+    "description": "廣告群組"
+  },
+  {
+    "name": "audience",
+    "type": "STRING",
+    "mode": "NULLABLE",
+    "description": "受眾：prospecting、retargeting、search"
+  },
+  {
+    "name": "format",
+    "type": "STRING",
+    "mode": "NULLABLE",
+    "description": "image 或 search_text"
+  },
+  {
+    "name": "start_date",
+    "type": "DATE",
+    "mode": "NULLABLE",
+    "description": "上線日，常態素材為空"
+  },
+  {
+    "name": "end_date",
+    "type": "DATE",
+    "mode": "NULLABLE",
+    "description": "下檔日，常態素材為空"
+  },
+  {
+    "name": "product_focus",
+    "type": "STRING",
+    "mode": "NULLABLE",
+    "description": "主打商品 ID"
+  },
+  {
+    "name": "has_person",
+    "type": "BOOL",
+    "mode": "NULLABLE",
+    "description": "圖片是否有人物，文字廣告為空"
+  },
+  {
+    "name": "cta_position",
+    "type": "STRING",
+    "mode": "NULLABLE",
+    "description": "CTA 位置"
+  },
+  {
+    "name": "dominant_color",
+    "type": "STRING",
+    "mode": "NULLABLE",
+    "description": "主色系"
+  },
+  {
+    "name": "text_density",
+    "type": "STRING",
+    "mode": "NULLABLE",
+    "description": "文字密度"
+  },
+  {
+    "name": "image_file",
+    "type": "STRING",
+    "mode": "NULLABLE",
+    "description": "圖檔名稱"
+  }
+]

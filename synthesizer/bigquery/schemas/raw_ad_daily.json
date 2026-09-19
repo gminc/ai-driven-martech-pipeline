@@ -1,0 +1,50 @@
+[
+  {
+    "name": "date",
+    "type": "DATE",
+    "mode": "REQUIRED",
+    "description": "日期（台北）"
+  },
+  {
+    "name": "creative_id",
+    "type": "STRING",
+    "mode": "REQUIRED",
+    "description": "素材 ID"
+  },
+  {
+    "name": "ad_group_id",
+    "type": "STRING",
+    "mode": "NULLABLE",
+    "description": "廣告群組"
+  },
+  {
+    "name": "channel",
+    "type": "STRING",
+    "mode": "NULLABLE",
+    "description": "通路"
+  },
+  {
+    "name": "utm_campaign",
+    "type": "STRING",
+    "mode": "NULLABLE",
+    "description": "活動代號"
+  },
+  {
+    "name": "impressions",
+    "type": "INT64",
+    "mode": "NULLABLE",
+    "description": "曝光"
+  },
+  {
+    "name": "clicks",
+    "type": "INT64",
+    "mode": "NULLABLE",
+    "description": "點擊"
+  },
+  {
+    "name": "cost",
+    "type": "NUMERIC",
+    "mode": "NULLABLE",
+    "description": "花費（新台幣，小數兩位）"
+  }
+]

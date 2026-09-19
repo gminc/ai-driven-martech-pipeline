@@ -1,0 +1,86 @@
+[
+  {
+    "name": "transaction_id",
+    "type": "STRING",
+    "mode": "REQUIRED",
+    "description": "訂單編號"
+  },
+  {
+    "name": "order_ts",
+    "type": "TIMESTAMP",
+    "mode": "REQUIRED",
+    "description": "訂單成立時間，CSV 帶 +08:00"
+  },
+  {
+    "name": "order_date",
+    "type": "DATE",
+    "mode": "REQUIRED",
+    "description": "訂單日期（台北）"
+  },
+  {
+    "name": "customer_id",
+    "type": "STRING",
+    "mode": "NULLABLE",
+    "description": "顧客 ID"
+  },
+  {
+    "name": "user_pseudo_id",
+    "type": "STRING",
+    "mode": "NULLABLE",
+    "description": "訪客 ID"
+  },
+  {
+    "name": "item_id",
+    "type": "STRING",
+    "mode": "NULLABLE",
+    "description": "商品 ID"
+  },
+  {
+    "name": "item_variant",
+    "type": "STRING",
+    "mode": "NULLABLE",
+    "description": "尺寸原字串"
+  },
+  {
+    "name": "quantity",
+    "type": "INT64",
+    "mode": "NULLABLE",
+    "description": "數量"
+  },
+  {
+    "name": "unit_price",
+    "type": "INT64",
+    "mode": "NULLABLE",
+    "description": "單價（新台幣）"
+  },
+  {
+    "name": "revenue",
+    "type": "INT64",
+    "mode": "NULLABLE",
+    "description": "金額（新台幣）"
+  },
+  {
+    "name": "utm_source",
+    "type": "STRING",
+    "mode": "NULLABLE",
+    "description": "來源"
+  },
+  {
+    "name": "utm_medium",
+    "type": "STRING",
+    "mode": "NULLABLE",
+    "description": "媒介"
+  },
+  {
+    "name": "utm_campaign",
+    "type": "STRING",
+    "mode": "NULLABLE",
+    "description": "活動代號"
+  },
+  {
+    "name": "payment_status",
+    "type": "STRING",
+    "mode": "NULLABLE",
+    "description": "付款狀態"
+  }
+]
