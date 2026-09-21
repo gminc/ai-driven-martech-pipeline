@@ -1,0 +1,113 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1240 640" width="1240" height="640" font-family="'Noto Sans TC','PingFang TC','Microsoft JhengHei',sans-serif">
+  <defs>
+    <style>
+      .bg { fill: #ffffff; }
+      .title { font-size: 22px; font-weight: 700; fill: #202124; }
+      .colhead { font-size: 15px; font-weight: 700; fill: #5f6368; }
+      .raw { fill: #f1f3f4; stroke: #dadce0; stroke-width: 1.2; }
+      .rawtxt { font-size: 14px; fill: #3c4043; }
+      .ga4 { fill: #ffffff; stroke: #1a73e8; stroke-width: 1.2; stroke-dasharray: 5 4; }
+      .fact { fill: #e8f0fe; stroke: #1a73e8; stroke-width: 1.6; }
+      .facthead { fill: #1a73e8; }
+      .facttitle { font-size: 16px; font-weight: 700; fill: #ffffff; }
+      .factline { font-size: 13px; fill: #174ea6; }
+      .dim { fill: #ffffff; stroke: #1a73e8; stroke-width: 1.4; }
+      .dimtitle { font-size: 15px; font-weight: 700; fill: #1a73e8; }
+      .dimline { font-size: 12.5px; fill: #5f6368; }
+      .link { stroke: #9aa0a6; stroke-width: 1.3; fill: none; }
+      .flow { stroke: #1a73e8; stroke-width: 2.2; fill: none; }
+      .flowlabel { font-size: 13px; fill: #1a73e8; font-weight: 700; }
+      .ana { fill: #ffffff; stroke: #e0e6ed; stroke-width: 1.4; }
+      .anatxt { font-size: 14px; fill: #3c4043; }
+      .note { font-size: 13px; fill: #5f6368; }
+      .arrowhead { fill: #1a73e8; }
+    </style>
+    <marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse">
+      <path class="arrowhead" d="M0,0 L10,5 L0,10 z"/>
+    </marker>
+  </defs>
+
+  <rect class="bg" x="0" y="0" width="1240" height="640"/>
+  <text class="title" x="30" y="44">Day 07 星狀綱要：raw 表與 GA4 整理成三張事實表、四張維度表</text>
+
+  <!-- 來源 -->
+  <text class="colhead" x="30" y="92">來源（原封不動）</text>
+  <rect class="raw" x="30" y="108" width="200" height="42" rx="6"/><text class="rawtxt" x="46" y="134">raw_ad_daily</text>
+  <rect class="raw" x="30" y="162" width="200" height="42" rx="6"/><text class="rawtxt" x="46" y="188">raw_events</text>
+  <rect class="raw" x="30" y="216" width="200" height="42" rx="6"/><text class="rawtxt" x="46" y="242">raw_orders</text>
+  <rect class="raw" x="30" y="270" width="200" height="42" rx="6"/><text class="rawtxt" x="46" y="296">raw_creatives</text>
+  <rect class="raw" x="30" y="324" width="200" height="42" rx="6"/><text class="rawtxt" x="46" y="350">raw_customers</text>
+  <rect class="ga4" x="30" y="396" width="200" height="66" rx="6"/>
+  <text class="rawtxt" x="46" y="422">GA4 每日匯出表</text>
+  <text class="dimline" x="46" y="446">events_YYYYMMDD（巢狀）</text>
+
+  <path class="flow" d="M236,290 L296,290" marker-end="url(#arrow)"/>
+  <text class="flowlabel" x="238" y="278">攤平</text>
+  <text class="flowlabel" x="238" y="314">合併</text>
+
+  <!-- 維度表（左） -->
+  <rect class="dim" x="306" y="146" width="176" height="66" rx="8"/>
+  <text class="dimtitle" x="322" y="172">dim_date</text>
+  <text class="dimline" x="322" y="196">一天一列・進行中專案</text>
+  <rect class="dim" x="306" y="386" width="176" height="66" rx="8"/>
+  <text class="dimtitle" x="322" y="412">dim_creative</text>
+  <text class="dimline" x="322" y="436">一則素材一列・視覺屬性</text>
+
+  <!-- 維度表（右） -->
+  <rect class="dim" x="838" y="146" width="176" height="66" rx="8"/>
+  <text class="dimtitle" x="854" y="172">dim_customer</text>
+  <text class="dimline" x="854" y="196">一位顧客一列・不含個資</text>
+  <rect class="dim" x="838" y="386" width="176" height="66" rx="8"/>
+  <text class="dimtitle" x="854" y="412">dim_product</text>
+  <text class="dimline" x="854" y="436">一項商品一列・單價</text>
+
+  <!-- 連線 -->
+  <path class="link" d="M482,170 L540,150"/>
+  <path class="link" d="M482,180 L540,300"/>
+  <path class="link" d="M482,190 L540,450"/>
+  <path class="link" d="M482,410 L540,180"/>
+  <path class="link" d="M482,420 L540,320"/>
+  <path class="link" d="M838,180 L780,300"/>
+  <path class="link" d="M838,190 L780,440"/>
+  <path class="link" d="M838,410 L780,330"/>
+  <path class="link" d="M838,420 L780,470"/>
+
+  <!-- 事實表 -->
+  <rect class="fact" x="540" y="104" width="240" height="104" rx="8"/>
+  <rect class="facthead" x="540" y="104" width="240" height="34" rx="8"/>
+  <rect class="facthead" x="540" y="124" width="240" height="14"/>
+  <text class="facttitle" x="556" y="127">fct_ad_daily</text>
+  <text class="factline" x="556" y="162">粒度：一天一則素材</text>
+  <text class="factline" x="556" y="188">分區 date・叢集 channel、creative_id</text>
+
+  <rect class="fact" x="540" y="244" width="240" height="124" rx="8"/>
+  <rect class="facthead" x="540" y="244" width="240" height="34" rx="8"/>
+  <rect class="facthead" x="540" y="264" width="240" height="14"/>
+  <text class="facttitle" x="556" y="267">fct_events</text>
+  <text class="factline" x="556" y="302">粒度：一個事件</text>
+  <text class="factline" x="556" y="328">分區 event_dt・強制日期條件</text>
+  <text class="factline" x="556" y="354">data_source：synthetic／ga4</text>
+
+  <rect class="fact" x="540" y="404" width="240" height="104" rx="8"/>
+  <rect class="facthead" x="540" y="404" width="240" height="34" rx="8"/>
+  <rect class="facthead" x="540" y="424" width="240" height="14"/>
+  <text class="facttitle" x="556" y="427">fct_orders</text>
+  <text class="factline" x="556" y="462">粒度：一筆訂單</text>
+  <text class="factline" x="556" y="488">分區 order_date・叢集 customer_id</text>
+
+  <!-- 後續分析 -->
+  <path class="flow" d="M1020,300 L1062,300" marker-end="url(#arrow)"/>
+  <text class="colhead" x="1070" y="92">後續分析</text>
+  <rect class="ana" x="1070" y="170" width="150" height="50" rx="8"/><text class="anatxt" x="1086" y="201">Day 08 歸因</text>
+  <rect class="ana" x="1070" y="275" width="150" height="50" rx="8"/><text class="anatxt" x="1086" y="306">Day 09 ROAS</text>
+  <rect class="ana" x="1070" y="380" width="150" height="50" rx="8"/><text class="anatxt" x="1086" y="411">Day 11 分群</text>
+
+  <!-- 圖例 -->
+  <rect class="fact" x="30" y="560" width="22" height="16" rx="3"/>
+  <text class="note" x="60" y="573">事實表：記錄發生了什麼，依日期分區</text>
+  <rect class="dim" x="340" y="560" width="22" height="16" rx="3"/>
+  <text class="note" x="370" y="573">維度表：描述是誰、是什麼、哪一天</text>
+  <rect class="raw" x="640" y="560" width="22" height="16" rx="3"/>
+  <text class="note" x="670" y="573">raw 表：Day 06 載入後不再修改</text>
+  <text class="note" x="30" y="608">灰線代表以 ID 或日期 JOIN，兩張事實表之間不直接 JOIN，各自加總到同一粒度再相接</text>
+</svg>
