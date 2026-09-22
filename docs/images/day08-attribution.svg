@@ -1,0 +1,148 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1240 560" width="1240" height="560" font-family="'Noto Sans TC','PingFang TC','Microsoft JhengHei',sans-serif">
+  <defs>
+    <style>
+      .bg { fill: #ffffff; }
+      .title { font-size: 22px; font-weight: 700; fill: #202124; }
+      .colhead { font-size: 15px; font-weight: 700; fill: #5f6368; }
+      .fact { fill: #e8f0fe; stroke: #1a73e8; stroke-width: 1.6; }
+      .facthead { fill: #1a73e8; }
+      .facttitle { font-size: 16px; font-weight: 700; fill: #ffffff; }
+      .factline { font-size: 13px; fill: #174ea6; }
+      .panel { fill: #ffffff; stroke: #dadce0; stroke-width: 1.2; }
+      .touch { fill: #f1f3f4; stroke: #dadce0; stroke-width: 1.2; }
+      .touchtxt { font-size: 13.5px; fill: #3c4043; }
+      .touchsub { font-size: 12px; fill: #5f6368; }
+      .order { fill: #fef7e0; stroke: #f9ab00; stroke-width: 1.4; }
+      .ordertxt { font-size: 13.5px; font-weight: 700; fill: #b06000; }
+      .rule { font-size: 13.5px; font-weight: 700; fill: #202124; }
+      .cell { font-size: 14px; fill: #202124; text-anchor: middle; }
+      .cellhi { font-size: 14px; font-weight: 700; fill: #1a73e8; text-anchor: middle; }
+      .link { stroke: #9aa0a6; stroke-width: 1.3; fill: none; }
+      .flow { stroke: #1a73e8; stroke-width: 2.2; fill: none; }
+      .flowlabel { font-size: 13px; fill: #1a73e8; font-weight: 700; }
+      .note { font-size: 13px; fill: #5f6368; }
+      .arrowhead { fill: #1a73e8; }
+      .greyhead { fill: #9aa0a6; }
+      .barfirst { fill: #1a73e8; }
+      .barlast { fill: #f9ab00; }
+      .barlabel { font-size: 13px; fill: #3c4043; }
+      .barval { font-size: 12.5px; fill: #202124; }
+    </style>
+    <marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse">
+      <path class="arrowhead" d="M0,0 L10,5 L0,10 z"/>
+    </marker>
+    <marker id="garrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path class="greyhead" d="M0,0 L10,5 L0,10 z"/>
+    </marker>
+  </defs>
+
+  <rect class="bg" x="0" y="0" width="1240" height="560"/>
+  <text class="title" x="30" y="44">Day 08 多觸點歸因：同一筆訂單，三種規則分功勞</text>
+
+  <!-- 來源 -->
+  <text class="colhead" x="30" y="92">來源（Day 07 事實表）</text>
+  <rect class="fact" x="30" y="108" width="190" height="96" rx="8"/>
+  <rect class="facthead" x="30" y="108" width="190" height="34" rx="8"/>
+  <rect class="facthead" x="30" y="128" width="190" height="14"/>
+  <text class="facttitle" x="46" y="131">fct_orders</text>
+  <text class="factline" x="46" y="166">轉換：一筆訂單</text>
+  <text class="factline" x="46" y="190">3,304 筆</text>
+
+  <rect class="fact" x="30" y="232" width="190" height="96" rx="8"/>
+  <rect class="facthead" x="30" y="232" width="190" height="34" rx="8"/>
+  <rect class="facthead" x="30" y="252" width="190" height="14"/>
+  <text class="facttitle" x="46" y="255">fct_events</text>
+  <text class="factline" x="46" y="290">觸點：session_start</text>
+  <text class="factline" x="46" y="314">來源 utm_source / medium</text>
+
+  <path class="flow" d="M226,220 L276,220" marker-end="url(#arrow)"/>
+  <text class="flowlabel" x="228" y="208">串路徑</text>
+
+  <!-- 路徑與三種規則 -->
+  <text class="colhead" x="290" y="92">一條購買路徑（下單前 30 天、回購從上一筆後重算）</text>
+  <rect class="panel" x="290" y="108" width="590" height="330" rx="10"/>
+
+  <rect class="touch" x="410" y="128" width="112" height="56" rx="6"/>
+  <text class="touchtxt" x="422" y="152">meta</text>
+  <text class="touchsub" x="422" y="172">下單前約 7 小時</text>
+  <path class="link" d="M522,156 L540,156" marker-end="url(#garrow)"/>
+  <rect class="touch" x="544" y="128" width="112" height="56" rx="6"/>
+  <text class="touchtxt" x="556" y="152">line</text>
+  <text class="touchsub" x="556" y="172">下單前約 2 小時</text>
+  <path class="link" d="M656,156 L674,156" marker-end="url(#garrow)"/>
+  <rect class="touch" x="678" y="128" width="112" height="56" rx="6"/>
+  <text class="touchtxt" x="690" y="152">google 搜尋</text>
+  <text class="touchsub" x="690" y="172">下單前約 4 分鐘</text>
+  <path class="link" d="M790,156 L804,156" marker-end="url(#garrow)"/>
+  <rect class="order" x="808" y="128" width="60" height="56" rx="6"/>
+  <text class="ordertxt" x="820" y="152">下單</text>
+  <text class="touchsub" x="820" y="172">540 元</text>
+  <text class="touchsub" x="310" y="152">觸點</text>
+
+  <line class="link" x1="310" y1="206" x2="864" y2="206"/>
+  <text class="rule" x="310" y="236">第一次接觸</text>
+  <text class="touchsub" x="310" y="256">誰把人帶進來</text>
+  <text class="cellhi" x="466" y="246">1</text>
+  <text class="cell" x="600" y="246">0</text>
+  <text class="cell" x="734" y="246">0</text>
+
+  <line class="link" x1="310" y1="272" x2="864" y2="272"/>
+  <text class="rule" x="310" y="302">最後接觸</text>
+  <text class="touchsub" x="310" y="322">誰促成成交</text>
+  <text class="cell" x="466" y="312">0</text>
+  <text class="cell" x="600" y="312">0</text>
+  <text class="cellhi" x="734" y="312">1</text>
+
+  <line class="link" x1="310" y1="338" x2="864" y2="338"/>
+  <text class="rule" x="310" y="368">時間衰減</text>
+  <text class="touchsub" x="310" y="388">半衰期 7 天</text>
+  <text class="cellhi" x="466" y="378">0.328</text>
+  <text class="cellhi" x="600" y="378">0.335</text>
+  <text class="cellhi" x="734" y="378">0.338</text>
+
+  <text class="note" x="310" y="422">每一列加總都是 1（功勞守恆），direct 另有不算觸點的版本，共六個功勞欄位</text>
+
+  <path class="flow" d="M886,272 L926,272" marker-end="url(#arrow)"/>
+
+  <!-- mart 與結果 -->
+  <text class="colhead" x="936" y="92">mart_attribution → 通路功勞</text>
+  <rect class="fact" x="936" y="108" width="274" height="72" rx="8"/>
+  <rect class="facthead" x="936" y="108" width="274" height="34" rx="8"/>
+  <rect class="facthead" x="936" y="128" width="274" height="14"/>
+  <text class="facttitle" x="952" y="131">mart_attribution</text>
+  <text class="factline" x="952" y="164">一列＝一筆訂單的一個觸點</text>
+
+  <text class="note" x="936" y="214">首購且窗口完整 1,833 筆（direct 不算）</text>
+  <rect class="barfirst" x="936" y="226" width="14" height="12"/>
+  <text class="barlabel" x="956" y="237">第一次接觸</text>
+  <rect class="barlast" x="1050" y="226" width="14" height="12"/>
+  <text class="barlabel" x="1070" y="237">最後接觸</text>
+
+  <text class="barlabel" x="936" y="272">meta</text>
+  <rect class="barfirst" x="1020" y="258" width="152" height="16"/>
+  <text class="barval" x="1178" y="271">610</text>
+  <rect class="barlast" x="1020" y="278" width="96" height="16"/>
+  <text class="barval" x="1122" y="291">385</text>
+
+  <text class="barlabel" x="936" y="326">line</text>
+  <rect class="barfirst" x="1020" y="312" width="136" height="16"/>
+  <text class="barval" x="1162" y="325">545</text>
+  <rect class="barlast" x="1020" y="332" width="81" height="16"/>
+  <text class="barval" x="1107" y="345">324</text>
+
+  <text class="barlabel" x="936" y="380">自然搜尋</text>
+  <rect class="barfirst" x="1020" y="366" width="83" height="16"/>
+  <text class="barval" x="1109" y="379">333</text>
+  <rect class="barlast" x="1020" y="386" width="101" height="16"/>
+  <text class="barval" x="1127" y="399">404</text>
+
+  <text class="barlabel" x="936" y="434">google 搜尋</text>
+  <rect class="barfirst" x="1020" y="420" width="74" height="16"/>
+  <text class="barval" x="1100" y="433">295</text>
+  <rect class="barlast" x="1020" y="440" width="167" height="16"/>
+  <text class="barval" x="1193" y="453">670</text>
+
+  <!-- 底部說明 -->
+  <text class="note" x="30" y="500">meta 與 line 在第一次接觸分到較多功勞，google 搜尋廣告在最後接觸變成原來的 2.3 倍，這就是 Day 05 植入的訊號 S6</text>
+  <text class="note" x="30" y="530">只看最後點擊報表時，負責把人帶進來的通路功勞會被低估，預算決策要依問題選規則，並三種一起看</text>
+</svg>
