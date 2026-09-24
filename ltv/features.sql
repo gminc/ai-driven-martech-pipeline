@@ -1,7 +1,7 @@
 -- Day 12：每位顧客一列，只放「第一筆訂單當下就知道」的資訊，加上首購後 30 天內的回購營收（標籤）
 -- 只讀 martech_dw.fct_orders；不讀 Day 11 的 mart_customer_segment（分群用了回購紀錄，會偷看答案）
 -- label_complete：首購後已滿 30 天，標籤才算完整，只有這些人可以拿來訓練與驗證
--- is_eval：label_complete 的顧客依首購日期排序，最晚的 20% 當驗證集（依時間切，不隨機切）
+-- is_eval：label_complete 的顧客依首購日期排序，最晚約 20% 當驗證集（依時間切、同一天不拆開，不隨機切）
 
 CREATE OR REPLACE TABLE martech_dw.ltv_features
 OPTIONS(description = 'Day 12 首購特徵與 30 天回購營收，一位顧客一列') AS
