@@ -139,6 +139,13 @@ resource "google_project_iam_member" "bq_connection_ai_user" {
   member  = "serviceAccount:${google_bigquery_connection.vertex_ai_connection.cloud_resource[0].service_account_id}"
 }
 
+# Day 14：BigQuery 物件表要透過同一個連線讀素材圖，連線服務帳號只給素材儲存庫的唯讀權限
+resource "google_storage_bucket_iam_member" "bq_connection_assets_viewer" {
+  bucket = google_storage_bucket.martech_assets.name
+  role   = "roles/storage.objectViewer"
+  member = "serviceAccount:${google_bigquery_connection.vertex_ai_connection.cloud_resource[0].service_account_id}"
+}
+
 # ==============================================================================
 # 5. 資料管線專用服務帳號 (Service Account) 與最小權限 (Least Privilege) 綁定
 # ==============================================================================
