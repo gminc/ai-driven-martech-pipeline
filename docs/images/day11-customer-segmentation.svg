@@ -1,0 +1,74 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1240 560" width="1240" height="560" font-family="'Noto Sans TC','PingFang TC','Microsoft JhengHei',sans-serif">
+  <defs>
+    <style>
+      .title { font-size: 22px; font-weight: 700; fill: #202124; }
+      .zone { font-size: 14px; font-weight: 700; fill: #5f6368; }
+      .raw { fill: #f1f3f4; stroke: #dadce0; stroke-width: 1.2; }
+      .step { fill: #ffffff; stroke: #1a73e8; stroke-width: 1.4; }
+      .ml { fill: #e8f0fe; stroke: #1a73e8; stroke-width: 1.8; }
+      .out { fill: #e6f4ea; stroke: #188038; stroke-width: 1.6; }
+      .gt { fill: #fef7e0; stroke: #f29900; stroke-width: 1.6; stroke-dasharray: 6 4; }
+      .h { font-size: 15px; font-weight: 700; fill: #1a73e8; }
+      .hg { font-size: 15px; font-weight: 700; fill: #188038; }
+      .ho { font-size: 15px; font-weight: 700; fill: #b06000; }
+      .hr { font-size: 15px; font-weight: 700; fill: #3c4043; }
+      .t { font-size: 13px; fill: #3c4043; }
+      .to { font-size: 13px; fill: #5f4100; }
+      .note { font-size: 13px; fill: #5f6368; }
+      .flow { stroke: #1a73e8; stroke-width: 2.2; fill: none; }
+      .gflow { stroke: #f29900; stroke-width: 2; fill: none; stroke-dasharray: 6 4; }
+    </style>
+    <marker id="a" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto"><path d="M0,0 L10,5 L0,10 z" fill="#1a73e8"/></marker>
+    <marker id="o" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto"><path d="M0,0 L10,5 L0,10 z" fill="#f29900"/></marker>
+  </defs>
+  <rect width="1240" height="560" fill="#ffffff"/>
+  <text x="40" y="44" class="title">Day 11｜讓資料自己分組：K-means 顧客分群與揭曉</text>
+  <text x="40" y="70" class="note">分析與訓練只讀 martech_dw，答案表放在 martech_gt，只有揭曉時才 JOIN</text>
+  <text x="40" y="112" class="zone">martech_dw（分析）</text>
+  <rect x="40" y="128" width="190" height="150" rx="10" class="raw"/>
+  <text x="58" y="158" class="hr">fct_orders</text>
+  <text x="58" y="184" class="t">Day 07 訂單事實表</text>
+  <text x="58" y="206" class="t">3,304 筆訂單</text>
+  <text x="58" y="228" class="t">5 項商品、4 個品類</text>
+  <rect x="280" y="128" width="230" height="150" rx="10" class="step"/>
+  <text x="298" y="158" class="h">① seg_features</text>
+  <text x="298" y="184" class="t">一位顧客一列 10 個特徵</text>
+  <text x="298" y="206" class="t">訂單數、件數、營收、首購件數</text>
+  <text x="298" y="228" class="t">四品類占比、回購間隔、距今天數</text>
+  <text x="298" y="256" class="note">2,461 人，觀察滿 30 天 1,458 人</text>
+  <rect x="560" y="128" width="230" height="150" rx="10" class="ml"/>
+  <text x="578" y="158" class="h">② CREATE MODEL</text>
+  <text x="578" y="184" class="t">model_type = KMEANS</text>
+  <text x="578" y="206" class="t">4 群、KMEANS++、標準化</text>
+  <text x="578" y="228" class="t">只用觀察滿 30 天的人訓練</text>
+  <text x="578" y="256" class="note">照最低 10 MB 計費，約 NT$ 0.1</text>
+  <rect x="840" y="128" width="360" height="150" rx="10" class="out"/>
+  <text x="858" y="158" class="hg">③ ML.PREDICT 分群並落表</text>
+  <text x="858" y="180" class="t">mart_customer_segment</text>
+  <text x="858" y="204" class="t">2,461 人都分到最近的群</text>
+  <text x="858" y="228" class="t">observed_30d 標出觀察未滿 30 天的新顧客</text>
+  <text x="858" y="252" class="t">看名單前先排除，滿 30 天再重跑分群</text>
+  <path d="M230,203 L276,203" class="flow" marker-end="url(#a)"/>
+  <path d="M510,203 L556,203" class="flow" marker-end="url(#a)"/>
+  <path d="M790,203 L836,203" class="flow" marker-end="url(#a)"/>
+  <text x="40" y="330" class="zone">④ 分群輪廓（不看答案，替每一群取名字）</text>
+  <rect x="40" y="344" width="170" height="92" rx="8" fill="#e8f0fe"/>
+  <text x="56" y="372" class="h">組合客</text><text x="56" y="396" class="t">286 人｜回購 6.6%</text><text x="56" y="418" class="t">平均 976 元</text>
+  <rect x="224" y="344" width="170" height="92" rx="8" fill="#e8f0fe"/>
+  <text x="240" y="372" class="h">洗臉巾客</text><text x="240" y="396" class="t">100 人｜回購 11.0%</text><text x="240" y="418" class="t">平均 408 元</text>
+  <rect x="408" y="344" width="170" height="92" rx="8" fill="#e8f0fe"/>
+  <text x="424" y="372" class="h">浴巾客</text><text x="424" y="396" class="t">262 人｜回購 10.7%</text><text x="424" y="418" class="t">平均 1,741 元</text>
+  <rect x="592" y="344" width="170" height="92" rx="8" fill="#e8f0fe"/>
+  <text x="608" y="372" class="h">襪子客</text><text x="608" y="396" class="t">810 人｜回購 54.9%</text><text x="608" y="418" class="t">平均 675 元</text>
+  <path d="M1020,278 L1020,300 L400,300 L400,340" class="flow" marker-end="url(#a)"/>
+  <rect x="840" y="330" width="360" height="176" rx="10" class="gt"/>
+  <text x="858" y="360" class="ho">⑤ martech_gt（答案表，只在揭曉時讀）</text>
+  <text x="858" y="386" class="to">浴巾大量客 191 人全在浴巾客群</text>
+  <text x="858" y="408" class="to">高頻買襪客 474 人全在襪子客群</text>
+  <text x="858" y="430" class="to">新手組合客約七成三在組合客群</text>
+  <text x="858" y="452" class="to">沉睡客 518 人散在四群，分不出來</text>
+  <text x="858" y="484" class="note">改分 5 群時 359 位沉睡客集中在同一群</text>
+  <path d="M836,400 L766,400" class="gflow" marker-end="url(#o)"/>
+  <text x="40" y="480" class="note">4 群依「買什麼」分群，Davies-Bouldin 1.058（3 群 1.480、5 群 1.365）</text>
+  <text x="40" y="504" class="note">「會不會回來」要等觀察夠久才看得出來，觀察未滿 30 天的新顧客容易被分進回購的襪子群</text>
+</svg>

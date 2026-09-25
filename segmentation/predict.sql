@@ -2,7 +2,7 @@
 -- 模型只用觀察 ≥ 30 天的顧客訓練，但所有顧客都可以依特徵分到最近的群，observed_30d 欄位標出哪些人觀察還不夠久
 -- 注意：分群用了回購紀錄，Day 12 預測長期價值時不能拿 segment 當特徵
 CREATE OR REPLACE TABLE martech_dw.mart_customer_segment
-OPTIONS(description = 'Day 11 K-means（k＝4）分群結果，一位顧客一列；分群編號每次重建模型都可能不同，請看 segment_label') AS
+OPTIONS(description = 'Day 11 K-means（k＝4）分群結果，一位顧客一列；分群編號每次重建模型都可能不同，請對照 profile.sql 的輪廓認群') AS
 SELECT
   p.customer_id,
   p.CENTROID_ID AS centroid_id,

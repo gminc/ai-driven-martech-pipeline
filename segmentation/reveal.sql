@@ -1,5 +1,5 @@
 -- Day 11 揭曉：分群結果 × 合成器植入的顧客類型
--- 整個 segmentation/ 只有這一份 SQL 讀答案表 martech_gt，分群與特徵都沒有碰
+-- segmentation/ 裡只有 reveal.sql 與 reveal_models.sql 讀答案表 martech_gt，特徵、模型、分群都沒有碰
 WITH joined AS (
   SELECT s.centroid_id, s.observed_30d, g.segment
   FROM martech_dw.mart_customer_segment s
