@@ -2,8 +2,8 @@
 -- 期間：8/18–9/16（首購還不滿 30 天、用模型預測的那批新顧客）
 -- 取得成本＝同期該通路該活動的廣告花費 ÷ 首購來自那裡的新顧客數（粗略算法：假設花費都花在帶新客）
 -- 預期 30 天價值＝首單金額＋模型預測的 30 天回購營收
--- 注意：autumn-cotton 9/1 才開始，訓練資料（首購 8/08 以前）完全沒有這個活動，
---       模型對沒看過的類別一律當成 0 權重，這一列的回購預測只反映首購商品
+-- 模型（ltv_linreg）沒有用活動代號當特徵，所以 autumn-cotton 這種訓練資料沒出現過的活動也能正常預測
+-- 新顧客的通路與活動取首購訂單的 utm，等於「最後接觸」：google 搜尋常收割 meta 開頭的路徑（Day 08），這張表會高估 google_cpc
 WITH new_customers AS (
   SELECT
     CASE l.first_source WHEN 'google' THEN IF(l.first_medium = 'cpc', 'google_cpc', NULL) ELSE l.first_source END AS channel,
