@@ -39,9 +39,11 @@ s3_week AS (
 ),
 s3a AS (SELECT 'S3a', EXP(COVAR_POP(wk, LN(ctr)) / VAR_POP(wk)) FROM s3_week),
 -- S5a：分群後，每種類型落在「自己是多數」的群的比例，取最低
+-- 讀 mart_customer_segment_official（Day 11 發表的正式分群，9/25 用時光回溯取回）：
+-- K-means 每次重建分法可能不同，mart_customer_segment 會跟著最近一次重建變，驗收要固定輸入
 seg AS (
   SELECT s.centroid_id, g.segment
-  FROM martech_dw.mart_customer_segment s
+  FROM martech_dw.mart_customer_segment_official s
   JOIN martech_gt.gt_customer_segment g USING (customer_id)
   WHERE s.observed_30d
 ),
