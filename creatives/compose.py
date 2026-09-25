@@ -14,7 +14,7 @@ import hashlib
 import json
 import pathlib
 
-from PIL import Image, ImageDraw, ImageFont
+from PIL import Image, ImageDraw, ImageFilter, ImageFont, ImageStat
 
 ROOT = pathlib.Path(__file__).resolve().parent.parent
 SPEC = ROOT / "synthesizer" / "creatives.json"
@@ -75,6 +75,20 @@ def text_center(draw, box, text, f, fill):
     draw.text((x, y), text, font=f, fill=fill)
 
 
+BADGE_SLOTS = {"top_left": (40, 40), "right": (920, 336), "bottom_left": (40, 478)}
+
+
+def quietest(base: Image.Image) -> tuple:
+    """回傳兩個徽章（240×110）放哪裡最不會蓋到人物或商品：看候選區域的邊緣強度，越低代表越接近素面背景"""
+    edges = base.convert("L").filter(ImageFilter.FIND_EDGES)
+    best, best_score = None, None
+    for name, (x, y) in BADGE_SLOTS.items():
+        score = ImageStat.Stat(edges.crop((x, y, x + 240, y + 110))).mean[0]
+        if best_score is None or score < best_score:
+            best, best_score = (x, y), score
+    return best
+
+
 def compose(c: dict, photo: Image.Image) -> Image.Image:
     base = cover(photo).convert("RGBA")
     layer = Image.new("RGBA", base.size, (0, 0, 0, 0))
@@ -92,8 +106,11 @@ def compose(c: dict, photo: Image.Image) -> Image.Image:
         text_center(d, (740, 180, 1160, 240), sub1, font(32), dark)
         panel(d, (740, 256, 1160, 316), radius=14)
         text_center(d, (740, 256, 1160, 316), sub2, font(32), dark)
+        # 徽章位置不寫死：左上、右欄副標下方、左下三個候選位置，挑照片最單純（邊緣最少）的那一個
+        # 固定放左上時，人物的頭常常在那裡，會壓到臉
+        bx, by = quietest(base)
         for i, label in enumerate(BADGES[c["utm_campaign"]]):
-            x0, y0 = 40 + i * 130, 40
+            x0, y0 = bx + i * 130, by
             d.ellipse((x0, y0, x0 + 110, y0 + 110), fill=(55, 62, 72, 235))  # 深灰，不影響主色系判讀
             text_center(d, (x0, y0, x0 + 110, y0 + 110), label, font(30), (255, 255, 255, 255))
 
