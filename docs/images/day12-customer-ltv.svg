@@ -1,0 +1,88 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1240 580" width="1240" height="580" font-family="'Noto Sans TC','PingFang TC','Microsoft JhengHei',sans-serif">
+  <defs>
+    <style>
+      .title { font-size: 22px; font-weight: 700; fill: #202124; }
+      .zone { font-size: 14px; font-weight: 700; fill: #5f6368; }
+      .raw { fill: #f1f3f4; stroke: #dadce0; stroke-width: 1.2; }
+      .step { fill: #ffffff; stroke: #1a73e8; stroke-width: 1.4; }
+      .ml { fill: #e8f0fe; stroke: #1a73e8; stroke-width: 1.8; }
+      .out { fill: #e6f4ea; stroke: #188038; stroke-width: 1.6; }
+      .gt { fill: #fef7e0; stroke: #f29900; stroke-width: 1.6; stroke-dasharray: 6 4; }
+      .h { font-size: 15px; font-weight: 700; fill: #1a73e8; }
+      .hg { font-size: 15px; font-weight: 700; fill: #188038; }
+      .ho { font-size: 15px; font-weight: 700; fill: #b06000; }
+      .hr { font-size: 15px; font-weight: 700; fill: #3c4043; }
+      .t { font-size: 13px; fill: #3c4043; }
+      .tb { font-size: 13px; font-weight: 700; fill: #3c4043; }
+      .to { font-size: 13px; fill: #5f4100; }
+      .note { font-size: 13px; fill: #5f6368; }
+      .flow { stroke: #1a73e8; stroke-width: 2.2; fill: none; }
+      .gflow { stroke: #f29900; stroke-width: 2; fill: none; stroke-dasharray: 6 4; }
+    </style>
+    <marker id="a" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto"><path d="M0,0 L10,5 L0,10 z" fill="#1a73e8"/></marker>
+    <marker id="o" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto"><path d="M0,0 L10,5 L0,10 z" fill="#f29900"/></marker>
+  </defs>
+  <rect width="1240" height="580" fill="#ffffff"/>
+  <text x="40" y="44" class="title">Day 12｜只看第一筆訂單，預測新客 30 天內還會帶來多少營收</text>
+  <text x="40" y="70" class="note">特徵只用首購當下知道的資訊；分析與訓練只讀 martech_dw，答案表放在 martech_gt，只有揭曉時才 JOIN</text>
+
+  <text x="40" y="112" class="zone">martech_dw（分析）</text>
+  <rect x="40" y="128" width="190" height="150" rx="10" class="raw"/>
+  <text x="58" y="158" class="hr">fct_orders</text>
+  <text x="58" y="184" class="t">Day 07 訂單事實表</text>
+  <text x="58" y="206" class="t">每位顧客的第一筆訂單</text>
+  <text x="58" y="228" class="t">＋之後 30 天的回購</text>
+
+  <rect x="280" y="128" width="250" height="150" rx="10" class="step"/>
+  <text x="298" y="158" class="h">① ltv_features</text>
+  <text x="298" y="184" class="t">特徵：首購商品、件數、金額</text>
+  <text x="298" y="206" class="t">來源、媒介（不放分群、不放活動）</text>
+  <text x="298" y="228" class="t">標籤：首購後 30 天回購營收</text>
+  <text x="298" y="256" class="note">滿 30 天 1,458 人，依首購日期切</text>
+
+  <rect x="580" y="128" width="250" height="150" rx="10" class="ml"/>
+  <text x="598" y="158" class="h">② CREATE MODEL</text>
+  <text x="598" y="184" class="t">model_type = LINEAR_REG</text>
+  <text x="598" y="206" class="t">訓練：首購 8/8 以前 1,183 人</text>
+  <text x="598" y="228" class="t">驗證：8/9–8/17 的 275 人</text>
+  <text x="598" y="256" class="note">照最低 10 MB 計費，約 NT$ 0.1</text>
+
+  <rect x="880" y="128" width="320" height="150" rx="10" class="out"/>
+  <text x="898" y="158" class="hg">③ ML.PREDICT 預測並落表</text>
+  <text x="898" y="182" class="t">mart_customer_ltv（1,278 人）</text>
+  <text x="898" y="206" class="t">驗證集 275 人＋首購 8/18 之後的</text>
+  <text x="898" y="228" class="t">新客 1,003 人，負數截成 0</text>
+  <text x="898" y="256" class="note">Day 13 驗收會讀這張表</text>
+
+  <path d="M230,203 L276,203" class="flow" marker-end="url(#a)"/>
+  <path d="M530,203 L576,203" class="flow" marker-end="url(#a)"/>
+  <path d="M830,203 L876,203" class="flow" marker-end="url(#a)"/>
+
+  <text x="40" y="330" class="zone">④ 先比基準線（驗證集 MAE，平均猜錯幾元）</text>
+  <rect x="40" y="344" width="150" height="92" rx="8" fill="#f1f3f4"/>
+  <text x="56" y="372" class="hr">全體平均</text><text x="56" y="398" class="tb">131.0 元</text><text x="56" y="420" class="note">每人猜 96.4</text>
+  <rect x="200" y="344" width="150" height="92" rx="8" fill="#f1f3f4"/>
+  <text x="216" y="372" class="hr">依首購商品</text><text x="216" y="398" class="tb">111.4 元</text><text x="216" y="420" class="note">同商品猜同數字</text>
+  <rect x="360" y="344" width="150" height="92" rx="8" fill="#e8f0fe"/>
+  <text x="376" y="372" class="h">線性迴歸</text><text x="376" y="398" class="tb">110.9 元</text><text x="376" y="420" class="note">R² 0.113</text>
+
+  <text x="560" y="330" class="zone">⑤ 價值 ÷ 取得成本（8/18–9/16 新客）</text>
+  <rect x="560" y="344" width="270" height="130" rx="8" class="step"/>
+  <text x="576" y="370" class="t">首單＋預測回購 ÷ 取得成本</text>
+  <text x="576" y="396" class="tb">Google 搜尋 2.27–2.56</text>
+  <text x="576" y="418" class="tb">LINE 0.74–0.91</text>
+  <text x="576" y="440" class="tb">Meta 0.42–0.90</text>
+  <text x="576" y="462" class="note">＋fct_ad_daily；通路是最後接觸</text>
+  <path d="M1000,278 L1000,300 L812,300 L812,340" class="flow" marker-end="url(#a)"/>
+
+  <rect x="880" y="330" width="320" height="176" rx="10" class="gt"/>
+  <text x="898" y="360" class="ho">⑥ martech_gt（答案表，只在揭曉時讀）</text>
+  <text x="898" y="386" class="to">高頻買襪客：預測 169.9／實際 244.8</text>
+  <text x="898" y="408" class="to">沉睡客：預測 103.4／實際 0</text>
+  <text x="898" y="430" class="to">同樣首購日常中筒襪</text>
+  <text x="898" y="452" class="to">高頻買襪客 178.5、沉睡客 173.6</text>
+  <text x="898" y="484" class="note">首購幾乎一樣，模型分不出來</text>
+
+  <text x="40" y="500" class="note">線性迴歸只比「依首購商品平均」少猜錯 0.5 元：模型能用的資訊幾乎都來自「買什麼」</text>
+  <text x="40" y="524" class="note">預測值適合比較一群人，不適合判斷單一顧客；跨通路比較要搭配 Day 08 的歸因</text>
+</svg>
