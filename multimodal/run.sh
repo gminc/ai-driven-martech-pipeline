@@ -35,7 +35,7 @@ TMP="$(mktemp -d)"
 trap 'rm -rf "${TMP}"' EXIT
 
 run_sql() {
-  if ! sed -e "s/martech_dw\./${DATASET}./g" "$1" \
+  if ! sed -e "s/martech_dw\./${DATASET}./g" -e "s/PROJECT_ID/${PROJECT}/g" "$1" \
       | bq --headless --location=US query --nouse_legacy_sql --quiet "${@:2}" \
         > "${TMP}/out" 2> "${TMP}/err"; then
     echo "❌ $1 執行失敗" >&2
