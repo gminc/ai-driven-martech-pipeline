@@ -3,7 +3,7 @@
 # 用法：bash acceptance/run.sh               （在儲存庫根目錄執行，需先完成 Day 07、08、09、11、12）
 #       AUTO_YES=1 bash acceptance/run.sh    （跳過確認，排程用）
 # 成績單只讀各篇的結果表，全部在每月 1 TiB 免費額度內；盲測會呼叫 Gemini 6 次（2 個模型 × 3 次），
-# 最壞情況（每次都輸出滿 4,096 個 token）約新台幣 7 元，實測見 README；執行到一半會印出 Token 數與估價再問要不要繼續
+# 最壞情況（每次都輸出滿 4,096 個 token）合計約新台幣 3.3 元，9/27 實測 1.32 元；執行到一半會印出 Token 數與估價再問要不要繼續
 set -euo pipefail
 
 cd "$(dirname "$0")"
@@ -32,7 +32,7 @@ bq --headless show --format=none --connection "${PROJECT}.us.vertex_ai_conn" >/d
   echo "❌ 找不到連線 us.vertex_ai_conn，請先完成 Day 03 的 Terraform"
   exit 1
 }
-# Day 11 的分群：K-means 每次重建分法可能不同，我把發表當天的分群另存成 mart_customer_segment_official 當驗收固定輸入；
+# Day 11 的分群：K-means 每次重建分法可能不同，我把 Day 11 文章採用的那一次分群另存成 mart_customer_segment_official 當驗收固定輸入；
 # 讀者的環境只有 mart_customer_segment 的話就用它，S5a 的數字可能和文章不同
 SEG="mart_customer_segment_official"
 if ! bq --headless show --format=none "${PROJECT}:${DATASET}.${SEG}" >/dev/null 2>&1; then
