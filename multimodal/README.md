@@ -19,18 +19,18 @@ Day 14 把 24 張圖片素材放進 Cloud Storage、在 BigQuery 建物件表，
 ## 前置
 
 1. 先 `git pull` 取得 Day 14 的程式與 Terraform 設定
-2. Terraform 已建立素材 bucket `<專案 ID>-martech-assets`（us-central1），並把 BigQuery 連線 `us.vertex_ai_conn` 的服務帳號加上這個 bucket 的 `roles/storage.objectViewer`（`terraform/main.tf` 的 `bq_connection_assets_viewer`，Day 14 新增，Day 13 以前建好的環境要在 `terraform/` 再 `terraform apply` 一次，權限生效可能要等一兩分鐘）
+2. Terraform 已建立素材 bucket `<專案 ID>-martech-assets`（us-central1），並把 BigQuery 連線 `us.vertex_ai_conn` 的服務帳號加上這個 bucket 的 `roles/storage.objectViewer`（`terraform/main.tf` 的 `bq_connection_assets_viewer`，Day 14 新增，Day 13 以前建好的環境要在 `terraform/` 再 `terraform apply` 一次，權限生效可能要等幾分鐘）
 3. 上傳素材圖：
 
 ```bash
-gcloud storage cp creatives/images/*.jpg gs://$(gcloud config get-value project)-martech-assets/creatives/
+cd ~/ai-driven-martech-pipeline && gcloud storage cp creatives/images/*.jpg gs://$(gcloud config get-value project)-martech-assets/creatives/
 ```
 
 4. bucket 在 Day 03 設了生命週期規則，現行物件 90 天後刪除，素材圖也適用，過期後重跑要再上傳一次
 
 ## 單獨建物件表
 
-`object_table.sql` 裡的 bucket 寫成 `PROJECT_ID`，`run.sh` 會自動換成目前的專案，自己執行時：
+`object_table.sql` 裡的 bucket 寫成 `PROJECT_ID`，`run.sh` 會自動換成目前的專案，自己執行時在 `multimodal/` 底下：
 
 ```bash
 sed "s/PROJECT_ID/$(gcloud config get-value project)/" object_table.sql | bq query --nouse_legacy_sql --format=pretty
@@ -46,7 +46,8 @@ SELECT
     endpoint => 'gemini-3.5-flash-lite',
     model_params => JSON '{"generation_config": {"max_output_tokens": 1024, "thinking_config": {"thinking_budget": 0}}}'
   ) AS g
-FROM martech_dw.obj_creatives;
+FROM martech_dw.obj_creatives
+JOIN martech_dw.mm_demo USING (uri);  -- 只看三張示範圖，拿掉就會對 24 張各呼叫一次
 ```
 
 - 題目寫成一個括號包起來的組合，文字和物件表的 `ref` 欄並列，BigQuery 透過連線去 bucket 讀圖交給 Gemini，不用自己產生簽署網址
