@@ -1,5 +1,5 @@
 -- Day 13：AI 盲測，把整季週報交給 Gemini，不挑異常、不給候選原因，看它自己找得出幾個
--- 兩個模型各問三次（同一份題目），看回答穩不穩定；結果落成 martech_dw.blind_result（原始回答）與 blind_findings（拆開的每一項發現）
+-- 兩個模型各問三次（同一份題目），看每次的回答是否一致；結果落成 martech_dw.blind_result（原始回答）與 blind_findings（拆開的每一項發現）
 -- 回傳格式用 response_schema 鎖成 JSON：findings 陣列，每一項有對象、期間、觀察、可能原因、建議確認
 -- thinking_budget 設 0：和 Day 09 一樣，思考 token 也算在 max_output_tokens 裡，關掉才好控制費用與長度
 -- 這一步會產生 Token 費用，執行前先跑 blind_cost.sql 數 Token；只讀 martech_dw，不讀答案表
