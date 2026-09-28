@@ -37,7 +37,9 @@ Day 14 讓 Gemini 看了三張素材圖，12 段描述的畫面主體和圖上�
 
 這批素材是合成的，每一張圖都照著一份設計規格畫出來，有沒有人物、按鈕位置、主色、文字多寡，Day 07 建 `dim_creative` 的時候我把這四欄一起放進了 `martech_dw`，當時想的是 Day 16 抽特徵、Day 20 評測要拿它對答案，放在維度表最方便，Day 11 起顧客類型的答案表就放在獨立的 `martech_gt`，Day 11 之後各目錄的 `run.sh` 都會檢查分析用的 SQL 沒有讀到 `martech_gt`，但這四欄不在檢查範圍內，任何一段分析 SQL 只要 JOIN 一下 `dim_creative` 就拿得到答案，檢查也不會擋。
 
-今天第一步就是把它們搬走，`move_design.sql` 從 Day 06 原樣載入的 `raw_creatives` 把四欄抄進 `martech_gt.gt_creative_design`，再用 `ALTER TABLE ... DROP COLUMN IF EXISTS` 從 `dim_creative` 拿掉，答案表另外多一欄 `headline`，是合成素材時照主打商品畫上去的標題文字，之後可以逐字對，主打商品 `product_focus` 是廣告後台本來就有的欄位，留在 `dim_creative`，你在 Day 07 建的 `dim_creative` 跑完今天的搬家會少這四欄，這是刻意的，`warehouse/ddl.sql` 與 `build.sql` 已經同步改掉，重跑 Day 07 也不會再有，Day 14 的報表第 4 段也改成讀答案表，`git pull` 之後想重看 Day 14 的報表，先跑今天的搬家（免費、不呼叫 Gemini），再單獨執行 `multimodal/report.sql` 就好，不用整套重跑，真實的廣告後台本來就沒有這四欄，設計師交圖時不會順手填一張表，這些資訊只能從圖裡讀出來，這正是今天要做的事。
+今天第一步就是把它們搬走，`move_design.sql` 從 Day 06 原樣載入的 `raw_creatives` 把四欄抄進 `martech_gt.gt_creative_design`，再用 `ALTER TABLE ... DROP COLUMN IF EXISTS` 從 `dim_creative` 拿掉，答案表另外多一欄 `headline`，是合成素材時照主打商品畫上去的標題文字，之後可以逐字對，主打商品 `product_focus` 是廣告後台本來就有的欄位，留在 `dim_creative`，真實的廣告後台本來就沒有這四欄，設計師交圖時不會順手填一張表，這些資訊只能從圖裡讀出來，這正是今天要做的事。
+
+跟著做過 Day 07 的讀者要注意，你建的 `dim_creative` 跑完今天的搬家會少這四欄，這是刻意的，`warehouse/ddl.sql` 與 `build.sql` 已經同步改掉，重跑 Day 07 也不會再有，Day 14 的報表第 4 段也改成讀答案表，`git pull` 之後想重看 Day 14 的報表，先跑今天的搬家（免費、不呼叫 Gemini），再單獨執行 `multimodal/report.sql` 就好，不用整套重跑。
 
 ## 3.2 先定欄位再問：五個欄位怎麼來的
 
