@@ -2,7 +2,7 @@
 # Day 14：物件表 →（確認）→ 挑三張示範圖 →（確認費用）→ Gemini 看圖自由描述 → 檢查 → 報表
 # 用法：bash multimodal/run.sh            （在儲存庫根目錄執行，需先完成 Day 07 與 Terraform 的素材 bucket）
 #       AUTO_YES=1 bash multimodal/run.sh （跳過確認，排程用）
-# 物件表與查詢在每月 1 TiB 免費額度內；看圖 12 次會產生 Token 費用，呼叫前會先印出最壞情況
+# 物件表與查詢在每月 1 TiB 免費額度內，看圖 12 次會產生 Token 費用，呼叫前會先印出最壞情況
 set -euo pipefail
 
 cd "$(dirname "$0")"
@@ -27,7 +27,7 @@ done
 BUCKET="gs://${PROJECT}-martech-assets/creatives"
 IMAGES="$(gcloud storage ls "${BUCKET}/*.jpg" 2>/dev/null | wc -l | tr -d ' ')"
 if [[ "${IMAGES}" != "24" ]]; then
-  echo "❌ ${BUCKET} 應該有 24 張 jpg，現在是 ${IMAGES} 張；請先用 terraform 建 bucket，再上傳 creatives/images/*.jpg"
+  echo "❌ ${BUCKET} 應該有 24 張 jpg，現在是 ${IMAGES} 張，請先用 terraform 建 bucket，再上傳 creatives/images/*.jpg"
   exit 1
 fi
 
@@ -59,12 +59,13 @@ run_sql demo.sql --format=pretty
 
 # 最壞情況：12 次呼叫，每次輸入以 IMAGE_TOKENS_MAX（一張圖加一句題目的上限）計、輸出以 max_output_tokens 1,024 計
 # 9/27 實測 1200×628 的圖：預設解析度 1,104 個圖片 Token、低解析度 276 個，加上題目取 1,200 當上限
+# 單價用非 global 端點（endpoint 只寫模型名稱時 BigQuery 送到非 global，比 global 高一成）
 IMAGE_TOKENS_MAX="${IMAGE_TOKENS_MAX:-1200}"
 python3 - "${IMAGE_TOKENS_MAX}" <<'PYCOST'
 import sys
 tin, tout, fx = int(sys.argv[1]), 1024, 32
-lite = 9 * (tin * 0.30 + tout * 2.50) / 1e6
-flash = 3 * (tin * 0.75 + tout * 3.75) / 1e6
+lite = 9 * (tin * 0.33 + tout * 2.75) / 1e6
+flash = 3 * (tin * 0.825 + tout * 4.125) / 1e6
 print(f"💰 將呼叫 Gemini 12 次（3.5-flash-lite 9 次、3.6-flash 3 次）")
 print(f"   最壞情況約 US$ {lite + flash:.4f} ≈ 新台幣 {(lite + flash) * fx:.2f} 元（每次輸入 {tin:,}、輸出 {tout:,} Token 計）")
 PYCOST

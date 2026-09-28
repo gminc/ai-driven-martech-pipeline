@@ -54,13 +54,14 @@ FROM martech_dw.mm_describe m
 JOIN martech_dw.dim_creative c USING (creative_id)
 ORDER BY m.creative_id, m.model, m.resolution, m.run_no;
 
--- 5. 實際費用（輸入、輸出 Token 單價：3.5-flash-lite 0.30／2.50、3.6-flash 0.75／3.75 美元每百萬）
+-- 5. 實際費用（輸入、輸出 Token 單價：3.5-flash-lite 0.33／2.75、3.6-flash 0.825／4.125 美元每百萬）
+--    describe.sql 的 endpoint 只寫模型名稱，BigQuery 會送到非 global 端點，單價比 global 高一成（Day 10 實測，見 caching/README.md）
 SELECT model, resolution,
   COUNT(*) AS calls,
   SUM(prompt_tokens) AS input_tokens,
   SUM(output_tokens) AS output_tokens,
-  ROUND(SUM(prompt_tokens * IF(model = 'gemini-3.6-flash', 0.75, 0.30)
-          + output_tokens * IF(model = 'gemini-3.6-flash', 3.75, 2.50)) / 1e6 * 32, 3) AS cost_twd
+  ROUND(SUM(prompt_tokens * IF(model = 'gemini-3.6-flash', 0.825, 0.33)
+          + output_tokens * IF(model = 'gemini-3.6-flash', 4.125, 2.75)) / 1e6 * 32, 3) AS cost_twd
 FROM martech_dw.mm_describe
 GROUP BY ROLLUP (model, resolution)
 ORDER BY model NULLS LAST, resolution NULLS LAST;

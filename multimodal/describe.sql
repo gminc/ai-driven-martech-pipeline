@@ -6,7 +6,7 @@
 --   3. gemini-3.6-flash、預設解析度（對照一次）
 --   4. gemini-3.5-flash-lite、低解析度 MEDIA_RESOLUTION_LOW（看一張圖少算多少 Token、描述少了什麼）
 -- endpoint 與 model_params 只能寫常數，所以四輪各寫一段
--- 這一步會產生 Token 費用，run.sh 會先印出最壞情況的費用再問要不要繼續；只讀 martech_dw，不讀答案表
+-- 這一步會產生 Token 費用，run.sh 會先印出最壞情況的費用再問要不要繼續，只讀 martech_dw，不讀答案表
 
 DECLARE prompt_text STRING DEFAULT
   '這是一張電商廣告圖，請用繁體中文描述它，讓沒看過這張圖的行銷同事知道它長什麼樣子，150 字以內。';

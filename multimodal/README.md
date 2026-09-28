@@ -59,12 +59,13 @@ JOIN martech_dw.mm_demo USING (uri);  -- 只看三張示範圖，拿掉就會對
 
 | 模型 | 解析度 | 每次輸入 Token | 平均輸出 | 12 次裡的次數 | 新台幣 |
 | --- | --- | --- | --- | --- | --- |
-| gemini-3.5-flash-lite | 預設 | 1,144 | 120 | 6 | 0.123 |
-| gemini-3.5-flash-lite | 低 | 316 | 118 | 3 | 0.037 |
-| gemini-3.6-flash | 預設 | 1,144 | 121 | 3 | 0.126 |
+| gemini-3.5-flash-lite | 預設 | 1,144 | 120 | 6 | 0.136 |
+| gemini-3.5-flash-lite | 低 | 316 | 118 | 3 | 0.041 |
+| gemini-3.6-flash | 預設 | 1,144 | 121 | 3 | 0.139 |
 
 - 1200×628 的圖在預設解析度算 1,104 個 Token、低解析度 276 個，題目文字約 40 個
-- 12 次合計新台幣 0.29 元（1 美元＝32 元，單價 3.5-flash-lite 輸入 0.30／輸出 2.50、3.6-flash 0.75／3.75 美元每百萬 Token）
+- 12 次合計新台幣 0.32 元（1 美元＝32 元，單價 3.5-flash-lite 輸入 0.33／輸出 2.75、3.6-flash 0.825／4.125 美元每百萬 Token）
+- 單價用的是非 global 端點：`endpoint` 只寫模型名稱時，BigQuery 會把請求送到非 global 的端點（Day 10 帶快取時的錯誤訊息看得出來，見 `caching/README.md`），單價比 global 高一成，要用 global 價格得把 `endpoint` 寫成 global 的完整網址
 - `run.sh` 11 項檢查全部通過
 
 ## 清理
