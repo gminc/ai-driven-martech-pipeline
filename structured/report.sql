@@ -1,4 +1,4 @@
--- Day 15：五段報表，第 3、4 段會讀答案表 martech_gt.gt_creative_design，整個目錄只有這個檔案讀答案表
+-- Day 15：六段報表，第 3、4 段會讀答案表 martech_gt.gt_creative_design，整個目錄只有這個檔案讀答案表
 -- 六張圖是抽查，不是正式評測，正式正確率留給 Day 20 的 24 張
 
 -- 1. 能不能 GROUP BY：output_schema 回來直接是欄位，不用解析就能分組
@@ -8,7 +8,7 @@ WHERE round = 'A'
 GROUP BY 1, 2
 ORDER BY 1, 2;
 
--- 2. 每一輪的值有沒有超出選項、欄位有沒有空、同一張圖兩次答案一不一樣
+-- 2. 每一輪的值有沒有超出選項、欄位有沒有空、輸出 Token 的範圍
 SELECT round, method, model,
   COUNT(*) AS calls,
   COUNTIF(cta_position NOT IN ('center', 'bottom_right', 'none')) AS cta_off_option,

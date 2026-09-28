@@ -29,12 +29,12 @@ Day 14 讓 Gemini 自由描述三張圖，結果每段都不一樣、GROUP BY �
 | C | `response_schema` enum | 同 B | 3.5-flash-lite | 對 B1：enum 有沒有用 |
 | D | 同 C | 同 B | 3.6-flash | 換模型對照 |
 
-六張樣本圖是照「四個設計欄位每一個值都至少出現一次」挑的，含 Day 14 的三張示範圖。`max_output_tokens` 設 256，五個欄位的 JSON 不到 100 個 Token，`check.sql` 第 10 項確認沒有一次撞到上限。六張是抽查，正式正確率留給 Day 20。
+六張樣本圖是照「四個設計欄位每一個值都至少出現一次」挑的，含 Day 14 的三張示範圖。`max_output_tokens` 設 256，五個欄位的 JSON 不到 60 個 Token，`check.sql` 第 10 項確認沒有一次撞到上限。六張是抽查，正式正確率留給 Day 20。
 
 ## 前置
 
 1. 先 `git pull`
-2. 已完成 Day 14（物件表 `obj_creatives`、bucket 裡 24 張圖）與 Day 13（答案資料集 `martech_gt`）
+2. 已完成 Day 14（物件表 `obj_creatives`、bucket 裡 24 張圖）與 Day 11（答案資料集 `martech_gt`）
 3. `gcloud auth list` 有星號的帳號、`gcloud config get-value project` 印出專案 ID
 
 ## 執行

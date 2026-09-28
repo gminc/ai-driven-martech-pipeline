@@ -26,7 +26,7 @@ for T in raw_creatives dim_creative obj_creatives; do
   }
 done
 bq --headless show --format=none "${PROJECT}:${GT_DATASET}" >/dev/null 2>&1 || {
-  echo "❌ 找不到答案資料集 ${GT_DATASET}，請先完成 Day 13"
+  echo "❌ 找不到答案資料集 ${GT_DATASET}，請先完成 Day 11"
   exit 1
 }
 
@@ -50,7 +50,7 @@ run_sql move_design.sql --format=pretty
 echo "🖼️  挑六張樣本圖（sample.sql）"
 run_sql sample.sql --format=pretty
 
-# 最壞情況：30 次呼叫，每次輸入以 IMAGE_TOKENS_MAX 計（一張圖 1,104 個 Token、題目與判斷標準約 300、response_schema 約 150，取 1,600 當上限）
+# 最壞情況：30 次呼叫，每次輸入以 IMAGE_TOKENS_MAX 計（一張圖 1,104 個 Token、題目與判斷標準約 400、response_schema 約 70，實測最多 1,554，取 1,600 當上限）
 # 輸出以 max_output_tokens 256 計，單價用非 global 端點（endpoint 只寫模型名稱時 BigQuery 送到非 global，比 global 高一成）
 IMAGE_TOKENS_MAX="${IMAGE_TOKENS_MAX:-1600}"
 python3 - "${IMAGE_TOKENS_MAX}" <<'PYCOST'
@@ -71,7 +71,7 @@ run_sql extract.sql --format=pretty
 
 echo "🧾 檢查（check.sql ＋ 一項腳本檢查）"
 run_sql check.sql --format=csv --max_rows=100 > "${TMP}/check.csv"
-LEAK="$(grep -lE 'martech_gt|gt_creative_design' sample.sql extract.sql 2>/dev/null | tr '\n' ' ' || true)"
+LEAK="$(for F in sample.sql extract.sql; do grep -v '^\s*--' "$F" | grep -qE 'martech_gt|gt_creative_design' && printf '%s ' "$F"; done || true)"
 python3 - "${TMP}/check.csv" "${LEAK}" <<'PYCHECK'
 import csv, sys
 rows = list(csv.DictReader(open(sys.argv[1])))

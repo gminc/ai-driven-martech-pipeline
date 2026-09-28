@@ -31,6 +31,13 @@ if [[ "${IMAGES}" != "24" ]]; then
   exit 1
 fi
 
+# 2026-09-29 起 report.sql 第 4 段讀答案表 martech_gt.gt_creative_design（Day 15 搬家），沒有這張表就在呼叫 Gemini 之前先停下來
+if ! bq --headless show --format=none "${PROJECT}:martech_gt.gt_creative_design" >/dev/null 2>&1; then
+  echo "❌ 找不到答案表 martech_gt.gt_creative_design，請先執行 Day 15 的搬家（免費、不呼叫 Gemini）："
+  echo "   bq query --nouse_legacy_sql < structured/move_design.sql"
+  exit 1
+fi
+
 TMP="$(mktemp -d)"
 trap 'rm -rf "${TMP}"' EXIT
 
@@ -95,10 +102,6 @@ print(f"\n{len(rows) - bad} 項通過、{bad} 項不通過")
 sys.exit(1 if bad else 0)
 PYCHECK
 
-if ! bq --headless show --format=none "${PROJECT}:martech_gt.gt_creative_design" >/dev/null 2>&1; then
-  echo "❌ report.sql 第 4 段要對照答案表 martech_gt.gt_creative_design，請先執行 Day 15 的 structured/move_design.sql（bash structured/run.sh 的第一步）"
-  exit 1
-fi
 echo "📊 報表（report.sql，第 4 段讀答案表）"
 run_sql report.sql --format=pretty --max_rows=100
 

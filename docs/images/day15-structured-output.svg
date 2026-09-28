@@ -1,0 +1,104 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1240 600" width="1240" height="600" font-family="'Noto Sans TC','PingFang TC','Microsoft JhengHei',sans-serif">
+  <defs>
+    <style>
+      .title { font-size: 22px; font-weight: 700; fill: #202124; }
+      .zone { font-size: 14px; font-weight: 700; fill: #5f6368; }
+      .raw { fill: #f1f3f4; stroke: #dadce0; stroke-width: 1.2; }
+      .step { fill: #ffffff; stroke: #1a73e8; stroke-width: 1.4; }
+      .ai { fill: #e8f0fe; stroke: #1a73e8; stroke-width: 1.8; }
+      .out { fill: #e6f4ea; stroke: #188038; stroke-width: 1.6; }
+      .gt { fill: #fef7e0; stroke: #f29900; stroke-width: 1.6; stroke-dasharray: 6 4; }
+      .h { font-size: 15px; font-weight: 700; fill: #1a73e8; }
+      .hg { font-size: 15px; font-weight: 700; fill: #188038; }
+      .ho { font-size: 15px; font-weight: 700; fill: #b06000; }
+      .hr { font-size: 15px; font-weight: 700; fill: #3c4043; }
+      .t { font-size: 13px; fill: #3c4043; }
+      .tb { font-size: 13px; font-weight: 700; fill: #3c4043; }
+      .to { font-size: 13px; fill: #5f4100; }
+      .note { font-size: 13px; fill: #5f6368; }
+      .flow { stroke: #1a73e8; stroke-width: 2.2; fill: none; }
+      .gflow { stroke: #188038; stroke-width: 2; fill: none; }
+      .oflow { stroke: #f29900; stroke-width: 2; fill: none; stroke-dasharray: 6 4; }
+      .wall { stroke: #d93025; stroke-width: 2; stroke-dasharray: 8 6; fill: none; }
+      .wt { font-size: 13px; font-weight: 700; fill: #d93025; }
+    </style>
+    <marker id="a" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto"><path d="M0,0 L10,5 L0,10 z" fill="#1a73e8"/></marker>
+    <marker id="g" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto"><path d="M0,0 L10,5 L0,10 z" fill="#188038"/></marker>
+    <marker id="o" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto"><path d="M0,0 L10,5 L0,10 z" fill="#f29900"/></marker>
+  </defs>
+  <rect width="1240" height="600" fill="#ffffff"/>
+  <text x="40" y="44" class="title">Day 15｜讓 AI 看完廣告圖，照格式交出固定欄位</text>
+  <text x="40" y="70" class="note">型別由 output_schema 鎖住，選項與判斷標準寫進題目，每張圖回來一列，答案表另放一個資料集，對答案只在報表這一步</text>
+
+  <!-- 左：分析資料集 martech_dw -->
+  <text x="40" y="110" class="zone">分析資料集 martech_dw（看圖用的 SQL 只讀這裡）</text>
+  <rect x="40" y="126" width="250" height="140" rx="10" class="raw"/>
+  <text x="58" y="154" class="hr">① 物件表 obj_creatives</text>
+  <text x="58" y="180" class="t">24 張圖的位置與中繼資料</text>
+  <text x="58" y="202" class="t">ref 指向 Cloud Storage 的圖</text>
+  <text x="58" y="224" class="t">Day 14 建好，今天沿用</text>
+  <text x="58" y="250" class="note">dim_creative 已拿掉四個設計欄位</text>
+
+  <rect x="320" y="126" width="230" height="140" rx="10" class="step"/>
+  <text x="338" y="154" class="h">② mm_sample 六張樣本</text>
+  <text x="338" y="180" class="t">人物有無各 3 張</text>
+  <text x="338" y="202" class="t">按鈕位置、主色三種各 2 張</text>
+  <text x="338" y="224" class="t">文字多寡各 3 張</text>
+  <text x="338" y="250" class="note">含 Day 14 的三張示範圖</text>
+
+  <path d="M290,196 L316,196" class="flow" marker-end="url(#a)"/>
+
+  <rect x="580" y="112" width="320" height="168" rx="10" class="ai"/>
+  <text x="598" y="140" class="h">③ AI.GENERATE × 30（六張 × 五輪）</text>
+  <text x="598" y="166" class="tb">output_schema =&gt;</text>
+  <text x="598" y="186" class="t">'has_person BOOL, cta_position STRING,</text>
+  <text x="598" y="204" class="t"> dominant_color STRING, text_density STRING,</text>
+  <text x="598" y="222" class="t"> headline STRING'</text>
+  <text x="598" y="246" class="t">題目：欄位、選項、判斷標準（B 輪起）</text>
+  <text x="598" y="266" class="note">C、D 輪改用 response_schema 的 enum 鎖選項</text>
+
+  <path d="M550,196 L576,196" class="flow" marker-end="url(#a)"/>
+
+  <rect x="930" y="112" width="270" height="168" rx="10" class="out"/>
+  <text x="948" y="140" class="hg">④ mm_structured 30 列</text>
+  <text x="948" y="166" class="t">一張圖一輪＝一列五個欄位</text>
+  <text x="948" y="188" class="t">has_person 直接是 BOOL</text>
+  <text x="948" y="210" class="t">GROUP BY dominant_color 立刻可用</text>
+  <text x="948" y="232" class="t">值超出選項：0 次</text>
+  <text x="948" y="266" class="note">每次輸出 36 到 59 個 Token</text>
+
+  <path d="M900,196 L926,196" class="gflow" marker-end="url(#g)"/>
+
+  <!-- 隔離線 -->
+  <path d="M40,318 L1200,318" class="wall"/>
+  <text x="40" y="340" class="wt">答案不放在分析資料集，run.sh 檢查挑圖與看圖的 SQL 沒有碰到下面這一區</text>
+
+  <!-- 下：答案資料集 martech_gt -->
+  <text x="40" y="372" class="zone">答案資料集 martech_gt</text>
+  <rect x="40" y="388" width="330" height="150" rx="10" class="gt"/>
+  <text x="58" y="416" class="ho">⑤ gt_creative_design 24 列</text>
+  <text x="58" y="442" class="to">四個設計欄位＋圖上標題 headline</text>
+  <text x="58" y="464" class="to">從 raw_creatives 抄出來（move_design.sql）</text>
+  <text x="58" y="486" class="to">dim_creative 同時 DROP COLUMN 四欄</text>
+  <text x="58" y="516" class="note">Day 16、17、20 都對這一張表</text>
+
+  <rect x="420" y="388" width="360" height="150" rx="10" class="step"/>
+  <text x="438" y="416" class="h">⑥ report.sql 對答案（只有這裡兩邊放在一起）</text>
+  <text x="438" y="442" class="t">A 只列選項　　　　　四欄全對 5／6</text>
+  <text x="438" y="464" class="t">B1、B2 加判斷標準　四欄全對 6／6，兩次相同</text>
+  <text x="438" y="486" class="t">C、D 加 enum　　　　四欄全對 6／6</text>
+  <text x="438" y="516" class="note">主色與標題 30 次全對，六張是抽查不是評測</text>
+
+  <rect x="830" y="388" width="370" height="150" rx="10" class="out"/>
+  <text x="848" y="416" class="hg">⑦ 費用（非 global 單價）</text>
+  <text x="848" y="442" class="t">最壞估價 NT$ 1.40，實付 NT$ 0.78</text>
+  <text x="848" y="464" class="t">一次輸入：圖 1,104＋題目 219 到 381 個 Token</text>
+  <text x="848" y="486" class="t">1,000 張：flash-lite 約 21 元、3.6-flash 約 48 元</text>
+  <text x="848" y="516" class="note">max_output_tokens 256，沒有一次撞到上限</text>
+
+  <path d="M370,463 L416,463" class="oflow" marker-end="url(#o)"/>
+  <path d="M1065,280 L1065,300 L600,300 L600,384" class="gflow" marker-end="url(#g)"/>
+  <path d="M780,463 L826,463" class="gflow" marker-end="url(#g)"/>
+
+  <text x="40" y="578" class="note">Day 15｜structured/ 目錄：move_design.sql → sample.sql → extract.sql → check.sql（11 項）→ report.sql（6 段）</text>
+</svg>

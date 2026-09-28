@@ -125,6 +125,7 @@ JOIN martech_dw.mm_demo USING (uri);
 - Terraform 已把連線服務帳號加上素材 bucket 的讀取權限，這個授權是 Day 14 新增的，Day 13 以前建好的環境要在 `terraform/` 再執行一次 `terraform apply`，權限生效可能要等幾分鐘
 - 素材圖已上傳到 bucket，指令見 [multimodal/README.md](https://github.com/gminc/ai-driven-martech-pipeline/blob/main/multimodal/README.md)
 - 確認 gcloud 有登入中的帳號，輸入 `gcloud auth list`，帳號前面要有星號
+- 9/29 起 `report.sql` 第 4 段改讀答案表 `martech_gt.gt_creative_design`，`run.sh` 開頭會先檢查，沒有這張表要先執行 Day 15 的 `structured/move_design.sql`（免費、不呼叫 Gemini）
 
 ## 5.2 路線 A｜懶人包：一行指令跑完
 
