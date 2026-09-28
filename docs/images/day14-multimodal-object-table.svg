@@ -108,6 +108,6 @@
   <path d="M900,308 L921,308" class="gflow" marker-end="url(#g)"/>
   <path d="M900,432 L921,432" class="gflow" marker-end="url(#g)"/>
 
-  <text x="40" y="530" class="note">今天只看 3 張，確認寫法、Token 與描述的樣子，Day 16 才放大到 24 張，前言兩張圖的點擊率差距要等 Day 17 控制通路、受眾與商品後再談</text>
+  <text x="40" y="530" class="note">今天只看 3 張，確認寫法、Token 與描述的樣子，Day 16 才放大到 24 張，前言兩張圖的點擊率差距要等 Day 17 控管通路、受眾與商品後再談</text>
   <text x="40" y="556" class="note">自由描述適合給人讀，要 GROUP BY 需要固定欄位 → Day 15 規定 Gemini 每看一張圖都照格式交出結構化資料</text>
 </svg>
