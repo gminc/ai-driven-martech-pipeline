@@ -1,0 +1,113 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1240 600" width="1240" height="600" font-family="'Noto Sans TC','PingFang TC','Microsoft JhengHei',sans-serif">
+  <defs>
+    <style>
+      .title { font-size: 22px; font-weight: 700; fill: #202124; }
+      .zone { font-size: 14px; font-weight: 700; fill: #5f6368; }
+      .raw { fill: #f1f3f4; stroke: #dadce0; stroke-width: 1.2; }
+      .step { fill: #ffffff; stroke: #1a73e8; stroke-width: 1.4; }
+      .ai { fill: #e8f0fe; stroke: #1a73e8; stroke-width: 1.8; }
+      .out { fill: #e6f4ea; stroke: #188038; stroke-width: 1.6; }
+      .iam { fill: #fef7e0; stroke: #f29900; stroke-width: 1.6; stroke-dasharray: 6 4; }
+      .h { font-size: 15px; font-weight: 700; fill: #1a73e8; }
+      .hg { font-size: 15px; font-weight: 700; fill: #188038; }
+      .ho { font-size: 15px; font-weight: 700; fill: #b06000; }
+      .hr { font-size: 15px; font-weight: 700; fill: #3c4043; }
+      .t { font-size: 13px; fill: #3c4043; }
+      .tb { font-size: 13px; font-weight: 700; fill: #3c4043; }
+      .to { font-size: 13px; fill: #5f4100; }
+      .note { font-size: 13px; fill: #5f6368; }
+      .flow { stroke: #1a73e8; stroke-width: 2.2; fill: none; }
+      .gflow { stroke: #188038; stroke-width: 2; fill: none; }
+      .oflow { stroke: #f29900; stroke-width: 2; fill: none; stroke-dasharray: 6 4; }
+    </style>
+    <marker id="a" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto"><path d="M0,0 L10,5 L0,10 z" fill="#1a73e8"/></marker>
+    <marker id="g" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto"><path d="M0,0 L10,5 L0,10 z" fill="#188038"/></marker>
+    <marker id="o" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto"><path d="M0,0 L10,5 L0,10 z" fill="#f29900"/></marker>
+  </defs>
+  <rect width="1240" height="600" fill="#ffffff"/>
+  <text x="40" y="44" class="title">Day 14｜讓 BigQuery 看得到素材圖：物件表＋AI.GENERATE</text>
+  <text x="40" y="70" class="note">圖片留在 Cloud Storage，物件表只記錄位置與中繼資料，AI.GENERATE 透過同一個連線讀圖交給 Gemini，描述寫回 BigQuery</text>
+
+  <!-- 上排：放圖 → 物件表 → 示範圖 -->
+  <text x="40" y="110" class="zone">讀得到圖</text>
+  <rect x="40" y="126" width="262" height="148" rx="10" class="raw"/>
+  <text x="58" y="154" class="hr">① Cloud Storage bucket</text>
+  <text x="58" y="180" class="t">24 張 1200×628 素材圖</text>
+  <text x="58" y="202" class="t">us-central1，合計約 2.9 MB</text>
+  <text x="58" y="224" class="t">gs://&lt;專案&gt;-martech-assets</text>
+  <text x="58" y="252" class="note">Day 03 由 Terraform 建立</text>
+
+  <rect x="332" y="126" width="250" height="148" rx="10" class="step"/>
+  <text x="350" y="154" class="h">② 物件表 obj_creatives</text>
+  <text x="350" y="180" class="t">uri、size、content_type、updated</text>
+  <text x="350" y="202" class="t">ref：指向那張圖的參照</text>
+  <text x="350" y="224" class="t">24 列，只存中繼資料</text>
+  <text x="350" y="252" class="note">圖片本身不搬進 BigQuery</text>
+
+  <rect x="612" y="126" width="262" height="148" rx="10" class="step"/>
+  <text x="630" y="154" class="h">③ mm_demo 三張示範圖</text>
+  <text x="630" y="180" class="t">line-trn-p1 只有商品　1.66%</text>
+  <text x="630" y="202" class="t">line-trn-p2 有人物　　2.11%</text>
+  <text x="630" y="224" class="t">meta-evg-r2 圖上五段字</text>
+  <text x="630" y="252" class="note">JOIN 只留三張，不整批呼叫</text>
+
+  <path d="M302,200 L328,200" class="flow" marker-end="url(#a)"/>
+  <path d="M582,200 L608,200" class="flow" marker-end="url(#a)"/>
+
+  <!-- 下排：連線 → 看圖 → 描述 -->
+  <text x="40" y="318" class="zone">看得懂圖</text>
+  <rect x="40" y="334" width="262" height="150" rx="10" class="iam"/>
+  <text x="58" y="362" class="ho">us.vertex_ai_conn 連線</text>
+  <text x="58" y="388" class="to">Google 管理的服務帳號</text>
+  <text x="58" y="410" class="to">對素材 bucket 唯讀</text>
+  <text x="58" y="432" class="to">storage.objectViewer</text>
+  <text x="58" y="460" class="note">授權寫進 Terraform</text>
+
+  <rect x="332" y="334" width="250" height="150" rx="10" class="ai"/>
+  <text x="350" y="362" class="h">④ AI.GENERATE((題目, ref))</text>
+  <text x="350" y="388" class="t">flash-lite 預設解析度 × 2 輪</text>
+  <text x="350" y="410" class="t">3.6-flash 預設解析度 × 1 輪</text>
+  <text x="350" y="432" class="t">flash-lite 低解析度 × 1 輪</text>
+  <text x="350" y="460" class="note">每輪三張，共 12 次</text>
+
+  <rect x="612" y="334" width="262" height="150" rx="10" class="out"/>
+  <text x="630" y="362" class="hg">⑤ mm_describe（12 列）</text>
+  <text x="630" y="388" class="t">每段約 110–190 字自由描述</text>
+  <text x="630" y="410" class="tb">畫面主體與圖上的字全讀對</text>
+  <text x="630" y="432" class="t">每列附 Token 用量</text>
+  <text x="630" y="460" class="note">run.sh 11 項檢查全部通過</text>
+
+  <path d="M171,334 L171,278" class="oflow" marker-end="url(#o)"/>
+  <text x="180" y="312" class="note">讀圖</text>
+  <path d="M743,274 L743,300 L457,300 L457,330" class="flow" marker-end="url(#a)"/>
+  <text x="600" y="294" class="note">ref</text>
+  <path d="M302,409 L328,409" class="oflow" marker-end="url(#o)"/>
+  <path d="M582,409 L608,409" class="flow" marker-end="url(#a)"/>
+
+  <!-- 右側：量到什麼 -->
+  <text x="925" y="110" class="zone">量到什麼</text>
+  <rect x="925" y="126" width="275" height="110" rx="10" class="out"/>
+  <text x="943" y="154" class="hg">一張圖算多少 Token</text>
+  <text x="943" y="180" class="t">預設解析度 1,104</text>
+  <text x="943" y="202" class="t">低解析度 276（四分之一）</text>
+  <text x="943" y="226" class="note">三張低解析度的字也都讀對</text>
+
+  <rect x="925" y="256" width="275" height="104" rx="10" class="out"/>
+  <text x="943" y="284" class="hg">自由描述能不能分組</text>
+  <text x="943" y="308" class="t">12 段描述就是 12 種寫法</text>
+  <text x="943" y="330" class="t">暖色關鍵字判錯 5 次</text>
+
+  <rect x="925" y="380" width="275" height="104" rx="10" class="out"/>
+  <text x="943" y="408" class="hg">費用（非 global 單價）</text>
+  <text x="943" y="432" class="t">12 次合計 NT$ 0.32</text>
+  <text x="943" y="454" class="t">最壞估 NT$ 1.4，yes 才呼叫</text>
+
+  <path d="M874,409 L900,409" class="gflow"/>
+  <path d="M900,181 L900,432" class="gflow"/>
+  <path d="M900,181 L921,181" class="gflow" marker-end="url(#g)"/>
+  <path d="M900,308 L921,308" class="gflow" marker-end="url(#g)"/>
+  <path d="M900,432 L921,432" class="gflow" marker-end="url(#g)"/>
+
+  <text x="40" y="530" class="note">今天只看 3 張，確認寫法、Token 與描述的樣子，Day 16 才放大到 24 張，前言兩張圖的點擊率差距要等 Day 17 控制通路、受眾與商品後再談</text>
+  <text x="40" y="556" class="note">自由描述適合給人讀，要 GROUP BY 需要固定欄位 → Day 15 規定 Gemini 每看一張圖都照格式交出結構化資料</text>
+</svg>
