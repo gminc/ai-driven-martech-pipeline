@@ -95,7 +95,11 @@ print(f"\n{len(rows) - bad} 項通過、{bad} 項不通過")
 sys.exit(1 if bad else 0)
 PYCHECK
 
-echo "📊 報表（report.sql）"
+if ! bq --headless show --format=none "${PROJECT}:martech_gt.gt_creative_design" >/dev/null 2>&1; then
+  echo "❌ report.sql 第 4 段要對照答案表 martech_gt.gt_creative_design，請先執行 Day 15 的 structured/move_design.sql（bash structured/run.sh 的第一步）"
+  exit 1
+fi
+echo "📊 報表（report.sql，第 4 段讀答案表）"
 run_sql report.sql --format=pretty --max_rows=100
 
 echo "✅ Day 14 完成：描述在 ${DATASET}.mm_describe"

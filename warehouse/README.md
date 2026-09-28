@@ -28,7 +28,7 @@ bash warehouse/build.sh
 | `fct_events` | 一個事件 | `event_dt` | `event_name`, `user_pseudo_id` | `require_partition_filter = TRUE`，`data_source` 為 `synthetic` 或 `ga4` |
 | `fct_orders` | 一筆訂單 | `order_date` | `customer_id` | Live Demo 站沒有訂單資料庫，只有合成資料 |
 | `dim_date` | 一天 | 無 | 無 | `promotion_ids` 為當天進行中的專案 |
-| `dim_creative` | 一則素材 | 無 | 無 | S4 素材屬性分析用 |
+| `dim_creative` | 一則素材 | 無 | 無 | 通路、活動、受眾、主打商品，設計規格四欄 Day 15 起移到答案表 `martech_gt.gt_creative_design` |
 | `dim_customer` | 一位顧客 | 無 | 無 | 不含姓名、email、手機 |
 | `dim_product` | 一項商品 | 無 | 無 | 最常見成交單價、主打過的專案 |
 

@@ -67,7 +67,7 @@
   <text x="350" y="388" class="t">gemini-3.5-flash-lite × 3</text>
   <text x="350" y="410" class="t">gemini-3.6-flash × 3</text>
   <text x="350" y="432" class="t">回傳鎖成 JSON 發現清單</text>
-  <text x="350" y="460" class="note">thinking_budget 0，實付 NT$ 1.32</text>
+  <text x="350" y="460" class="note">thinking_budget 0，實付 NT$ 1.45</text>
 
   <rect x="612" y="334" width="262" height="150" rx="10" class="out"/>
   <text x="630" y="362" class="hg">⑤ blind_score 三組關鍵字評分</text>

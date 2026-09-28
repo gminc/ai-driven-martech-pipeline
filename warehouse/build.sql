@@ -98,8 +98,9 @@ FROM martech_dw.raw_orders;
 TRUNCATE TABLE martech_dw.dim_creative;
 INSERT INTO martech_dw.dim_creative
 SELECT creative_id, channel, utm_campaign, promotion_id, ad_group_id, audience, format,
-  start_date, end_date, product_focus, has_person, cta_position, dominant_color, text_density, image_file
+  start_date, end_date, product_focus, image_file
 FROM martech_dw.raw_creatives;
+-- has_person、cta_position、dominant_color、text_density 是設計規格（答案），Day 15 起放在 martech_gt.gt_creative_design（structured/move_design.sql），不進分析資料集
 
 -- ── dim_customer（不帶個資） ──
 TRUNCATE TABLE martech_dw.dim_customer;

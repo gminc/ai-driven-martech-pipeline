@@ -3,7 +3,7 @@
 # 用法：bash acceptance/run.sh               （在儲存庫根目錄執行，需先完成 Day 07、08、09、11、12）
 #       AUTO_YES=1 bash acceptance/run.sh    （跳過確認，排程用）
 # 成績單只讀各篇的結果表，全部在每月 1 TiB 免費額度內；盲測會呼叫 Gemini 6 次（2 個模型 × 3 次），
-# 最壞情況（每次都輸出滿 4,096 個 token）合計約新台幣 3.3 元，9/27 實測 1.32 元；執行到一半會印出 Token 數與估價再問要不要繼續
+# 最壞情況（每次都輸出滿 4,096 個 token）合計約新台幣 3.6 元，9/27 實測 1.45 元（非 global 單價）；執行到一半會印出 Token 數與估價再問要不要繼續
 set -euo pipefail
 
 cd "$(dirname "$0")"

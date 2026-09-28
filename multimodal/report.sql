@@ -37,7 +37,8 @@ ORDER BY 1, 2;
 
 -- 4. 自由描述能不能直接分組
 --    直接 GROUP BY 描述：12 段文字就是 12 組
---    改用關鍵字硬分：「有沒有提到人」「有沒有提到暖色系的字」，再和後台素材資料 dim_creative 對照
+--    改用關鍵字硬分：「有沒有提到人」「有沒有提到暖色系的字」，再和設計規格對照
+--    設計規格是答案，2026-09-29（Day 15）起放在 martech_gt.gt_creative_design，這一段是 multimodal/ 目錄裡唯一讀答案表的地方
 SELECT
   COUNT(*) AS descriptions,
   COUNT(DISTINCT description) AS distinct_descriptions
@@ -51,7 +52,7 @@ SELECT m.creative_id, m.model, m.resolution, m.run_no,
   c.text_density,
   ARRAY_LENGTH(REGEXP_EXTRACT_ALL(m.description, r'「[^」]+」')) AS quoted_texts
 FROM martech_dw.mm_describe m
-JOIN martech_dw.dim_creative c USING (creative_id)
+JOIN martech_gt.gt_creative_design c USING (creative_id)
 ORDER BY m.creative_id, m.model, m.resolution, m.run_no;
 
 -- 5. 實際費用（輸入、輸出 Token 單價：3.5-flash-lite 0.33／2.75、3.6-flash 0.825／4.125 美元每百萬）

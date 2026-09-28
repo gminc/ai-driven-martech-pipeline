@@ -1,9 +1,9 @@
 -- Day 09：呼叫 Gemini 之前先數 Token、估最壞情況的費用
 -- AI.COUNT_TOKENS 只數題目本身，實測每次呼叫還會多約 150 個 token（response_schema 也算輸入）
 -- diagnose.sql 會跑兩個模型，這裡兩個都算：
---   gemini-3.5-flash-lite 每百萬 token 輸入 0.30、輸出 2.50 美元
---   gemini-3.6-flash      每百萬 token 輸入 0.75、輸出 3.75 美元（2026/12/31 前的優惠價）
---   （2026-09 官方價目表，global 區域；us 多區域端點略高）
+--   gemini-3.5-flash-lite 每百萬 token 輸入 0.33、輸出 2.75 美元
+--   gemini-3.6-flash      每百萬 token 輸入 0.825、輸出 4.125 美元（2026/12/31 前的優惠價）
+--   （非 global 端點的單價：遠端模型的 ENDPOINT 只寫模型名稱時 BigQuery 送到非 global 端點，比 global 高一成，2026-09-29 由 global 單價更正）
 -- 最壞情況＝每一題都把 max_output_tokens 512 用滿
 
 WITH t AS (
@@ -14,8 +14,8 @@ WITH t AS (
   )
 ),
 price AS (
-  SELECT 'gemini-3.5-flash-lite' AS model, 0.30 AS in_usd, 2.50 AS out_usd
-  UNION ALL SELECT 'gemini-3.6-flash', 0.75, 3.75
+  SELECT 'gemini-3.5-flash-lite' AS model, 0.33 AS in_usd, 2.75 AS out_usd
+  UNION ALL SELECT 'gemini-3.6-flash', 0.825, 4.125
 )
 SELECT
   p.model, t.calls, t.input_tokens, t.output_tokens,

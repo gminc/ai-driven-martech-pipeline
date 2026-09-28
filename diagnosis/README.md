@@ -50,8 +50,8 @@ AUTO_YES=1 bash diagnosis/run.sh   # 跳過確認
 | meta-evg-prospecting 9/14 週（點擊率 −21%，只有 3 天） | S3 所在群組 | 資料不足 0.90 | 素材疲乏 0.80 |
 
 - `AI.COUNT_TOKENS` 數出 4 題共 1,178 個 Token，實際計費輸入 1,779 個，每題多約 150 個是 `response_schema`
-- flash-lite 一輪：輸入 1,779、輸出 418 個 Token，約 US$0.0016；3.6-flash 一輪：輸入 1,779、輸出 514 個 Token，約 US$0.0033（單價依 2026-09 官方價目表，global 區域，us 多區域端點略高）
-- `cost.sql` 估的最壞情況：flash-lite US$0.0057＋3.6-flash US$0.0090＝US$0.0147，實際約 US$0.0049
+- flash-lite 一輪：輸入 1,779、輸出 418 個 Token，約 US$0.0017；3.6-flash 一輪：輸入 1,779、輸出 514 個 Token，約 US$0.0036（非 global 端點的單價，遠端模型的 `ENDPOINT` 只寫模型名稱時 BigQuery 送到非 global 端點，比 global 高一成，2026-09-29 由 global 單價更正）
+- `cost.sql` 估的最壞情況：flash-lite US$0.0063＋3.6-flash US$0.0099＝US$0.0162，實際約 US$0.0053
 - `check.sql` 16 項全部通過
 - 以上是合成資料、每個模型只跑一次的結果，訊號比真實資料乾淨；flash-lite 那一輪執行時沒有帶 `thinking_config`（statistics 顯示思考 Token 為 0），`diagnose.sql` 現在統一設 `thinking_budget` 0
 

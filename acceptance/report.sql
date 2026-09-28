@@ -33,7 +33,7 @@ SELECT r.model, r.run_no,
 FROM martech_dw.blind_result r
 ORDER BY r.model, r.run_no;
 
--- ⑤ 盲測實際費用：依 statistics 的 token 數 × 官方單價（同 blind_cost.sql），新台幣以 1 美元 32 元換算
+-- ⑤ 盲測實際費用：依 statistics 的 token 數 × 非 global 端點的單價（同 blind_cost.sql，2026-09-29 由 global 單價更正），新台幣以 1 美元 32 元換算
 SELECT r.model, COUNT(*) AS calls,
   SUM(SAFE_CAST(JSON_VALUE(r.statistics, '$.prompt_token_count') AS INT64)) AS input_tokens,
   SUM(SAFE_CAST(JSON_VALUE(r.statistics, '$.candidates_token_count') AS INT64)) AS output_tokens,
@@ -43,8 +43,8 @@ SELECT r.model, COUNT(*) AS calls,
        + SUM(SAFE_CAST(JSON_VALUE(r.statistics, '$.candidates_token_count') AS INT64)) * p.out_usd) / 1e6 * 32, 2) AS twd
 FROM martech_dw.blind_result r
 JOIN (
-  SELECT 'gemini-3.5-flash-lite' AS model, 0.30 AS in_usd, 2.50 AS out_usd
-  UNION ALL SELECT 'gemini-3.6-flash', 0.75, 3.75
+  SELECT 'gemini-3.5-flash-lite' AS model, 0.33 AS in_usd, 2.75 AS out_usd
+  UNION ALL SELECT 'gemini-3.6-flash', 0.825, 4.125
 ) p USING (model)
 GROUP BY r.model, p.in_usd, p.out_usd
 ORDER BY r.model;

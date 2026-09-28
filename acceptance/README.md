@@ -76,7 +76,7 @@ S5a 讀 `mart_customer_segment_official`（Day 11 文章採用的那一次分群
 ## 費用
 
 - 成績單、題目、評分、檢查、報表都是查詢，含在每月 1 TiB 免費額度內
-- 盲測 6 次：題目 8,262 個 token（每次實際輸入 8,465，response_schema 也算），最壞情況（每次都輸出滿 4,096 個 token）合計約新台幣 3.3 元；9/27 實測輸出 flash-lite 508–596、3.6-flash 777–1,226 個 token，合計 US$ 0.0413 ≈ 新台幣 1.32 元，`blind_cost.sql` 會先印估價，`report.sql` 第 ⑤ 段依實際 token 數算費用
+- 盲測 6 次：題目 8,262 個 token（每次實際輸入 8,465，response_schema 也算），最壞情況（每次都輸出滿 4,096 個 token）合計約新台幣 3.6 元；9/27 實測輸出 flash-lite 508–596、3.6-flash 777–1,226 個 token，合計 US$ 0.0454 ≈ 新台幣 1.45 元（非 global 端點的單價，9/27 原以 global 單價記為 1.32 元，2026-09-29 更正），`blind_cost.sql` 會先印估價，`report.sql` 第 ⑤ 段依實際 token 數算費用
 - 遠端模型 `gemini_flash_lite`、`gemini_flash` 建立本身不收費，Day 09 建過就沿用
 
 ## 用完後怎麼處理

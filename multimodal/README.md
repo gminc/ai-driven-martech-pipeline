@@ -11,12 +11,14 @@ Day 14 把 24 張圖片素材放進 Cloud Storage、在 BigQuery 建物件表，
 | `demo.sql` | 挑三張示範圖存成 `mm_demo` | 免費額度內 | 否 |
 | `describe.sql` | 三張圖各問四輪，共 12 次，存成 `mm_describe` | Gemini Token 費 | 否 |
 | `check.sql` | 10 項流程檢查（`run.sh` 再補 1 項） | 免費額度內 | 否 |
-| `report.sql` | 五段報表：點擊率、描述並排、Token、能不能分組、費用 | 免費額度內 | 否 |
+| `report.sql` | 五段報表：點擊率、描述並排、Token、能不能分組、費用 | 免費額度內 | 第 4 段讀 `martech_gt.gt_creative_design` |
 | `run.sh` | 依序執行，呼叫 Gemini 前先印最壞費用並要求輸入 yes | — | — |
 
-`dim_creative` 裡的 `has_person`、`cta_position`、`dominant_color`、`text_density` 是合成資料才有的設計規格（素材圖照 `synthesizer/creatives.json` 畫出來，Day 16 抽特徵、Day 20 評測拿它當標準答案），真實的廣告後台沒有這幾欄，`report.sql` 第 4 段只拿它們檢查描述準不準。
+`has_person`、`cta_position`、`dominant_color`、`text_density` 是合成資料才有的設計規格（素材圖照 `synthesizer/creatives.json` 畫出來，Day 16 抽特徵、Day 20 評測拿它當標準答案），真實的廣告後台沒有這幾欄。Day 14 發表時它們放在 `dim_creative`，2026-09-29（Day 15）起搬進答案表 `martech_gt.gt_creative_design`、`dim_creative` 不再有這四欄（`structured/move_design.sql`），`report.sql` 第 4 段改讀答案表，只拿它們檢查描述準不準。
 
 ## 前置
+
+0. 2026-09-29 起 `report.sql` 第 4 段改讀答案表，重跑 Day 14 前要先執行 Day 15 的 `structured/move_design.sql`（`run.sh` 會檢查）
 
 1. 先 `git pull` 取得 Day 14 的程式與 Terraform 設定
 2. Terraform 已建立素材 bucket `<專案 ID>-martech-assets`（us-central1），並把 BigQuery 連線 `us.vertex_ai_conn` 的服務帳號加上這個 bucket 的 `roles/storage.objectViewer`（`terraform/main.tf` 的 `bq_connection_assets_viewer`，Day 14 新增，Day 13 以前建好的環境要在 `terraform/` 再 `terraform apply` 一次，權限生效可能要等幾分鐘）

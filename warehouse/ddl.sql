@@ -26,13 +26,9 @@ CREATE OR REPLACE TABLE martech_dw.dim_creative (
   start_date      DATE   OPTIONS(description = '上線日'),
   end_date        DATE   OPTIONS(description = '下檔日'),
   product_focus   STRING OPTIONS(description = '主打商品 ID'),
-  has_person      BOOL   OPTIONS(description = '圖片是否有人物，文字廣告為空'),
-  cta_position    STRING OPTIONS(description = 'CTA 位置'),
-  dominant_color  STRING OPTIONS(description = '主色系'),
-  text_density    STRING OPTIONS(description = '文字密度'),
   image_file      STRING OPTIONS(description = '圖檔名稱')
 )
-OPTIONS(description = 'Day 07 素材維度，S4 素材屬性分析從這裡取屬性');
+OPTIONS(description = 'Day 07 素材維度，設計規格四欄 2026-09-29 起移到 martech_gt.gt_creative_design（Day 15）');
 
 CREATE OR REPLACE TABLE martech_dw.dim_customer (
   customer_id       STRING NOT NULL OPTIONS(description = '顧客 ID'),
