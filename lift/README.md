@@ -1,0 +1,58 @@
+# lift：什麼樣的廣告圖比較會賣，把視覺特徵和點擊率、轉換率放在一起比（Day 17）
+
+Day 16 讓 Gemini 看完 24 張素材圖，存成特徵表 `mart_creative_features`。Day 17 把這張表和廣告成效 JOIN，在同一個通路、同一群受眾裡比較有沒有某個特徵的圖，點擊率和轉換率各差幾倍，並用判準第二版補考 Day 13 留下的 S4。
+
+## 檔案
+
+| 檔案 | 做什麼 | 讀答案表 |
+| --- | --- | --- |
+| `../acceptance/criteria_v2.sql` | 判準第二版：S1–S3、S5–S7 逐字照抄第一版，S4 拆成五項 → `martech_gt.acceptance_criteria_v2` | 建在答案資料集 |
+| `lift.sql` | 每張圖的特徵與成效 → `mart_creative_perf`（23 列），分層倍數 → `mart_creative_lift`（8 列） | 否 |
+| `score.sql` | 倍數對判準 → `martech_gt.acceptance_scorecard_s4`（5 列），每次評分的時間與判準指紋記進 `acceptance_s4_runs` | 只讀判準 |
+| `check.sql` | 16 項流程檢查（`run.sh` 再補 1 項） | 第 13–16 項 |
+| `report.sql` | 六段：每張圖、分層對不分層、逐組拆開、每次拿掉一張圖、成績、揭曉 | 第 5、6 段 |
+| `run.sh` | 一行跑完，判準、`lift.sql`、`score.sql` 有未 commit 的修改就停 | — |
+
+## 算法
+
+點擊率照 Day 06 `synthesizer/bigquery/verify.sql` 的 S4：
+
+1. 排除 `cr-meta-evg-p1`（Day 09 找到的素材疲乏，點擊率每週往下掉）
+2. 在同通路、同受眾裡比較（通路 × 受眾共四組），再行銷受眾本來就比較會點，不分層會把受眾的差別算成設計的差別
+3. 每張圖一個點擊率，組內有、沒有這個特徵的圖各取幾何平均相除，各組依 ny×nn÷(ny+nn) 加權合併
+
+轉換率是今天新加的（verify.sql 沒有）：工作階段取 `fct_events` 的 `session_start`（帶 `creative_id`），同一個工作階段有 `purchase` 事件就算成交，8/27 開始的工作階段不算（Day 09 找到的追蹤碼失效）。每張圖的成交太少，組內先把工作階段和成交合計再相除，各組依 1÷(1÷成交_有＋1÷成交_沒有) 加權，另外算 95% 信賴區間。
+
+`mart_creative_lift` 同時存不分層的倍數，報表第 2 段放在一起比。
+
+## 判準第二版
+
+| 項目 | 內容 | 門檻 |
+| --- | --- | --- |
+| S4a | 有人物的點擊率分層倍數（答案 1.25） | 1.05–1.50 |
+| S4b | 按鈕在右下（答案 1.10） | 1.05–1.32 |
+| S4c | 主色暖色（答案 1.10） | 1.05–1.32 |
+| S4d | 反向檢查：文字多（答案 1.0） | 0.95–1.05 |
+| S4e | 反向檢查：三個特徵對轉換率，取離 1 最遠的一個（答案 1.0） | 0.70–1.43 |
+
+門檻的依據寫在 `criteria_v2.sql` 開頭。S4 不是盲考：答案值是 Day 05 公開的合成器設定，Day 06 對帳時已經用規格算過（×1.28、×1.13、×1.08），Day 16 AI 讀出的旗標又和規格一致，所以 S4a–c 事先就知道結果，今天真正沒看過的是兩題反向檢查和「AI 特徵能不能取代規格」。
+
+## 前置
+
+1. 先 `git pull`
+2. 已完成 Day 13（`martech_gt.acceptance_criteria`、`gt_signals`）、Day 15 的搬家（`gt_creative_design`）與 Day 16（`mart_creative_features`）
+3. `gcloud auth list` 有星號的帳號、`gcloud config get-value project` 印出專案 ID
+
+## 執行
+
+```bash
+cd ~/ai-driven-martech-pipeline && git pull && bash lift/run.sh
+```
+
+## 費用
+
+全部是查詢，不呼叫 Gemini，`fct_events` 有日期分區，查詢量在每月 1 TiB 免費額度內。
+
+## 用完後
+
+`mart_creative_perf` 與 `mart_creative_lift` 是 Day 18 要用的（替點擊率最低的圖打改版草稿），留著。`acceptance_s4_runs` 只加不刪，是「判準沒有在評分之後被改過」的紀錄，不要刪。
