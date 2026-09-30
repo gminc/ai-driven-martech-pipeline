@@ -1,7 +1,8 @@
 -- Day 17：報表，六段
 -- ① 每張圖的特徵與成效  ② 分層與不分層的倍數  ③ 點擊率逐組拆開  ④ 每次拿掉一張圖，倍數會變多少
 -- ⑤ S4 補考成績  ⑥ 揭曉：AI 讀的特徵換成設計規格、不加雜訊的期望值、合成器設定的答案，四個放在一起
--- ①–④ 只讀 martech_dw，⑤ 讀判準與成績，⑥ 讀規格與答案，查詢在每月 1 TiB 免費額度內
+-- ⑦ 每萬次曝光的成交數（9/30 第一次執行之後加的描述性指標，不在判準裡）
+-- ①–④、⑦ 只讀 martech_dw，⑤ 讀判準與成績，⑥ 讀規格與答案，查詢在每月 1 TiB 免費額度內
 
 -- ① 每張圖的特徵與成效（23 張，已排除素材疲乏的 cr-meta-evg-p1）
 SELECT channel, audience, creative_id,
@@ -137,3 +138,43 @@ CROSS JOIN answer a
 CROSS JOIN diff d
 WHERE l.metric = 'ctr'
 ORDER BY l.attr;
+
+-- ⑦ 每萬次曝光的成交數：篇名問的「比較會賣」直接看這個，同通路同受眾分層，依成交數加權，附 95% 信賴區間
+--    曝光也排除 8/27（那天的成交事件整天沒送出），秋日素材 9/1 才上線，不排除的話其他素材會多算一天沒有成交的曝光
+WITH
+imp AS (
+  SELECT creative_id, SUM(impressions) AS imp
+  FROM martech_dw.fct_ad_daily
+  WHERE data_source = 'synthetic' AND date != '2026-08-27'
+  GROUP BY creative_id
+),
+p AS (SELECT perf.*, imp.imp FROM martech_dw.mart_creative_perf perf JOIN imp USING (creative_id)),
+long AS (
+  SELECT channel, audience, 'person' AS attr, f_person AS flag, imp, converted FROM p
+  UNION ALL SELECT channel, audience, 'cta',  f_cta,  imp, converted FROM p
+  UNION ALL SELECT channel, audience, 'warm', f_warm, imp, converted FROM p
+  UNION ALL SELECT channel, audience, 'text', f_text, imp, converted FROM p
+),
+strata AS (
+  SELECT attr, channel, audience,
+    SUM(IF(flag, converted, 0)) AS cy, SUM(IF(NOT flag, converted, 0)) AS cn,
+    SUM(IF(flag, imp, 0)) AS iy, SUM(IF(NOT flag, imp, 0)) AS iv
+  FROM long
+  GROUP BY 1, 2, 3
+  HAVING COUNTIF(flag) > 0 AND COUNTIF(NOT flag) > 0
+),
+pooled AS (
+  SELECT attr,
+    EXP(SUM(IF(cy > 0 AND cn > 0, LN((cy / iy) / (cn / iv)) / (1 / cy + 1 / cn), NULL))
+        / SUM(IF(cy > 0 AND cn > 0, 1 / (1 / cy + 1 / cn), NULL))) AS est,
+    1 / SQRT(SUM(IF(cy > 0 AND cn > 0, 1 / (1 / cy + 1 / cn), NULL))) AS se,
+    ROUND(10000 * SUM(cy) / SUM(iy), 2) AS per10k_yes,
+    ROUND(10000 * SUM(cn) / SUM(iv), 2) AS per10k_no
+  FROM strata
+  GROUP BY attr
+)
+SELECT attr, ROUND(est, 3) AS orders_per_imp_stratified,
+  ROUND(est * EXP(-1.96 * se), 2) AS ci95_low, ROUND(est * EXP(1.96 * se), 2) AS ci95_high,
+  per10k_yes, per10k_no
+FROM pooled
+ORDER BY attr;
