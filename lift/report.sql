@@ -50,7 +50,7 @@ strata AS (
   GROUP BY 1, 2, 3, 4
   HAVING COUNTIF(flag) > 0 AND COUNTIF(NOT flag) > 0
 ),
-est AS (
+jk AS (
   SELECT dropped, attr, EXP(SUM(LN(r) * ny * nn / (ny + nn)) / SUM(ny * nn / (ny + nn))) AS est
   FROM strata
   GROUP BY 1, 2
@@ -60,7 +60,7 @@ SELECT attr,
   ROUND(MAX(est), 3) AS max_est,
   ARRAY_AGG(dropped ORDER BY est LIMIT 1)[OFFSET(0)] AS drop_for_min,
   ARRAY_AGG(dropped ORDER BY est DESC LIMIT 1)[OFFSET(0)] AS drop_for_max
-FROM est
+FROM jk
 GROUP BY attr
 ORDER BY attr;
 
