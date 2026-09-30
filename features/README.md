@@ -10,7 +10,7 @@ Day 15 用六張樣本圖確認了寫法：`AI.GENERATE` 的 `output_schema` 鎖
 | `extract.sql` | 每張圖 × 預設、低解析度各看一次，呼叫紀錄存進 `mm_features_log`，用量抄進 `ops_llm_usage`，只呼叫還沒成功過的 | Gemini Token 費 | 否 |
 | `mart.sql` | 從呼叫紀錄挑出每張圖一列，建特徵表 `mart_creative_features` | 免費額度內 | 否 |
 | `check.sql` | 12 項流程檢查（`run.sh` 再補 1 項） | 免費額度內 | 否 |
-| `report.sql` | 八段報表：分佈、每次呼叫幾次、逐欄答對、答錯清單、兩種口徑、高低解析度一致度、費用、用量表 | 免費額度內 | 第 3、4、5 段 |
+| `report.sql` | 八段報表：分佈、每次呼叫幾次、逐欄答對、答錯清單、兩種算法、高低解析度一致度、費用、用量表 | 免費額度內 | 第 3、4、5 段 |
 | `run.sh` | 依序執行，呼叫 Gemini 前依這次真的要呼叫的次數印最壞費用並要求輸入 yes | — | — |
 
 ## 放大到整批時多做的三件事
@@ -23,12 +23,12 @@ BigQuery 腳本裡變數不能和欄位同名，`extract.sql` 的執行編號變
 
 ## 規格和畫面不一致的圖
 
-素材的底圖是 AI 生的，生出來的畫面不一定完全照規格。看圖之前，先請一位沒看過規格的判讀者照 `extract.sql` 同一套判斷標準逐張判讀 24 張，再和規格比對：
+素材的底圖是 AI 生的，生出來的畫面不一定完全照規格。看圖之前，先請另一個 AI 助手（不是 Gemini）當判讀者，只給它 24 張圖和 `extract.sql` 同一套判斷標準、不給規格，逐張判讀之後再和規格比對，判讀結果寫進 `review.sql` 並 commit 之後才第一次呼叫 Gemini：
 
 - **disagree**（判讀和規格不同）1 格：`cr-meta-trn-r2` 的主色，規格是 cool，背景是淺灰牆和水泥地，照判斷標準算 neutral
 - **borderline**（判讀者認為可能判得不一樣）6 格，全部是主色，背景混了兩種色系或灰藍很淡
 
-`report.sql` 第 5 段分兩種口徑算主色答對率，Day 20 評測排除 disagree 的格子。
+`report.sql` 第 5 段分兩種算法算主色答對率，Day 20 評測排除 disagree 的格子。
 
 ## 特徵表 `mart_creative_features`
 
@@ -59,8 +59,11 @@ cd ~/ai-driven-martech-pipeline && git pull && bash features/run.sh
 
 ## 用完後
 
-```bash
-bq rm -f -t martech_dw.mm_features_log
-```
+今天建的四張表都留著。`mm_features_log` 是特徵表的來源，刪掉之後特徵表就不能免費重建，`check.sql` 與 `report.sql` 也跑不了，再跑 `run.sh` 會重新呼叫 48 次。`mart_creative_features` 是 Day 17 要用的特徵表，`gt_creative_review` 是 Day 20 評測要用的判讀表，`ops_llm_usage` 是 Day 25 要用的用量表。四張加起來一百多列，儲存費在免費額度內。
 
-`mart_creative_features` 是 Day 17 要用的特徵表，`gt_creative_review` 是 Day 20 評測要用的判讀表，`ops_llm_usage` 是 Day 25 要用的用量表，這三張留著。刪掉 `mm_features_log` 之後再跑 `run.sh` 會重新呼叫 48 次。
+## 實測結果（2026-09-30）
+
+- 第一次執行 48 次全部成功，enum 補問 0 次，第二次執行呼叫 0 次，13 項檢查全部通過
+- 預設解析度 120 格錯 1 格（`cr-meta-trn-r2` 主色，判讀表標成 disagree 的那一格），低解析度主色照規格錯 5 張、全部答成 neutral，比預設解析度多錯 4 張，其他四欄兩種解析度都 24 張全對
+- 每次輸入：預設 1,485、低解析度 657 個 Token，輸出 56 到 59
+- 費用：預設新台幣 0.497 元、低解析度 0.287 元，合計 0.785 元，換算每千張約 20.7 元與 12.0 元

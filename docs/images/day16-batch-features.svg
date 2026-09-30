@@ -1,0 +1,100 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1240 600" width="1240" height="600" font-family="'Noto Sans TC','Noto Sans CJK TC','PingFang TC','Microsoft JhengHei',sans-serif">
+  <defs>
+    <style>
+      .title { font-size: 22px; font-weight: 700; fill: #202124; }
+      .zone { font-size: 14px; font-weight: 700; fill: #5f6368; }
+      .raw { fill: #f1f3f4; stroke: #dadce0; stroke-width: 1.2; }
+      .ai { fill: #e8f0fe; stroke: #1a73e8; stroke-width: 1.8; }
+      .step { fill: #ffffff; stroke: #1a73e8; stroke-width: 1.4; }
+      .out { fill: #e6f4ea; stroke: #188038; stroke-width: 1.6; }
+      .gt { fill: #fef7e0; stroke: #f29900; stroke-width: 1.6; stroke-dasharray: 6 4; }
+      .h { font-size: 15px; font-weight: 700; fill: #1a73e8; }
+      .hg { font-size: 15px; font-weight: 700; fill: #188038; }
+      .ho { font-size: 15px; font-weight: 700; fill: #b06000; }
+      .hr { font-size: 15px; font-weight: 700; fill: #3c4043; }
+      .t { font-size: 13px; fill: #3c4043; }
+      .to { font-size: 13px; fill: #5f4100; }
+      .note { font-size: 13px; fill: #5f6368; }
+      .flow { stroke: #1a73e8; stroke-width: 2.2; fill: none; }
+      .loop { stroke: #1a73e8; stroke-width: 1.8; fill: none; stroke-dasharray: 5 4; }
+      .gflow { stroke: #188038; stroke-width: 2; fill: none; }
+      .oflow { stroke: #f29900; stroke-width: 2; fill: none; stroke-dasharray: 6 4; }
+    </style>
+    <marker id="a" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto"><path d="M0,0 L10,5 L0,10 z" fill="#1a73e8"/></marker>
+    <marker id="g" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto"><path d="M0,0 L10,5 L0,10 z" fill="#188038"/></marker>
+    <marker id="o" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto"><path d="M0,0 L10,5 L0,10 z" fill="#f29900"/></marker>
+  </defs>
+  <rect width="1240" height="600" fill="#ffffff"/>
+  <text x="40" y="44" class="title">Day 16｜讓 AI 一口氣看完 24 張廣告圖，整理成視覺特徵表</text>
+  <text x="40" y="70" class="note">每一次呼叫都留紀錄，重跑只補沒成功的，Token 用量記進共用表，特徵表從紀錄裡挑，對答案只在報表這一步</text>
+
+  <text x="40" y="110" class="zone">分析資料集 martech_dw（看圖與建表的 SQL 只讀這裡）</text>
+
+  <!-- ① 物件表 -->
+  <rect x="40" y="126" width="220" height="124" rx="10" class="raw"/>
+  <text x="58" y="154" class="hr">① 物件表 obj_creatives</text>
+  <text x="58" y="180" class="t">24 張素材圖的位置</text>
+  <text x="58" y="202" class="t">Day 14 建好，今天沿用</text>
+  <text x="58" y="232" class="note">dim_creative 沒有設計欄位</text>
+
+  <!-- ② 看圖 -->
+  <rect x="300" y="126" width="270" height="150" rx="10" class="ai"/>
+  <text x="318" y="154" class="h">② extract.sql 看圖</text>
+  <text x="318" y="180" class="t">AI.GENERATE＋output_schema</text>
+  <text x="318" y="202" class="t">gemini-3.5-flash-lite</text>
+  <text x="318" y="224" class="t">每張圖 × 預設、低解析度</text>
+  <text x="318" y="246" class="t">只呼叫還沒成功的組合</text>
+  <text x="318" y="266" class="note">超出選項才用 enum 補問（今天 0 次）</text>
+
+  <!-- ③ 呼叫紀錄 -->
+  <rect x="610" y="126" width="250" height="124" rx="10" class="step"/>
+  <text x="628" y="154" class="h">③ 呼叫紀錄 mm_features_log</text>
+  <text x="628" y="180" class="t">一次呼叫一列，48 列</text>
+  <text x="628" y="202" class="t">成功失敗都留，只加不改</text>
+  <text x="628" y="232" class="note">第二次執行：要補 0 組、呼叫 0 次</text>
+
+  <!-- ④ 特徵表 -->
+  <rect x="900" y="126" width="300" height="124" rx="10" class="out"/>
+  <text x="918" y="154" class="hg">④ 特徵表 mart_creative_features</text>
+  <text x="918" y="180" class="t">一張圖一列，24 列</text>
+  <text x="918" y="202" class="t">人物、按鈕位置、主色、文字多寡、標題</text>
+  <text x="918" y="232" class="note">只收預設解析度，Day 17 JOIN 點擊率</text>
+
+  <!-- ⑤ 用量表 -->
+  <rect x="610" y="310" width="250" height="100" rx="10" class="out"/>
+  <text x="628" y="338" class="hg">⑤ 用量表 ops_llm_usage</text>
+  <text x="628" y="364" class="t">每次呼叫的 Token 抄一份，48 列</text>
+  <text x="628" y="388" class="note">不存單價，Day 25 做成本監控</text>
+
+  <!-- 答案資料集 -->
+  <text x="40" y="300" class="zone">答案資料集 martech_gt</text>
+  <rect x="40" y="316" width="520" height="130" rx="10" class="gt"/>
+  <text x="58" y="344" class="ho">判讀表 gt_creative_review（看圖之前建）</text>
+  <text x="58" y="370" class="to">另一個 AI 只看圖、不看規格，逐張判讀 96 格</text>
+  <text x="58" y="392" class="to">規格和畫面不一致 1 格、可能判得不一樣 6 格，全是主色</text>
+  <text x="58" y="424" class="ho">設計規格 gt_creative_design（Day 15 搬進來）</text>
+
+  <!-- ⑥ 報表 -->
+  <rect x="900" y="290" width="300" height="200" rx="10" class="step"/>
+  <text x="918" y="318" class="h">⑥ report.sql 對答案</text>
+  <text x="918" y="344" class="t">預設解析度：120 格錯 1 格</text>
+  <text x="918" y="366" class="note">錯的就是規格和畫面不一致那格</text>
+  <text x="918" y="392" class="t">低解析度：輸入 1,485 → 657 Token</text>
+  <text x="918" y="414" class="t">主色多錯 4 張，全答成 neutral</text>
+  <text x="918" y="440" class="t">48 次合計 NT$ 0.785</text>
+  <text x="918" y="462" class="note">每千張：預設 20.7 元、低解析度 12.0 元</text>
+
+  <!-- 箭頭 -->
+  <path d="M260,188 L296,188" class="flow" marker-end="url(#a)"/>
+  <path d="M570,188 L606,188" class="flow" marker-end="url(#a)"/>
+  <path d="M860,188 L896,188" class="gflow" marker-end="url(#g)"/>
+  <path d="M735,250 L735,306" class="gflow" marker-end="url(#g)"/>
+  <path d="M1050,250 L1050,286" class="gflow" marker-end="url(#g)"/>
+  <path d="M660,250 C660,292 480,300 470,280" class="loop" marker-end="url(#a)"/>
+  <text x="500" y="302" class="note">重跑前先算還缺哪些</text>
+  <path d="M560,430 L896,430" class="oflow" marker-end="url(#o)"/>
+  <text x="640" y="454" class="to">只有報表會讀答案</text>
+
+  <text x="40" y="530" class="note">判讀結果寫進 review.sql 並 commit 之後才第一次呼叫 Gemini，先找出有爭議的題目，看完成績才找就變成替模型找理由</text>
+  <text x="40" y="556" class="note">低解析度適合只看形狀和文字的欄位，這批圖在低解析度下，偏淡的色偏被看成中性色，所以特徵表用預設解析度</text>
+</svg>

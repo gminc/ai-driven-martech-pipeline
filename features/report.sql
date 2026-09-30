@@ -72,7 +72,7 @@ LEFT JOIN martech_gt.gt_creative_review r USING (creative_id, field)
 WHERE c.said IS DISTINCT FROM c.spec
 ORDER BY c.field, c.creative_id, c.resolution;
 
--- 5. 兩種口徑的主色答對率：全部 24 張，以及排除 disagree（規格和畫面不一致）的圖，Day 20 用後者
+-- 5. 兩種算法的主色答對率：全部 24 張，以及排除 disagree（規格和畫面不一致）的圖，Day 20 用後者
 WITH picked AS (
   SELECT 'default' AS resolution, creative_id, dominant_color
   FROM martech_dw.mart_creative_features
