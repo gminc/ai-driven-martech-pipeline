@@ -1,0 +1,96 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1240 600" width="1240" height="600" font-family="'Noto Sans TC','Noto Sans CJK TC','PingFang TC','Microsoft JhengHei',sans-serif">
+  <defs>
+    <style>
+      .title { font-size: 22px; font-weight: 700; fill: #202124; }
+      .zone { font-size: 14px; font-weight: 700; fill: #5f6368; }
+      .raw { fill: #f1f3f4; stroke: #dadce0; stroke-width: 1.2; }
+      .step { fill: #ffffff; stroke: #1a73e8; stroke-width: 1.4; }
+      .out { fill: #e6f4ea; stroke: #188038; stroke-width: 1.6; }
+      .gt { fill: #fef7e0; stroke: #f29900; stroke-width: 1.6; stroke-dasharray: 6 4; }
+      .h { font-size: 15px; font-weight: 700; fill: #1a73e8; }
+      .hg { font-size: 15px; font-weight: 700; fill: #188038; }
+      .ho { font-size: 15px; font-weight: 700; fill: #b06000; }
+      .hr { font-size: 15px; font-weight: 700; fill: #3c4043; }
+      .t { font-size: 13px; fill: #3c4043; }
+      .to { font-size: 13px; fill: #5f4100; }
+      .note { font-size: 13px; fill: #5f6368; }
+      .flow { stroke: #1a73e8; stroke-width: 2.2; fill: none; }
+      .gflow { stroke: #188038; stroke-width: 2; fill: none; }
+      .oflow { stroke: #f29900; stroke-width: 2; fill: none; stroke-dasharray: 6 4; }
+    </style>
+    <marker id="a" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto"><path d="M0,0 L10,5 L0,10 z" fill="#1a73e8"/></marker>
+    <marker id="g" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto"><path d="M0,0 L10,5 L0,10 z" fill="#188038"/></marker>
+    <marker id="o" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto"><path d="M0,0 L10,5 L0,10 z" fill="#f29900"/></marker>
+  </defs>
+  <rect width="1240" height="600" fill="#ffffff"/>
+  <text x="40" y="44" class="title">Day 17｜把 AI 讀出來的視覺特徵和點擊率、轉換率放在一起比</text>
+  <text x="40" y="70" class="note">判準先 commit 再執行，分析的 SQL 只讀分析資料集，評分只讀判準，揭曉時才讀規格與答案，全程不呼叫 Gemini</text>
+
+  <text x="40" y="110" class="zone">分析資料集 martech_dw（lift.sql 只讀這裡）</text>
+
+  <rect x="40" y="126" width="260" height="96" rx="10" class="raw"/>
+  <text x="58" y="154" class="hr">① 特徵表（Day 16）</text>
+  <text x="58" y="178" class="t">mart_creative_features</text>
+  <text x="58" y="200" class="note">AI 看圖讀出的人物、按鈕、主色、文字</text>
+
+  <rect x="40" y="236" width="260" height="110" rx="10" class="raw"/>
+  <text x="58" y="264" class="hr">② 成效</text>
+  <text x="58" y="288" class="t">fct_ad_daily：曝光、點擊</text>
+  <text x="58" y="310" class="t">fct_events：工作階段、成交</text>
+  <text x="58" y="332" class="note">排除 8/27 追蹤碼失效那天</text>
+
+  <rect x="340" y="126" width="300" height="220" rx="10" class="step"/>
+  <text x="358" y="154" class="h">③ lift.sql 分層比較</text>
+  <text x="358" y="180" class="t">排除素材疲乏的 cr-meta-evg-p1</text>
+  <text x="358" y="202" class="t">通路 × 受眾四組，組內有、沒有特徵相除</text>
+  <text x="358" y="224" class="t">點擊率：幾何平均，依張數加權</text>
+  <text x="358" y="246" class="t">轉換率：組內合計，依成交數加權</text>
+  <text x="358" y="276" class="note">再行銷受眾點擊率、轉換率本來就高</text>
+  <text x="358" y="298" class="note">不分層會把受眾的差別算成設計的差別</text>
+  <text x="358" y="330" class="note">不分層和分層的倍數一起存</text>
+
+  <rect x="680" y="126" width="260" height="110" rx="10" class="out"/>
+  <text x="698" y="154" class="hg">④ 成效表與倍數表</text>
+  <text x="698" y="178" class="t">mart_creative_perf：23 列</text>
+  <text x="698" y="200" class="t">mart_creative_lift：8 列</text>
+  <text x="698" y="222" class="note">4 個特徵 × 點擊率、轉換率</text>
+
+  <rect x="980" y="126" width="220" height="220" rx="10" class="step"/>
+  <text x="998" y="154" class="h">⑥ report.sql</text>
+  <text x="998" y="180" class="t">每張圖的特徵與成效</text>
+  <text x="998" y="202" class="t">分層對不分層</text>
+  <text x="998" y="224" class="t">每次拿掉一張圖</text>
+  <text x="998" y="246" class="t">每萬次曝光的成交</text>
+  <text x="998" y="276" class="to">揭曉：AI 特徵換成規格</text>
+  <text x="998" y="298" class="to">和合成器的答案放一起</text>
+
+  <text x="40" y="392" class="zone">答案資料集 martech_gt</text>
+  <rect x="40" y="408" width="400" height="110" rx="10" class="gt"/>
+  <text x="58" y="436" class="ho">判準第二版 acceptance_criteria_v2</text>
+  <text x="58" y="460" class="to">S4 拆五項，兩項是「應該看不出差別」</text>
+  <text x="58" y="482" class="to">16:13:53 commit，16:14:43 第一次評分</text>
+  <text x="58" y="504" class="note">沒 commit 就執行，run.sh 直接停下來</text>
+
+  <rect x="680" y="408" width="260" height="110" rx="10" class="step"/>
+  <text x="698" y="436" class="h">⑤ score.sql 評分</text>
+  <text x="698" y="460" class="t">S4a 到 S4e 五項都找到</text>
+  <text x="698" y="482" class="t">判準指紋記進 acceptance_s4_runs</text>
+  <text x="698" y="504" class="note">評分之後改判準會被抓到</text>
+
+  <rect x="980" y="408" width="220" height="110" rx="10" class="gt"/>
+  <text x="998" y="436" class="ho">規格與答案</text>
+  <text x="998" y="460" class="to">gt_creative_design</text>
+  <text x="998" y="482" class="to">gt_signals</text>
+  <text x="998" y="504" class="note">只有報表第 6 段讀</text>
+
+  <path d="M300,174 L336,174" class="flow" marker-end="url(#a)"/>
+  <path d="M300,290 L336,290" class="flow" marker-end="url(#a)"/>
+  <path d="M640,180 L676,180" class="gflow" marker-end="url(#g)"/>
+  <path d="M940,180 L976,180" class="gflow" marker-end="url(#g)"/>
+  <path d="M810,236 L810,404" class="gflow" marker-end="url(#g)"/>
+  <path d="M440,462 L676,462" class="oflow" marker-end="url(#o)"/>
+  <path d="M1090,408 L1090,350" class="oflow" marker-end="url(#o)"/>
+
+  <text x="40" y="556" class="note">結果：點擊率人物 ×1.28、右下按鈕 ×1.13、暖色 ×1.08，文字多看不出差別，轉換率四個特徵都看不出差別</text>
+  <text x="40" y="580" class="note">每萬次曝光的成交：人物 ×1.40、右下按鈕 ×1.27，比較會賣的圖是比較會被點的圖</text>
+</svg>
