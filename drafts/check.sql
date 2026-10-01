@@ -17,6 +17,7 @@ ok_log AS (
     AND has_person IS NOT NULL AND cited_ratio IS NOT NULL
     AND cta_position IN ('center', 'bottom_right', 'none') AND dominant_color IN ('warm', 'cool', 'neutral')
     AND text_density IN ('low', 'high') AND cited_feature IN ('person', 'cta', 'warm', 'text')
+    AND method = 'response_schema'
 ),
 checks AS (
   SELECT '01 lift table rows (Day 17 input)' AS check_name, '8' AS expected,

@@ -7,7 +7,7 @@ Day 17 算出了哪些設計特徵讓點擊率變高（人物、右下按鈕、�
 | 檔案 | 做什麼 | 費用 |
 | --- | --- | --- |
 | `facts.sql` | 商品事實 `ref_product_facts`（照抄 live-demo/products.json）與不能寫進廣告的詞 `ref_claim_terms`（功效、醫療、絕對用語，Day 23 沿用） | 查詢 |
-| `generate.sql` | 3 張圖 × 2 版題目（free／rules）× 各 2 次，AI.GENERATE 的 output_schema 規定草稿欄位，記進 `mm_drafts_log` 與共用的 `ops_llm_usage` | Gemini |
+| `generate.sql` | 3 張圖 × 2 版題目（free／rules）× 各 2 次，AI.GENERATE 的 response_schema 規定草稿欄位、enum 鎖住選項，記進 `mm_drafts_log` 與共用的 `ops_llm_usage` | Gemini |
 | `mart.sql` | 整理成 `mart_creative_drafts`，算好照成效改了沒、引用的倍數對不對、冒出哪些不能寫的詞 | 查詢 |
 | `check.sql` | 11 項流程檢查（`run.sh` 再補 2 項） | 查詢 |
 | `report.sql` | 七段：對象、草稿一覽、照成效改了沒、引用的倍數、不能寫的詞、預期效果原文、費用 | 查詢 |
@@ -22,6 +22,10 @@ Day 17 算出了哪些設計特徵讓點擊率變高（人物、右下按鈕、�
 2. 引用的倍數照表格抄
 3. 轉換率區間包含 1 的特徵，不能說會讓轉換率、成交或銷售增加
 4. 標題 14 字、副標 20 字以內
+
+## 為什麼用 response_schema 不用 output_schema
+
+第一次試跑用 output_schema（只鎖型別），free 版 6 份都合格，rules 版 6 份只有 3 份合格：一份寫到 4,081 個 Token 被截斷，兩份把推理過程寫進了 text_density 欄位。改用 response_schema 的 enum 把選項鎖住之後兩版重跑，第一次的紀錄留在 `mm_drafts_log`（method 是空的那幾筆），費用照算。
 
 ## 前置
 

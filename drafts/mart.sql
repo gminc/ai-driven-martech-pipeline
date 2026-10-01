@@ -16,6 +16,7 @@ ok AS (
     AND has_person IS NOT NULL AND cited_ratio IS NOT NULL
     AND cta_position IN ('center', 'bottom_right', 'none') AND dominant_color IN ('warm', 'cool', 'neutral')
     AND text_density IN ('low', 'high') AND cited_feature IN ('person', 'cta', 'warm', 'text')
+    AND method = 'response_schema'
   QUALIFY ROW_NUMBER() OVER (PARTITION BY creative_id, version, sample ORDER BY created_at DESC) = 1
 ),
 lift AS (

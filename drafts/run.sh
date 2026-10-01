@@ -55,7 +55,7 @@ scalar() {
 log_exists() {
   bq --headless show --format=none "${PROJECT}:${DATASET}.mm_drafts_log" >/dev/null 2>&1
 }
-OK_COND="status = '' AND headline IS NOT NULL AND headline != '' AND cta_text IS NOT NULL AND has_person IS NOT NULL AND cited_ratio IS NOT NULL AND cta_position IN ('center', 'bottom_right', 'none') AND dominant_color IN ('warm', 'cool', 'neutral') AND text_density IN ('low', 'high') AND cited_feature IN ('person', 'cta', 'warm', 'text')"
+OK_COND="status = '' AND headline IS NOT NULL AND headline != '' AND cta_text IS NOT NULL AND has_person IS NOT NULL AND cited_ratio IS NOT NULL AND cta_position IN ('center', 'bottom_right', 'none') AND dominant_color IN ('warm', 'cool', 'neutral') AND text_density IN ('low', 'high') AND cited_feature IN ('person', 'cta', 'warm', 'text') AND method = 'response_schema'"
 TARGETS="SELECT creative_id FROM ${DATASET}.mart_creative_perf WHERE audience = 'prospecting' QUALIFY ROW_NUMBER() OVER (ORDER BY ctr, creative_id) <= 3"
 pending() {  # 這次的三張目標圖 × 2 版 × 2 次，扣掉已經成功的組合（目標與成功的定義都和 generate.sql 一樣）
   if ! log_exists; then echo "${EXPECTED}"; return; fi

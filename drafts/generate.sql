@@ -5,7 +5,8 @@
 --   rules ：題目和 free 完全一樣（包含「最有說服力」那句），只在最後多加四條品牌規則
 -- 兩版只差規則，草稿裡冒出幾個不能寫的詞、引用的倍數對不對、有沒有承諾轉換，差別就是規則造成的
 --
--- 寫法沿用 Day 16：AI.GENERATE 的 output_schema 規定草稿欄位，跑過的不重跑（只補還沒成功的組合），
+-- 寫法沿用 Day 15、16：AI.GENERATE 搭配 response_schema（enum 把按鈕位置、主色、文字量、引用的特徵鎖在選項裡）規定草稿欄位，
+-- 跑過的不重跑（只補還沒成功的組合），
 -- 每次呼叫都記進 mm_drafts_log，再抄一份進共用的 Token 用量表 ops_llm_usage（Day 25 用）
 -- 模型用 gemini-3.6-flash（一般任務，要寫文案和構圖，比看圖分類需要多一點推理），thinking_level 設 LOW，
 -- 思考 Token 也算在 max_output_tokens 裡，上限放寬到 4,096，避免回答寫到一半被截斷（截斷也會收費）
@@ -74,6 +75,9 @@ CREATE TABLE IF NOT EXISTS martech_dw.mm_drafts_log (
 )
 OPTIONS (description = 'Day 18 草稿呼叫紀錄：一列＝一次呼叫（圖 × 題目版本 × 第幾次），成功失敗都保留，generate.sql 只補沒有成功紀錄的組合');
 ALTER TABLE martech_dw.mm_drafts_log ADD COLUMN IF NOT EXISTS finish_reason STRING;  -- 萬一舊版的表已經建過
+-- 鎖法：第一次試跑用 output_schema（只鎖型別），rules 版 6 次有 3 次不合格（推理過程寫進 text_density 欄位、或寫到一半被截斷），
+-- 改用 response_schema 的 enum 把選項也鎖住，兩版都重跑，舊的紀錄留著（method 是空的那幾筆），成功的定義只看 response_schema
+ALTER TABLE martech_dw.mm_drafts_log ADD COLUMN IF NOT EXISTS method STRING;
 
 -- 共用的 Token 用量表（Day 16 建立，這裡 IF NOT EXISTS 只是保險）
 CREATE TABLE IF NOT EXISTS martech_dw.ops_llm_usage (
@@ -111,7 +115,8 @@ FROM martech_dw.mm_drafts_log
 WHERE status = '' AND headline IS NOT NULL AND headline != '' AND cta_text IS NOT NULL
   AND has_person IS NOT NULL AND cited_ratio IS NOT NULL
   AND cta_position IN ('center', 'bottom_right', 'none') AND dominant_color IN ('warm', 'cool', 'neutral')
-  AND text_density IN ('low', 'high') AND cited_feature IN ('person', 'cta', 'warm', 'text');
+  AND text_density IN ('low', 'high') AND cited_feature IN ('person', 'cta', 'warm', 'text')
+  AND method = 'response_schema';
 
 CREATE TEMP TABLE todo AS
 SELECT t.*, v AS version, s AS sample,
@@ -151,23 +156,48 @@ WHERE dn.creative_id IS NULL;
 
 INSERT INTO martech_dw.mm_drafts_log (run_id, version, sample, creative_id, model, headline, subhead, badge, cta_text,
   cta_position, has_person, dominant_color, text_density, composition, image_prompt, changes, cited_feature, cited_ratio,
-  expected_effect, prompt_tokens, output_tokens, thoughts_tokens, finish_reason, status, created_at)
+  expected_effect, prompt_tokens, output_tokens, thoughts_tokens, finish_reason, status, created_at, method)
 SELECT this_run, version, sample, creative_id, 'gemini-3.6-flash',
-  g.headline, g.subhead, g.badge, g.cta_text, g.cta_position, g.has_person, g.dominant_color, g.text_density,
-  g.composition, g.image_prompt, g.changes, g.cited_feature, g.cited_ratio, g.expected_effect,
+  JSON_VALUE(g.result, '$.headline'), JSON_VALUE(g.result, '$.subhead'), JSON_VALUE(g.result, '$.badge'),
+  JSON_VALUE(g.result, '$.cta_text'), JSON_VALUE(g.result, '$.cta_position'),
+  SAFE_CAST(JSON_VALUE(g.result, '$.has_person') AS BOOL),
+  JSON_VALUE(g.result, '$.dominant_color'), JSON_VALUE(g.result, '$.text_density'),
+  JSON_VALUE(g.result, '$.composition'), JSON_VALUE(g.result, '$.image_prompt'), JSON_VALUE(g.result, '$.changes'),
+  JSON_VALUE(g.result, '$.cited_feature'), SAFE_CAST(JSON_VALUE(g.result, '$.cited_ratio') AS FLOAT64),
+  JSON_VALUE(g.result, '$.expected_effect'),
   CAST(JSON_VALUE(g.full_response, '$.usage_metadata.prompt_token_count') AS INT64),
   CAST(JSON_VALUE(g.full_response, '$.usage_metadata.candidates_token_count') AS INT64),
   CAST(JSON_VALUE(g.full_response, '$.usage_metadata.thoughts_token_count') AS INT64),
   JSON_VALUE(g.full_response, '$.candidates[0].finish_reason'),  -- MAX_TOKENS 表示被輸出上限截斷
-  g.status, CURRENT_TIMESTAMP()
+  g.status, CURRENT_TIMESTAMP(), 'response_schema'
 FROM (
   SELECT t.creative_id, t.version, t.sample,
     AI.GENERATE(
       (t.prompt, o.ref),
       connection_id => 'us.vertex_ai_conn',
       endpoint => 'gemini-3.6-flash',
-      output_schema => 'headline STRING, subhead STRING, badge STRING, cta_text STRING, cta_position STRING, has_person BOOL, dominant_color STRING, text_density STRING, composition STRING, image_prompt STRING, changes STRING, cited_feature STRING, cited_ratio FLOAT64, expected_effect STRING',
-      model_params => JSON '{"generation_config": {"max_output_tokens": 4096, "thinking_config": {"thinking_level": "LOW"}}}'
+      model_params => JSON '''{"generation_config": {
+        "max_output_tokens": 4096,
+        "thinking_config": {"thinking_level": "LOW"},
+        "response_mime_type": "application/json",
+        "response_schema": {"type": "OBJECT", "properties": {
+          "headline": {"type": "STRING"},
+          "subhead": {"type": "STRING"},
+          "badge": {"type": "STRING"},
+          "cta_text": {"type": "STRING"},
+          "cta_position": {"type": "STRING", "enum": ["center", "bottom_right", "none"]},
+          "has_person": {"type": "BOOLEAN"},
+          "dominant_color": {"type": "STRING", "enum": ["warm", "cool", "neutral"]},
+          "text_density": {"type": "STRING", "enum": ["low", "high"]},
+          "composition": {"type": "STRING"},
+          "image_prompt": {"type": "STRING"},
+          "changes": {"type": "STRING"},
+          "cited_feature": {"type": "STRING", "enum": ["person", "cta", "warm", "text"]},
+          "cited_ratio": {"type": "NUMBER"},
+          "expected_effect": {"type": "STRING"}
+        }, "required": ["headline", "subhead", "badge", "cta_text", "cta_position", "has_person", "dominant_color",
+                        "text_density", "composition", "image_prompt", "changes", "cited_feature", "cited_ratio", "expected_effect"]}
+      }}'''
     ) AS g
   FROM todo t
   JOIN martech_dw.obj_creatives o ON o.uri LIKE CONCAT('%/', t.creative_id, '.jpg')

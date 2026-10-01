@@ -71,8 +71,8 @@ SELECT version, creative_id, sample, mentions_sales, expected_effect
 FROM martech_dw.mart_creative_drafts
 ORDER BY version, creative_id, sample;
 
--- ⑦ 費用（呼叫紀錄全部算，包含失敗的呼叫）
-SELECT version,
+-- ⑦ 費用（呼叫紀錄全部算，包含失敗的呼叫與第一次用 output_schema 試跑的那一輪）
+SELECT m AS method, version,
   COUNT(*) AS calls,
   SUM(prompt_tokens) AS input_tokens,
   SUM(output_tokens) AS output_tokens,
@@ -80,6 +80,6 @@ SELECT version,
   COUNTIF(finish_reason = 'MAX_TOKENS') AS cut_by_cap,
   ROUND(SUM(IFNULL(prompt_tokens, 0) * 0.825
           + (IFNULL(output_tokens, 0) + IFNULL(thoughts_tokens, 0)) * 4.125) / 1e6 * 32, 3) AS cost_twd
-FROM martech_dw.mm_drafts_log
-GROUP BY ROLLUP(version)
-ORDER BY version NULLS LAST;
+FROM (SELECT IFNULL(method, 'output_schema') AS m, * EXCEPT (method) FROM martech_dw.mm_drafts_log)
+GROUP BY ROLLUP(m, version)
+ORDER BY m NULLS LAST, version NULLS LAST;
