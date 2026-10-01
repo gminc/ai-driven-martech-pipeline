@@ -68,6 +68,12 @@ log_rows() {
 echo "📚 商品事實與不能寫的詞（facts.sql）"
 run_sql facts.sql --format=pretty
 
+# 第一次試跑時建的紀錄表沒有 method、finish_reason 兩欄，先補上，pending 才查得到（不呼叫 Gemini，免費）
+if log_exists; then
+  bq --headless --location=US query --nouse_legacy_sql --quiet --format=none \
+    "ALTER TABLE ${DATASET}.mm_drafts_log ADD COLUMN IF NOT EXISTS finish_reason STRING, ADD COLUMN IF NOT EXISTS method STRING" \
+    || { echo "❌ 紀錄表 ${DATASET}.mm_drafts_log 補欄位失敗，先停下來，沒有呼叫 Gemini"; exit 1; }
+fi
 P="$(pending)"
 [[ "${P}" =~ ^[0-9]+$ ]] || { echo "❌ 算不出這次要呼叫幾次（拿到「${P}」），先停下來，沒有呼叫 Gemini"; exit 1; }
 # 最壞情況：每次輸入以 2,600 個 Token 計（一張圖約 1,100、題目與倍數表約 1,000，留兩成餘裕，這一項是估計值），
@@ -116,9 +122,9 @@ python3 - "${TMP}/check.csv" "${LEAK}" "${MISSING}" "${RERUN_CALLS}" <<'PYCHECK'
 import csv, sys
 rows = list(csv.DictReader(open(sys.argv[1])))
 leak, missing, rerun = sys.argv[2].strip(), int(sys.argv[3]), int(sys.argv[4])
-rows.append({"check_name": "12 rerun calls = still missing", "expected": str(missing),
+rows.append({"check_name": "13 rerun calls = still missing", "expected": str(missing),
              "actual": str(rerun), "ok": "OK" if rerun == missing else "DIFF"})
-rows.append({"check_name": "13 no answer table in drafts SQL", "expected": "none",
+rows.append({"check_name": "14 no answer table in drafts SQL", "expected": "none",
              "actual": leak or "none", "ok": "OK" if not leak else "DIFF"})
 bad = 0
 for r in rows:

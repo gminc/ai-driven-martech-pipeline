@@ -162,10 +162,11 @@ if [[ "${STATUS}" != "ok" ]]; then
   printf 'FAILED%s\n' "${OP##*/}" | gcloud storage cp - "${OUT}op.txt" >/dev/null 2>&1 || true
 fi
 
-# 記進共用用量表（只在有最終結果時寫一列）（Veo 不是用 Token 計費，Token 欄位留空，item_id 記草稿、media_resolution 記解析度與秒數）
+# 記進共用用量表（只在有最終結果時寫一列），Veo 不是用 Token 計費，Token 欄位留空，item_id 記草稿、media_resolution 記解析度與秒數
+# endpoint_type 和其他列一樣記 non-global（us-central1 區域端點），2026-10-01 第一次執行時這一欄記成 us-central1
 bq --headless --location=US query --nouse_legacy_sql --quiet --format=none "
 INSERT INTO ${DATASET}.ops_llm_usage (logged_at, day, job, run_id, model, endpoint_type, media_resolution, item_id, prompt_tokens, output_tokens, status)
-VALUES (CURRENT_TIMESTAMP(), 'Day 18', 'drafts/veo.sh', '${OP##*/}', '${MODEL}', '${REGION}', '720p/${SECONDS_LEN}s', '${DRAFT_ID}', NULL, NULL, '${CODE}')"
+VALUES (CURRENT_TIMESTAMP(), 'Day 18', 'drafts/veo.sh', '${OP##*/}', '${MODEL}', 'non-global', '720p/${SECONDS_LEN}s', '${DRAFT_ID}', NULL, NULL, '${CODE}')"
 
 if [[ "${STATUS}" != "ok" ]]; then
   echo "❌ 沒有拿到影片（失敗的請求不收費），回應存在 ~/day18_veo_response.json，重跑會重新送出"

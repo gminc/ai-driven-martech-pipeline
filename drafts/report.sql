@@ -1,4 +1,4 @@
--- Day 18 報表，七段：
+-- Day 18 報表，八段：
 --   ① 對象：新客受眾裡點擊率最低的三張圖，現況（Day 16 AI 讀出來的特徵）
 --   ② 草稿一覽：12 份草稿的文案、四個特徵、引用的倍數
 --   ③ 照成效改了沒：原圖沒有、草稿加上的人物、右下按鈕、暖色，兩版各幾份
@@ -6,6 +6,7 @@
 --   ⑤ 不能寫的詞：兩版各有幾份草稿冒出來、冒出哪些詞
 --   ⑥ 預期效果原文：有沒有承諾轉換或銷售（正規表示式只是初篩，要看原文）
 --   ⑦ 費用：輸入、輸出、思考 Token 與新台幣（gemini-3.6-flash 非 global 單價：輸入 0.825、輸出 4.125 美元每百萬 Token，1 美元＝32 元）
+--   ⑧ 看完草稿才發現的詞與預期效果裡寫進倍數的份數（描述性，第一輪執行之後加的）
 -- 只讀 martech_dw，查詢在每月 1 TiB 免費額度內
 
 -- ① 對象
@@ -83,3 +84,27 @@ SELECT m AS method, version,
 FROM (SELECT IFNULL(method, 'output_schema') AS m, * EXCEPT (method) FROM martech_dw.mm_drafts_log)
 GROUP BY ROLLUP(m, version)
 ORDER BY m NULLS LAST, version NULLS LAST;
+
+-- ⑧ 看完草稿才發現的詞（第一次執行之後加的描述性統計，不改第 5 段的判定，詞庫 ref_claim_terms 也沒有動）
+--   極致、強效：沒有根據的程度用語，黃金：誇飾，日本級：商品資料裡沒有的事實
+--   這幾個詞會在 Day 23 做過濾時再決定要不要收進詞庫
+WITH d AS (
+  SELECT version, expected_effect, table_ctr,
+    REGEXP_EXTRACT_ALL(CONCAT(headline, ' ', IFNULL(subhead, ''), ' ', IFNULL(badge, ''), ' ', cta_text), r'極致|強效|黃金|日本級') AS found
+  FROM martech_dw.mart_creative_drafts
+),
+w AS (
+  SELECT version, STRING_AGG(DISTINCT x, '、' ORDER BY x) AS words
+  FROM d CROSS JOIN UNNEST(d.found) AS x
+  GROUP BY version
+)
+SELECT d.version,
+  COUNT(*) AS drafts,
+  COUNTIF(ARRAY_LENGTH(d.found) > 0) AS drafts_with_puffery,
+  ANY_VALUE(w.words) AS words,
+  -- 預期效果裡出現引用特徵的點擊率倍數（今天是 1.28），數字從倍數表來，不寫死
+  COUNTIF(STRPOS(IFNULL(d.expected_effect, ''), FORMAT('%.2f', d.table_ctr)) > 0) AS promises_ratio
+FROM d
+LEFT JOIN w USING (version)
+GROUP BY d.version
+ORDER BY d.version;

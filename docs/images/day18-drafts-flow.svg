@@ -1,0 +1,101 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1240 620" width="1240" height="620" font-family="'Noto Sans TC','Noto Sans CJK TC','PingFang TC','Microsoft JhengHei',sans-serif">
+  <defs>
+    <style>
+      .title { font-size: 22px; font-weight: 700; fill: #202124; }
+      .zone { font-size: 14px; font-weight: 700; fill: #5f6368; }
+      .raw { fill: #f1f3f4; stroke: #dadce0; stroke-width: 1.2; }
+      .step { fill: #ffffff; stroke: #1a73e8; stroke-width: 1.4; }
+      .out { fill: #e6f4ea; stroke: #188038; stroke-width: 1.6; }
+      .ext { fill: #fef7e0; stroke: #f29900; stroke-width: 1.6; stroke-dasharray: 6 4; }
+      .h { font-size: 15px; font-weight: 700; fill: #1a73e8; }
+      .hg { font-size: 15px; font-weight: 700; fill: #188038; }
+      .ho { font-size: 15px; font-weight: 700; fill: #b06000; }
+      .hr { font-size: 15px; font-weight: 700; fill: #3c4043; }
+      .t { font-size: 13px; fill: #3c4043; }
+      .to { font-size: 13px; fill: #5f4100; }
+      .note { font-size: 13px; fill: #5f6368; }
+      .flow { stroke: #1a73e8; stroke-width: 2.2; fill: none; }
+      .gflow { stroke: #188038; stroke-width: 2; fill: none; }
+      .oflow { stroke: #f29900; stroke-width: 2; fill: none; stroke-dasharray: 6 4; }
+    </style>
+    <marker id="a" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto"><path d="M0,0 L10,5 L0,10 z" fill="#1a73e8"/></marker>
+    <marker id="g" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto"><path d="M0,0 L10,5 L0,10 z" fill="#188038"/></marker>
+    <marker id="o" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto"><path d="M0,0 L10,5 L0,10 z" fill="#f29900"/></marker>
+  </defs>
+  <rect width="1240" height="620" fill="#ffffff"/>
+  <text x="40" y="44" class="title">Day 18｜讓 Gemini 根據成效替點擊率最低的圖打下一版素材草稿</text>
+  <text x="40" y="70" class="note">全程在 BigQuery 裡跑，只讀分析資料集，兩版題目只差最後四條品牌規則，延伸段才把一份草稿交給 Veo</text>
+
+  <text x="40" y="110" class="zone">分析資料集 martech_dw</text>
+
+  <rect x="40" y="126" width="270" height="88" rx="10" class="raw"/>
+  <text x="58" y="154" class="hr">① 倍數表（Day 17）</text>
+  <text x="58" y="178" class="t">mart_creative_lift</text>
+  <text x="58" y="200" class="note">點擊率倍數與轉換率的信賴區間</text>
+
+  <rect x="40" y="226" width="270" height="88" rx="10" class="raw"/>
+  <text x="58" y="254" class="hr">② 原圖與現況</text>
+  <text x="58" y="278" class="t">obj_creatives、mart_creative_features</text>
+  <text x="58" y="300" class="note">mart_creative_perf 挑點擊率最低的三張</text>
+
+  <rect x="40" y="326" width="270" height="88" rx="10" class="raw"/>
+  <text x="58" y="354" class="hr">③ 商品事實與禁用詞</text>
+  <text x="58" y="378" class="t">ref_product_facts、ref_claim_terms</text>
+  <text x="58" y="400" class="note">功效、醫療、絕對用語 38 個詞</text>
+
+  <rect x="350" y="126" width="300" height="288" rx="10" class="step"/>
+  <text x="368" y="154" class="h">④ generate.sql 打草稿</text>
+  <text x="368" y="180" class="t">AI.GENERATE × gemini-3.6-flash</text>
+  <text x="368" y="202" class="t">response_schema 規定 14 個欄位</text>
+  <text x="368" y="224" class="t">按鈕位置、主色、文字量、引用特徵</text>
+  <text x="368" y="246" class="t">用 enum 鎖在選項裡</text>
+  <text x="368" y="280" class="hr">兩版題目 × 各 2 次</text>
+  <text x="368" y="304" class="t">free：寫出最有說服力的文案</text>
+  <text x="368" y="326" class="t">rules：同一份題目＋四條品牌規則</text>
+  <text x="368" y="360" class="note">3 張圖 × 2 版 × 2 次＝12 次呼叫</text>
+  <text x="368" y="382" class="note">呼叫紀錄 mm_drafts_log，跑過的不重跑</text>
+  <text x="368" y="402" class="note">Token 記進 ops_llm_usage</text>
+
+  <rect x="690" y="126" width="250" height="132" rx="10" class="out"/>
+  <text x="708" y="154" class="hg">⑤ 草稿表</text>
+  <text x="708" y="178" class="t">mart_creative_drafts：12 列</text>
+  <text x="708" y="200" class="t">標題、副標、標籤、按鈕</text>
+  <text x="708" y="222" class="t">構圖說明、英文畫面描述</text>
+  <text x="708" y="244" class="note">只收合格的草稿</text>
+
+  <rect x="980" y="126" width="220" height="288" rx="10" class="step"/>
+  <text x="998" y="154" class="h">⑥ 四件事對答案</text>
+  <text x="998" y="182" class="t">照成效改了沒</text>
+  <text x="998" y="204" class="note">加人物、右下按鈕、暖色</text>
+  <text x="998" y="236" class="t">引用的倍數對不對</text>
+  <text x="998" y="258" class="note">和倍數表比到小數兩位</text>
+  <text x="998" y="290" class="t">寫了不能寫的詞嗎</text>
+  <text x="998" y="312" class="note">標題、副標、標籤、按鈕</text>
+  <text x="998" y="344" class="t">有沒有亂承諾效果</text>
+  <text x="998" y="366" class="note">預期效果的原文逐份看</text>
+
+  <text x="960" y="462" class="zone">延伸段（選配，資料搬出 BigQuery）</text>
+  <text x="40" y="462" class="zone">結果</text>
+  <rect x="690" y="476" width="250" height="96" rx="10" class="ext"/>
+  <text x="708" y="504" class="ho">⑦ veo.sh</text>
+  <text x="708" y="528" class="to">rules 版一份草稿的畫面描述</text>
+  <text x="708" y="550" class="to">Veo 3.1 Lite：4 秒、720p、無音軌</text>
+
+  <rect x="980" y="476" width="220" height="96" rx="10" class="ext"/>
+  <text x="998" y="504" class="ho">素材 bucket</text>
+  <text x="998" y="528" class="to">veo/草稿編號/</text>
+  <text x="998" y="550" class="note">有影片就不再呼叫</text>
+
+  <path d="M310,170 L346,170" class="flow" marker-end="url(#a)"/>
+  <path d="M310,270 L346,270" class="flow" marker-end="url(#a)"/>
+  <path d="M310,370 L346,370" class="flow" marker-end="url(#a)"/>
+  <path d="M650,190 L686,190" class="gflow" marker-end="url(#g)"/>
+  <path d="M940,190 L976,190" class="gflow" marker-end="url(#g)"/>
+  <path d="M815,258 L815,472" class="oflow" marker-end="url(#o)"/>
+  <path d="M940,524 L976,524" class="oflow" marker-end="url(#o)"/>
+
+  <text x="40" y="498" class="note">12 份草稿都加了人物、按鈕都移到右下，引用的倍數都對到 1.28</text>
+  <text x="40" y="522" class="note">沒有規則的 6 份有 5 份出現「極致」「強效」這類詞，有規則的 6 份都沒有</text>
+  <text x="40" y="546" class="note">38 個詞的禁用詞庫兩版都抓到 0 個</text>
+  <text x="40" y="596" class="note">費用：Gemini 兩輪 24 次約新台幣 3 元，Veo 一支估約新台幣 4 到 6 元</text>
+</svg>

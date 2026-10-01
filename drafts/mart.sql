@@ -58,6 +58,7 @@ SELECT
   -- 2. 引用的倍數對不對（四捨五入到小數兩位比）
   CASE
     WHEN l.attr IS NULL THEN 'unknown_feature'
+    WHEN l.ctr2 = l.cvr2 AND ROUND(k.cited_ratio, 2) = l.ctr2 THEN 'ctr_or_cvr'  -- 兩個倍數取到小數兩位一樣時分不出來（例如右下按鈕都是 1.13）
     WHEN ROUND(k.cited_ratio, 2) = l.ctr2 THEN 'ctr'
     WHEN ROUND(k.cited_ratio, 2) = l.cvr2 THEN 'cvr'
     ELSE 'none'

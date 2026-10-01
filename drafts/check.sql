@@ -1,4 +1,4 @@
--- Day 18：流程檢查，一列＝一項，ok 欄位是 OK 或 DIFF（run.sh 再補第 12、13 項，共 14 項）
+-- Day 18：流程檢查，一列＝一項，ok 欄位是 OK 或 DIFF（run.sh 再補第 13、14 項，共 14 項）
 -- 檢查的是「流程有沒有照設計跑完」，草稿好不好、規則有沒有用在 report.sql 看
 -- 只讀 martech_dw，查詢在每月 1 TiB 免費額度內
 
@@ -53,7 +53,7 @@ checks AS (
             AND run_id IN (SELECT DISTINCT run_id FROM martech_dw.mm_drafts_log))
        = (SELECT COUNT(*) FROM martech_dw.mm_drafts_log) AS STRING)
   -- 被輸出上限截斷、而且後來沒有補成功的組合（補成功的不算，第一次截斷的次數在報表第 7 段）
-  UNION ALL SELECT '14 cut by output cap and never fixed', '0',
+  UNION ALL SELECT '12 cut by output cap and never fixed', '0',
     CAST((SELECT COUNT(DISTINCT CONCAT(l.creative_id, l.version, CAST(l.sample AS STRING)))
           FROM martech_dw.mm_drafts_log l
           LEFT JOIN ok_log o USING (creative_id, version, sample)
