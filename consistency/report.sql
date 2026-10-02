@@ -9,8 +9,12 @@ JOIN martech_dw.ref_landing_pages p USING (page_id)
 GROUP BY 1, 2
 ORDER BY 1;
 
--- ② 總成績：計分的 21 個落差抓到幾個（recall），列出來的五種落差有幾成在答案表裡（precision）
---    clean_flagged：6 張沒有任何落差的廣告圖裡，被列了五種落差之一的有幾張
+-- ② 總成績：計分的 21 個落差抓到幾個（recall），列出來的落差（other 與有爭議的不算）有幾成對得上答案表（precision）
+--    precision 量的是和答案表一致的比例，多列的不一定是錯的，要看第 ④ 段的原文
+--    clean_flagged：6 張沒有任何計分落差的廣告圖裡，被多列的有幾張，decoy：清單上那兩種答案表沒有的落差（gift、warranty）被列了幾次
+WITH scored_ads AS (
+  SELECT DISTINCT creative_id FROM martech_gt.gt_ad_page_gaps WHERE NOT disputed
+)
 SELECT mode,
   COUNTIF(verdict IN ('hit', 'miss')) AS answers,
   COUNTIF(verdict = 'hit') AS hit,
@@ -18,9 +22,12 @@ SELECT mode,
   COUNTIF(verdict = 'extra') AS extra,
   ROUND(SAFE_DIVIDE(COUNTIF(verdict = 'hit'), COUNTIF(verdict IN ('hit', 'miss'))), 3) AS recall,
   ROUND(SAFE_DIVIDE(COUNTIF(verdict = 'hit'), COUNTIF(verdict IN ('hit', 'extra'))), 3) AS precision,
-  COUNT(DISTINCT IF(verdict = 'extra' AND creative_id NOT IN (SELECT creative_id FROM martech_gt.gt_ad_page_gaps), creative_id, NULL)) AS clean_flagged,
-  COUNTIF(verdict = 'other') AS other_types
-FROM martech_dw.mart_ad_page_gaps
+  COUNT(DISTINCT IF(verdict = 'extra' AND s.creative_id IS NULL, g.creative_id, NULL)) AS clean_flagged,
+  COUNTIF(verdict = 'extra' AND gap_type IN ('gift', 'warranty')) AS decoy,
+  COUNTIF(verdict = 'disputed' AND listed) AS disputed_listed,
+  COUNTIF(verdict = 'other') AS other_rows
+FROM martech_dw.mart_ad_page_gaps g
+LEFT JOIN scored_ads s USING (creative_id)
 GROUP BY mode
 ORDER BY mode;
 
@@ -43,11 +50,11 @@ FROM martech_dw.mart_ad_page_gaps
 WHERE verdict IN ('miss', 'extra')
 ORDER BY mode, verdict, gap_type, creative_id;
 
--- ⑤ 有爭議的那一列，兩種給法各怎麼說
-SELECT mode, creative_id, gap_type, listed, ad_text, page_evidence, page_fact
+-- ⑤ 有爭議的 9 列，兩種給法各有沒有列、怎麼說
+SELECT mode, creative_id, gap_type, ad_keyword, listed, ad_text, page_evidence, page_fact
 FROM martech_dw.mart_ad_page_gaps
 WHERE verdict = 'disputed'
-ORDER BY mode;
+ORDER BY mode, gap_type, ad_keyword, creative_id;
 
 -- ⑥ 填 other 的落差原文
 SELECT mode, creative_id, page_id, ad_text, page_evidence
@@ -55,14 +62,14 @@ FROM martech_dw.mart_ad_page_gaps
 WHERE verdict = 'other'
 ORDER BY mode, creative_id;
 
--- ⑦ 兩種給法在同一格的結果有沒有一樣（計分的 21 格）
+-- ⑦ 兩種給法在同一格的結果有沒有一樣（計分的 21 格，每格只問一次，差一兩格可能只是運氣）
 SELECT i.gap_type,
   COUNTIF(i.verdict = 'hit' AND t.verdict = 'hit') AS both_hit,
   COUNTIF(i.verdict = 'hit' AND t.verdict = 'miss') AS image_only,
   COUNTIF(i.verdict = 'miss' AND t.verdict = 'hit') AS text_only,
   COUNTIF(i.verdict = 'miss' AND t.verdict = 'miss') AS both_miss
 FROM martech_dw.mart_ad_page_gaps i
-JOIN martech_dw.mart_ad_page_gaps t USING (creative_id, gap_type)
+JOIN martech_dw.mart_ad_page_gaps t USING (creative_id, gap_type, ad_keyword)
 WHERE i.mode = 'image' AND t.mode = 'text' AND i.verdict IN ('hit', 'miss')
 GROUP BY ROLLUP(i.gap_type)
 ORDER BY i.gap_type NULLS LAST;

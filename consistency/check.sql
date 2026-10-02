@@ -17,12 +17,12 @@ listed AS (
 checks AS (
   SELECT '01 landing pages (text)' AS check_name, '3' AS expected,
     CAST((SELECT COUNT(*) FROM martech_dw.ref_landing_pages) AS STRING) AS actual
-  UNION ALL SELECT '02 landing screenshots (object table)', '3',
+  UNION ALL SELECT '02 landing screenshots (3 pages x 3 parts)', '9',
     CAST((SELECT COUNT(*) FROM martech_dw.obj_landing) AS STRING)
   UNION ALL SELECT '03 creatives mapped to a page', '24',
     CAST((SELECT COUNT(*) FROM martech_dw.map_creative_landing m
           JOIN martech_dw.ref_landing_pages p USING (page_id)) AS STRING)
-  UNION ALL SELECT '04 answer rows scored/disputed', '21/1',
+  UNION ALL SELECT '04 answer rows scored/disputed', '21/9',
     CONCAT(CAST((SELECT COUNTIF(NOT disputed) FROM martech_gt.gt_ad_page_gaps) AS STRING), '/',
            CAST((SELECT COUNTIF(disputed) FROM martech_gt.gt_ad_page_gaps) AS STRING))
   UNION ALL SELECT '05 successful combos in log', '48',
@@ -45,8 +45,8 @@ checks AS (
           WHERE l.finish_reason = 'MAX_TOKENS' AND o.creative_id IS NULL) AS STRING)
   UNION ALL SELECT '10 gap types outside options', '0',
     CAST((SELECT COUNT(*) FROM listed
-          WHERE IFNULL(gap_type, '') NOT IN ('limited_offer', 'special_price', 'free_shipping', 'product_name', 'product_option', 'other')) AS STRING)
-  -- 計分的 21 列 × 兩種給法，每一格都要有 hit 或 miss
+          WHERE IFNULL(gap_type, '') NOT IN ('limited_offer', 'special_price', 'free_shipping', 'gift', 'warranty', 'product_name', 'product_option', 'other')) AS STRING)
+  -- 計分的 21 列 × 兩種給法，每一格都要有 hit 或 miss（沒有成功呼叫紀錄的會變成 no_call，數字就不到 42）
   UNION ALL SELECT '11 scored answers judged (21 x 2)', '42',
     CAST((SELECT COUNT(*) FROM martech_dw.mart_ad_page_gaps WHERE verdict IN ('hit', 'miss')) AS STRING)
   -- 每次評分當下的答案表指紋都一樣，而且和現在的答案表一樣（評分之後答案沒有被改過）
@@ -54,7 +54,7 @@ checks AS (
     CAST((SELECT COUNT(DISTINCT fp) FROM (
       SELECT answer_fingerprint AS fp FROM martech_gt.ad_page_gaps_runs
       UNION ALL
-      SELECT TO_HEX(SHA256(STRING_AGG(CONCAT(creative_id, '|', gap_type, '|', ad_keyword, '|', page_fact, '|', CAST(disputed AS STRING)), '\n' ORDER BY creative_id, gap_type)))
+      SELECT TO_HEX(SHA256(STRING_AGG(CONCAT(creative_id, '|', gap_type, '|', ad_keyword, '|', page_fact, '|', CAST(disputed AS STRING)), '\n' ORDER BY creative_id, gap_type, ad_keyword)))
       FROM martech_gt.gt_ad_page_gaps)) AS STRING)
 )
 SELECT check_name, expected, actual, IF(expected = actual, 'OK', 'DIFF') AS ok

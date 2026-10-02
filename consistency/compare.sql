@@ -1,10 +1,13 @@
 -- Day 19：把廣告圖和它導去的頁面一起交給 Gemini，請它列出「廣告有寫、頁面找不到或說法不同」的地方
 -- 24 張廣告圖 × 兩種給頁面的方式，各問一次，共 48 次：
---   image：一次給兩張圖，第一張是廣告圖，第二張是頁面的整頁截圖（obj_landing）
+--   image：一次給四張圖，第一張是廣告圖，後面三張是頁面截圖由上到下切成的三段（obj_landing）
 --   text ：給廣告圖，再把頁面上的文字貼在題目裡（ref_landing_pages.page_text）
--- 兩種給法的題目一字不差，只差頁面是圖還是文字，抓到的落差有差別就是給法造成的
+-- 兩種給法的題目一字不差，只差頁面是圖還是文字
+-- 每個組合只問一次，24 張圖其實只有五種落差在重複，兩種給法差一兩格可能只是運氣，要看的是整種落差都抓不到這類大差別
+-- 題目是一份檢查清單：把要查的落差種類直接列給 Gemini，量到的是「照清單查能查出幾成」，不是「它自己會不會發現」
+-- 清單裡另外放了兩種答案表完全沒有的落差（gift、warranty），用來看它會不會因為清單上有就硬填
 --
--- 寫法沿用 Day 18：AI.GENERATE 搭配 response_schema（gap_type 用 enum 鎖在六個選項裡），跑過的不重跑（只補還沒成功的組合），
+-- 寫法沿用 Day 18：AI.GENERATE 搭配 response_schema（gap_type 用 enum 鎖在八個選項裡），跑過的不重跑（只補還沒成功的組合），
 -- 每次呼叫都記進 mm_gaps_log，再抄一份進共用的 Token 用量表 ops_llm_usage（Day 25 用）
 -- 模型用 gemini-3.6-flash，thinking_level 設 LOW，思考 Token 也算在 max_output_tokens 裡，上限 2,048
 -- 這一步會產生 Token 費用，run.sh 會先印出最壞情況再問要不要繼續
@@ -16,18 +19,24 @@ DECLARE this_run STRING DEFAULT GENERATE_UUID();
 DECLARE task_text STRING DEFAULT '''請找出「廣告上有寫，但頁面上找不到或說法不同」的地方，客人看了廣告點進來會覺得對不上的那種。
 
 先把廣告圖上看得到的每一段文字照原文抄進 ad_texts，再把落差一項一項列在 gaps 裡，每一項三個欄位：
-gap_type：落差的種類，只能填下面六個其中一個
+gap_type：落差的種類，只能填下面八個其中一個
   limited_offer：廣告寫限定、限量或限時，頁面沒有對應的說明
-  special_price：廣告寫專案價、優惠價或折扣，頁面上廣告主打的那個商品沒有對應的優惠
+  special_price：廣告寫專案價、優惠價或折扣，頁面沒有對應的優惠
   free_shipping：廣告寫免運，頁面沒有寫，或頁面寫的條件和廣告不同
+  gift：廣告寫贈品或加贈，頁面沒有對應的說明
+  warranty：廣告寫保固、鑑賞期或退換貨承諾，頁面沒有對應的說明
   product_name：廣告上的商品名稱或款式，和頁面上的商品對不上
-  product_option：廣告寫了顏色、尺寸或款式可以選，頁面沒有提到
-  other：不屬於上面五種的落差
+  product_option：廣告寫了顏色或尺寸可以選，頁面沒有提到
+  other：不屬於上面七種的落差
 ad_text：廣告上的那幾個字，照原文抄
 page_evidence：頁面上相關的原文，頁面完全沒有提到就填「頁面沒有提到」
 
 只列有落差的地方，廣告和頁面一致就不用列，都一致時 gaps 回空陣列
-形容觸感或質感的文案（例如柔軟、蓬鬆、好吸水）不用列''';
+形容觸感、質感或使用感受的文案不用列''';
+
+-- 題目的指紋，跟著每一次呼叫記進紀錄表，之後看得出哪一筆是用哪一版題目問的
+-- 題目改過之後要重問，請先把 mm_gaps_log 改名留存再執行，成功過的組合不會因為題目變了就自動重問
+DECLARE this_prompt STRING DEFAULT TO_HEX(MD5(task_text));
 
 -- 呼叫紀錄：每一次呼叫一列，成功失敗都留著，result 是模型回的 JSON 原文
 CREATE TABLE IF NOT EXISTS martech_dw.mm_gaps_log (
@@ -43,9 +52,11 @@ CREATE TABLE IF NOT EXISTS martech_dw.mm_gaps_log (
   thoughts_tokens INT64,
   finish_reason   STRING,
   status          STRING,
-  created_at      TIMESTAMP
+  created_at      TIMESTAMP,
+  prompt_version  STRING
 )
 OPTIONS (description = 'Day 19 廣告與頁面比對的呼叫紀錄：一列＝一次呼叫（廣告圖 × 給頁面的方式 image／text），成功失敗都保留，compare.sql 只補沒有成功紀錄的組合');
+ALTER TABLE martech_dw.mm_gaps_log ADD COLUMN IF NOT EXISTS prompt_version STRING;  -- 萬一舊版的表已經建過
 
 -- 共用的 Token 用量表（Day 16 建立，這裡 IF NOT EXISTS 只是保險）
 CREATE TABLE IF NOT EXISTS martech_dw.ops_llm_usage (
@@ -72,28 +83,28 @@ WHERE status = '' AND IFNULL(finish_reason, '') != 'MAX_TOKENS'
   AND JSON_QUERY_ARRAY(SAFE.PARSE_JSON(result), '$.gaps') IS NOT NULL;
 
 CREATE TEMP TABLE todo AS
-SELECT m.creative_id, m.page_id, mode, p.page_text,
+SELECT m.creative_id, m.page_id, md AS mode, p.page_text,
   FORMAT('你是電商品牌「織日常」的廣告審查員。客人在 %s 看到附上的廣告圖，點下去之後會到官網的「%s」。', m.channel, p.title) AS intro
 FROM martech_dw.map_creative_landing m
 JOIN martech_dw.ref_landing_pages p USING (page_id)
-CROSS JOIN UNNEST(['image', 'text']) AS mode
-LEFT JOIN done d ON d.creative_id = m.creative_id AND d.mode = mode
+CROSS JOIN UNNEST(['image', 'text']) AS md
+LEFT JOIN done d ON d.creative_id = m.creative_id AND d.mode = md
 WHERE d.creative_id IS NULL;
 
--- image：廣告圖＋頁面截圖
+-- image：廣告圖＋頁面截圖三段
 INSERT INTO martech_dw.mm_gaps_log (run_id, mode, creative_id, page_id, model, result, gaps,
-  prompt_tokens, output_tokens, thoughts_tokens, finish_reason, status, created_at)
+  prompt_tokens, output_tokens, thoughts_tokens, finish_reason, status, created_at, prompt_version)
 SELECT this_run, 'image', creative_id, page_id, 'gemini-3.6-flash', g.result,
   ARRAY_LENGTH(JSON_QUERY_ARRAY(SAFE.PARSE_JSON(g.result), '$.gaps')),
   CAST(JSON_VALUE(g.full_response, '$.usage_metadata.prompt_token_count') AS INT64),
   CAST(JSON_VALUE(g.full_response, '$.usage_metadata.candidates_token_count') AS INT64),
   CAST(JSON_VALUE(g.full_response, '$.usage_metadata.thoughts_token_count') AS INT64),
   JSON_VALUE(g.full_response, '$.candidates[0].finish_reason'),
-  g.status, CURRENT_TIMESTAMP()
+  g.status, CURRENT_TIMESTAMP(), this_prompt
 FROM (
   SELECT t.creative_id, t.page_id,
     AI.GENERATE(
-      (CONCAT(t.intro, '第一張圖是廣告圖，第二張圖是那個頁面的整頁截圖。\n\n', task_text), a.ref, l.ref),
+      (CONCAT(t.intro, '第一張圖是廣告圖，後面三張圖是那個頁面的截圖，由上到下切成三段。\n\n', task_text), a.ref, l1.ref, l2.ref, l3.ref),
       connection_id => 'us.vertex_ai_conn',
       endpoint => 'gemini-3.6-flash',
       model_params => JSON '''{"generation_config": {
@@ -103,7 +114,7 @@ FROM (
         "response_schema": {"type": "OBJECT", "properties": {
           "ad_texts": {"type": "ARRAY", "items": {"type": "STRING"}},
           "gaps": {"type": "ARRAY", "items": {"type": "OBJECT", "properties": {
-            "gap_type": {"type": "STRING", "enum": ["limited_offer", "special_price", "free_shipping", "product_name", "product_option", "other"]},
+            "gap_type": {"type": "STRING", "enum": ["limited_offer", "special_price", "free_shipping", "gift", "warranty", "product_name", "product_option", "other"]},
             "ad_text": {"type": "STRING"},
             "page_evidence": {"type": "STRING"}
           }, "required": ["gap_type", "ad_text", "page_evidence"]}}
@@ -112,20 +123,22 @@ FROM (
     ) AS g
   FROM todo t
   JOIN martech_dw.obj_creatives a ON a.uri LIKE CONCAT('%/', t.creative_id, '.jpg')
-  JOIN martech_dw.obj_landing l ON l.uri LIKE CONCAT('%/', t.page_id, '.jpg')
+  JOIN martech_dw.obj_landing l1 ON l1.uri LIKE CONCAT('%/', t.page_id, '-1.jpg')
+  JOIN martech_dw.obj_landing l2 ON l2.uri LIKE CONCAT('%/', t.page_id, '-2.jpg')
+  JOIN martech_dw.obj_landing l3 ON l3.uri LIKE CONCAT('%/', t.page_id, '-3.jpg')
   WHERE t.mode = 'image'
 );
 
 -- text：廣告圖＋頁面文字
 INSERT INTO martech_dw.mm_gaps_log (run_id, mode, creative_id, page_id, model, result, gaps,
-  prompt_tokens, output_tokens, thoughts_tokens, finish_reason, status, created_at)
+  prompt_tokens, output_tokens, thoughts_tokens, finish_reason, status, created_at, prompt_version)
 SELECT this_run, 'text', creative_id, page_id, 'gemini-3.6-flash', g.result,
   ARRAY_LENGTH(JSON_QUERY_ARRAY(SAFE.PARSE_JSON(g.result), '$.gaps')),
   CAST(JSON_VALUE(g.full_response, '$.usage_metadata.prompt_token_count') AS INT64),
   CAST(JSON_VALUE(g.full_response, '$.usage_metadata.candidates_token_count') AS INT64),
   CAST(JSON_VALUE(g.full_response, '$.usage_metadata.thoughts_token_count') AS INT64),
   JSON_VALUE(g.full_response, '$.candidates[0].finish_reason'),
-  g.status, CURRENT_TIMESTAMP()
+  g.status, CURRENT_TIMESTAMP(), this_prompt
 FROM (
   SELECT t.creative_id, t.page_id,
     AI.GENERATE(
@@ -140,7 +153,7 @@ FROM (
         "response_schema": {"type": "OBJECT", "properties": {
           "ad_texts": {"type": "ARRAY", "items": {"type": "STRING"}},
           "gaps": {"type": "ARRAY", "items": {"type": "OBJECT", "properties": {
-            "gap_type": {"type": "STRING", "enum": ["limited_offer", "special_price", "free_shipping", "product_name", "product_option", "other"]},
+            "gap_type": {"type": "STRING", "enum": ["limited_offer", "special_price", "free_shipping", "gift", "warranty", "product_name", "product_option", "other"]},
             "ad_text": {"type": "STRING"},
             "page_evidence": {"type": "STRING"}
           }, "required": ["gap_type", "ad_text", "page_evidence"]}}

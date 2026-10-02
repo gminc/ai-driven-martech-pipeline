@@ -1,8 +1,8 @@
 #!/usr/bin/env bash
-# Day 19：頁面截圖上傳 → 頁面文字與對照表 → 答案表 →（確認費用）→ Gemini 比對廣告圖與頁面 → 再跑一次確認不重複收費 → 對答案 → 檢查 → 報表
+# Day 19：頁面截圖（每頁三段）上傳 → 頁面文字與對照表 → 答案表 →（確認費用）→ Gemini 比對廣告圖與頁面 → 再跑一次確認不重複收費 → 對答案 → 檢查 → 報表
 # 用法：bash consistency/run.sh            （在儲存庫根目錄執行，需先完成 Day 14 物件表與 Day 16 的共用用量表）
 #       AUTO_YES=1 bash consistency/run.sh （跳過確認，排程用）
-# 查詢在每月 1 TiB 免費額度內，比對會產生 Token 費用，呼叫前會先依「這次真的要呼叫的次數」印出最壞情況
+# 查詢在每月 1 TiB 免費額度內，比對會產生 Token 費用，呼叫前會先依「這次真的要呼叫的次數」印出估價
 set -euo pipefail
 
 cd "$(dirname "$0")"
@@ -70,20 +70,21 @@ log_rows() {
 # 答案、題目與評分的 SQL 有未 commit 的修改就停下來：結果一印出來就不能再說「先寫答案」了，看完結果再改題目或評分方式也一樣
 # 評分之後答案表有沒有被改過，由 check.sql 第 12 項用答案表的指紋檢查
 if git rev-parse --is-inside-work-tree >/dev/null 2>&1; then
-  if [[ -n "$(git status --porcelain -- answers.sql compare.sql score.sql)" ]]; then
-    echo "❌ consistency/answers.sql、compare.sql 或 score.sql 有未 commit 的修改（或還沒 commit 過），先 commit 再執行"
+  if [[ -n "$(git status --porcelain -- answers.sql pages.sql compare.sql score.sql ../creatives/landing)" ]]; then
+    echo "❌ consistency/ 的 answers.sql、pages.sql、compare.sql、score.sql 或 creatives/landing/ 的截圖有未 commit 的修改（或還沒 commit 過），先 commit 再執行"
     exit 1
   fi
   echo "📌 答案表最後 commit：consistency/answers.sql $(git log -1 --format='%cI' -- answers.sql 2>/dev/null || true)"
 fi
 
+# 截圖每次都重新上傳（九張不到 1 MB，在 Cloud Storage 免費額度內），bucket 裡的一定和儲存庫裡 commit 過的那一版相同
 BUCKET="gs://${PROJECT}-martech-assets/landing"
-SHOTS="$(gcloud storage ls "${BUCKET}/*.jpg" 2>/dev/null | wc -l | tr -d ' ')"
-if [[ "${SHOTS}" != "3" ]]; then
-  echo "📤 上傳三張頁面截圖到 ${BUCKET}（不到 1 MB，在 Cloud Storage 免費額度內）"
-  gcloud storage cp ../creatives/landing/home.jpg ../creatives/landing/lp-autumn-cotton.jpg ../creatives/landing/lp-training-socks.jpg "${BUCKET}/"
-else
-  echo "🗂️  ${BUCKET} 已有三張頁面截圖，沿用"
+echo "📤 上傳九張頁面截圖到 ${BUCKET}"
+gcloud storage cp ../creatives/landing/*.jpg "${BUCKET}/" >/dev/null
+SHOTS="$( { gcloud storage ls "${BUCKET}/*.jpg" 2>/dev/null || true; } | wc -l | tr -d ' ')"
+if [[ "${SHOTS}" != "9" ]]; then
+  echo "❌ ${BUCKET} 應該有 9 張 jpg，現在是 ${SHOTS} 張，先停下來，沒有呼叫 Gemini"
+  exit 1
 fi
 
 echo "📄 頁面文字、截圖物件表與對照表（pages.sql）"
@@ -94,15 +95,16 @@ run_sql answers.sql --format=pretty
 
 P="$(pending)"
 [[ "${P}" =~ ^[0-9]+$ ]] || { echo "❌ 算不出這次要呼叫幾次（拿到「${P}」），先停下來，沒有呼叫 Gemini"; exit 1; }
-# 最壞情況：每次輸入以 3,400 個 Token 計（兩張圖各約 1,100、題目約 700，留一成多餘裕，這一項是估計值，給文字的那一半實際會比較少），
-# 輸出以 max_output_tokens 2,048 計（思考 Token 也算在裡面，這一項是上限），單價用 gemini-3.6-flash 非 global 端點
+# 估價：給截圖的每次輸入以 5,600 個 Token 計（四張圖各約 1,100、題目約 800，留一成多餘裕），給文字的以 2,900 計（一張圖、題目與頁面文字），
+# 兩種各占一半所以平均 4,250，這一項是估計值不是上限，輸出以 max_output_tokens 2,048 計（思考 Token 也算在裡面，這一項是上限），
+# 單價用 gemini-3.6-flash 非 global 端點
 python3 - "${P}" <<'PYCOST'
 import sys
 n = int(sys.argv[1])
 fx = 32
-cost = n * (3400 * 0.825 + 2048 * 4.125) / 1e6
+cost = n * (4250 * 0.825 + 2048 * 4.125) / 1e6
 print(f"💰 這次要呼叫 Gemini {n} 次（24 張廣告圖 × 2 種給頁面的方式，已經成功過的組合不再呼叫）")
-print(f"   最壞情況約 US$ {cost:.4f} ≈ 新台幣 {cost * fx:.2f} 元（輸入以 3,400、輸出含思考以 2,048 Token 計）")
+print(f"   輸出寫滿上限時約 US$ {cost:.4f} ≈ 新台幣 {cost * fx:.2f} 元（輸入平均以 4,250、輸出含思考以 2,048 Token 計）")
 PYCOST
 if [[ "${AUTO_YES:-0}" != "1" && "${P}" -gt 0 ]]; then
   read -r -p "要呼叫 Gemini 比對嗎？輸入 yes 繼續：" ANSWER || ANSWER=""
@@ -118,7 +120,7 @@ MISSING="$(pending)"
 BEFORE="$(log_rows)"
 echo "🔁 第二次執行 compare.sql：還沒成功的有 ${MISSING} 個，成功過的不應該再呼叫"
 if [[ "${MISSING}" -gt 0 && "${AUTO_YES:-0}" != "1" ]]; then
-  read -r -p "第一次有 ${MISSING} 個沒成功，第二次會再呼叫這些，每次最多約新台幣 0.36 元，輸入 yes 繼續：" ANSWER || ANSWER=""
+  read -r -p "第一次有 ${MISSING} 個沒成功，第二次會再呼叫這些，每次最多約新台幣 0.42 元，輸入 yes 繼續：" ANSWER || ANSWER=""
   [[ "${ANSWER}" == "yes" ]] || { echo "已停在這裡，第二次沒有執行，之後再跑 run.sh 會只補沒成功的"; exit 0; }
 fi
 run_sql compare.sql --format=pretty
@@ -136,6 +138,9 @@ LEAK="$(for F in pages.sql compare.sql; do grep -vE '^\s*--' "$F" | grep -iE 'ma
 python3 - "${TMP}/check.csv" "${LEAK}" "${MISSING}" "${RERUN_CALLS}" <<'PYCHECK'
 import csv, sys
 rows = list(csv.DictReader(open(sys.argv[1])))
+if len(rows) != 12:
+    print(f"❌ check.sql 應該回 12 項，拿到 {len(rows)} 項")
+    sys.exit(1)
 leak, missing, rerun = sys.argv[2].strip(), int(sys.argv[3]), int(sys.argv[4])
 rows.append({"check_name": "13 rerun calls = still missing", "expected": str(missing),
              "actual": str(rerun), "ok": "OK" if rerun == missing else "DIFF"})
