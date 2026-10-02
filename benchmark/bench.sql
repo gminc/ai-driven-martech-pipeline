@@ -4,10 +4,13 @@
 --   gaps（難題）    ：廣告圖加上頁面文字，列出對不上的地方，題目、鎖法與參數和 Day 19 的 consistency/compare.sql 給文字那一輪一模一樣
 --   模型：gemini-3.5-flash-lite、gemini-3.6-flash、gemini-3.1-pro-preview（只做難題）
 -- 每個組合換的只有 endpoint，題目、response_schema、輸出上限與思考設定都不動
+-- Pro 是預覽版，us 這個位置沒有，只寫模型名稱會被 BigQuery 擋下（Unsupported endpoint），所以 endpoint 寫成 global 端點的完整網址，
+-- 網址裡的 PROJECT_ID 由 run.sh 換成專案 ID，另外兩個模型只寫名稱，走的是非 global 端點
 --   簡單題：output_schema、max_output_tokens 256、thinking_budget 0
 --   難題  ：response_schema（gap_type 用 enum 鎖）、max_output_tokens 2,048（思考 Token 也算在裡面）、thinking_level LOW
 -- 前幾天問過的不重問：reuse.sql 已經把 Day 16（簡單題 × flash-lite）與 Day 19（難題 × 3.6-flash）的成功紀錄抄進 mm_bench_log，
 -- 這裡五段都寫，但只會呼叫「還沒有成功紀錄」的組合，所以第一次執行實際上只呼叫三個組合，執行第二次是 0 次
+-- 直接用 bq query 執行時，要先把 PROJECT_ID 換成自己的專案 ID
 -- @batch_limit：每個組合這次最多呼叫幾張，run.sh 先用 1 試一張（確認模型叫得動、看實際用掉多少 Token），再用 24 跑完
 -- 這一步會產生 Token 費用，run.sh 會先印出估價再問要不要繼續
 -- 只讀 martech_dw，不讀答案表，對答案在 score.sql，run.sh 會在呼叫之前檢查
@@ -227,7 +230,7 @@ FROM (
       (CONCAT(t.intro, '附上的圖是廣告圖，那個頁面上看得到的文字放在最後面。\n\n', task_text,
         '\n\n頁面上的文字（由上到下）：\n', t.page_text), a.ref),
       connection_id => 'us.vertex_ai_conn',
-      endpoint => 'gemini-3.1-pro-preview',
+      endpoint => 'https://aiplatform.googleapis.com/v1/projects/PROJECT_ID/locations/global/publishers/google/models/gemini-3.1-pro-preview',
       model_params => JSON '''{"generation_config": {
         "max_output_tokens": 2048,
         "thinking_config": {"thinking_level": "LOW"},
@@ -250,7 +253,8 @@ FROM (
 -- 這次新問的抄一份進共用用量表（沿用舊紀錄的那些，Day 16、Day 19 當天已經抄過，不再抄）
 -- 思考 Token 也按輸出計費，所以 output_tokens 存「輸出＋思考」
 INSERT INTO martech_dw.ops_llm_usage (logged_at, day, job, run_id, model, endpoint_type, media_resolution, item_id, prompt_tokens, output_tokens, status)
-SELECT created_at, 'Day 20', 'benchmark/bench.sql', run_id, model, 'non-global', 'default',
+SELECT created_at, 'Day 20', 'benchmark/bench.sql', run_id, model,
+  IF(model = 'gemini-3.1-pro-preview', 'global', 'non-global'), 'default',
   CONCAT(creative_id, '/', task),
   prompt_tokens, IFNULL(output_tokens, 0) + IFNULL(thoughts_tokens, 0), status
 FROM martech_dw.mm_bench_log

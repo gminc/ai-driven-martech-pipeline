@@ -148,7 +148,7 @@ run_sql reuse.sql --format=pretty
 estimate() {  # $1 = pending 的 CSV
   python3 - "$1" <<'PYCOST'
 import csv, sys
-price = {"gemini-3.5-flash-lite": (0.33, 2.75), "gemini-3.6-flash": (0.825, 4.125), "gemini-3.1-pro-preview": (2.2, 13.2)}
+price = {"gemini-3.5-flash-lite": (0.33, 2.75), "gemini-3.6-flash": (0.825, 4.125), "gemini-3.1-pro-preview": (2.0, 12.0)}
 shape = {"features": (1600, 256, 80), "gaps": (2900, 2048, 600)}   # 輸入、輸出上限、預期輸出
 fx, worst, likely, n_all = 32, 0.0, 0.0, 0
 for r in csv.DictReader(open(sys.argv[1])):
@@ -194,7 +194,7 @@ if [[ "${P}" -gt 0 ]]; then
   pending_csv "${TMP}/pending.csv"
   python3 - "${TMP}/before.csv" "${TMP}/pending.csv" "${TMP}/canary.csv" <<'PYCANARY'
 import csv, sys
-price = {"gemini-3.5-flash-lite": (0.33, 2.75), "gemini-3.6-flash": (0.825, 4.125), "gemini-3.1-pro-preview": (2.2, 13.2)}
+price = {"gemini-3.5-flash-lite": (0.33, 2.75), "gemini-3.6-flash": (0.825, 4.125), "gemini-3.1-pro-preview": (2.0, 12.0)}
 before = {(r["task"], r["model"]): int(r["pending"]) for r in csv.DictReader(open(sys.argv[1]))}
 after = {(r["task"], r["model"]): int(r["pending"]) for r in csv.DictReader(open(sys.argv[2]))}
 seen = {}

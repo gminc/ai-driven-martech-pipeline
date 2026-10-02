@@ -1,7 +1,7 @@
 -- Day 20：報表，同一份題目和答案，三個等級的模型各答對幾成、各花多少錢（一批跑多久在 timing.sql）
 -- 會讀答案表（對答案用），不呼叫 Gemini，查詢在每月 1 TiB 免費額度內
--- 單價（每百萬 Token，美元，非 global 端點，輸出含思考）：gemini-3.5-flash-lite 0.33／2.75、gemini-3.6-flash 0.825／4.125（到 2026 年底的上市優惠價）、
--- gemini-3.1-pro-preview 2.2／13.2（官方定價頁只列 global 的 2／12，這裡比照另外兩個模型加一成，實際以帳單為準），匯率 32
+-- 單價（每百萬 Token，美元，輸出含思考，前兩個是非 global 端點）：gemini-3.5-flash-lite 0.33／2.75、gemini-3.6-flash 0.825／4.125（到 2026 年底的上市優惠價）、
+-- gemini-3.1-pro-preview 2／12（預覽版只有 global 端點，官方定價頁也只列這一種價格），實際以帳單為準，匯率 32
 
 -- ① 每個組合的呼叫紀錄從哪裡來：day16／day19 是沿用的舊紀錄，day20 是這次新問的
 SELECT task, model, source,
@@ -94,7 +94,7 @@ WITH price AS (
   SELECT * FROM UNNEST([
     STRUCT('gemini-3.5-flash-lite' AS model, 0.33 AS usd_in, 2.75 AS usd_out),
     STRUCT('gemini-3.6-flash', 0.825, 4.125),
-    STRUCT('gemini-3.1-pro-preview', 2.2, 13.2)
+    STRUCT('gemini-3.1-pro-preview', 2.0, 12.0)
   ])
 )
 SELECT l.task, l.model,
@@ -118,7 +118,7 @@ WITH price AS (
   SELECT * FROM UNNEST([
     STRUCT('gemini-3.5-flash-lite' AS model, 0.33 AS usd_in, 2.75 AS usd_out),
     STRUCT('gemini-3.6-flash', 0.825, 4.125),
-    STRUCT('gemini-3.1-pro-preview', 2.2, 13.2)
+    STRUCT('gemini-3.1-pro-preview', 2.0, 12.0)
   ])
 ),
 cost AS (
