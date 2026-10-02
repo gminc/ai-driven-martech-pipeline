@@ -12,7 +12,7 @@ GPU="${GPU:-T4}"
 MODEL="${MODEL:-google/gemma-4-E2B-it}"
 IMAGES="${IMAGES:-24}"
 RUN_TIMEOUT="${RUN_TIMEOUT:-1500}"   # colab run 自己的 --timeout（秒），預設只有 30 秒，算的是總時間還是多久沒有輸出還沒確認過
-MAX_SECS="${MAX_SECS:-1800}"         # 這台電腦上的硬上限，超過就強制釋放 VM（gemma_bench.py 自己另外有 1,500 秒的上限）
+MAX_SECS="${MAX_SECS:-1800}"         # 這台電腦上的硬上限，超過就強制釋放 VM（gemma_bench.py 自己另外有 1,380 秒的上限）
 SESSION="d20-$(date +%H%M%S)"        # 替 session 命名，收尾時可以指名釋放
 mkdir -p gemma_out || exit 1
 LOG="gemma_out/${SESSION}-${GPU}.log"
@@ -45,7 +45,7 @@ echo "== GPU=${GPU}｜模型=${MODEL}｜${IMAGES} 張｜session=${SESSION}｜紀
 
 # 超過 MAX_SECS 還沒結束：直接指名釋放這個 session，再請 colab run 結束
 # colab run 留在前景執行，按 Ctrl-C 時它收得到訊號，會自己釋放 VM
-( sleep "${MAX_SECS}"
+( sleep "${MAX_SECS}" || exit 0    # sleep 被收尾停掉時直接結束，不要往下跑
   echo "⏰ 超過 ${MAX_SECS} 秒，強制釋放 ${SESSION}"
   colab stop -s "${SESSION}" || echo "⚠️ colab stop 沒有成功，請自己執行 colab stop -s ${SESSION} 再用 colab sessions 確認"
   pkill -INT -f "colab run -s ${SESSION}" 2>/dev/null ) &

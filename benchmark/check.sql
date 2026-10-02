@@ -85,11 +85,11 @@ checks AS (
     CAST((SELECT COUNT(*) FROM (
             SELECT 1 FROM martech_dw.mm_bench_log
             GROUP BY run_id, task, model, creative_id, created_at HAVING COUNT(*) > 1)) AS STRING)
-  -- 沿用 Day 16 的那一組，四個分類欄位要和 Day 16 的特徵表一樣（特徵表萬一挑的是用 enum 補問的那一筆，這裡會不一樣）
+  -- 沿用 Day 16 的那一組，四個分類欄位要和 Day 16 的特徵表一樣（特徵表裡用 enum 補問過的圖不比，這裡沿用的是補問之前的那一筆）
   UNION ALL SELECT '17 lite features same as day 16 table', '0',
     CAST((SELECT COUNT(*) FROM martech_dw.mart_bench_features b
           JOIN martech_dw.mart_creative_features f USING (creative_id)
-          WHERE b.model = 'gemini-3.5-flash-lite' AND b.field != 'headline'
+          WHERE b.model = 'gemini-3.5-flash-lite' AND b.field != 'headline' AND f.method = 'output_schema'
             AND b.said IS DISTINCT FROM CASE b.field
               WHEN 'has_person' THEN CAST(f.has_person AS STRING)
               WHEN 'cta_position' THEN f.cta_position

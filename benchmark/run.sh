@@ -57,7 +57,7 @@ scalar() {
   echo "${v}"
 }
 
-# 五個組合各還有幾張要問（task,model,pending 的 CSV，寫到 $1）：還沒成功、而且失敗不到兩次的張數，條件要和 bench.sql 的 todo 一樣
+# 五個組合各還有幾張要問（task,model,pending 的 CSV，寫到 $1）：還沒成功、而且「有回答但不算成功」不到兩次的張數，條件要和 bench.sql 的 todo 一樣
 PENDING_SQL="SELECT c.task, c.model, COUNTIF(d.creative_id IS NULL AND x.creative_id IS NULL) AS pending
 FROM UNNEST([STRUCT('features' AS task, 'gemini-3.5-flash-lite' AS model), STRUCT('features', 'gemini-3.6-flash'),
   STRUCT('gaps', 'gemini-3.5-flash-lite'), STRUCT('gaps', 'gemini-3.6-flash'), STRUCT('gaps', 'gemini-3.1-pro-preview')]) AS c
@@ -66,7 +66,7 @@ JOIN ${DATASET}.ref_landing_pages p USING (page_id)
 LEFT JOIN (SELECT DISTINCT task, model, creative_id FROM ${DATASET}.mm_bench_log WHERE ok) d
   ON d.task = c.task AND d.model = c.model AND d.creative_id = m.creative_id
 LEFT JOIN (SELECT task, model, creative_id FROM ${DATASET}.mm_bench_log
-           WHERE source = 'day20' AND NOT ok GROUP BY 1, 2, 3 HAVING COUNT(*) >= 2) x
+           WHERE source = 'day20' AND NOT ok AND status = '' GROUP BY 1, 2, 3 HAVING COUNT(*) >= 2) x
   ON x.task = c.task AND x.model = c.model AND x.creative_id = m.creative_id
 GROUP BY 1, 2 ORDER BY 1, 2"
 pending_csv() {
@@ -162,7 +162,7 @@ PYCOST
 }
 confirm() {  # $1 = 問句
   read -r -p "$1 輸入 yes 繼續：" ANSWER || ANSWER=""
-  [[ "${ANSWER}" == "yes" ]] || { echo "已停在這裡，之後再跑 run.sh 會只補還沒成功的"; exit 0; }
+  [[ "${ANSWER}" == "yes" ]] || { echo "已停在這裡，還沒有對答案也沒有報表，之後再跑 run.sh 會只補還沒成功的"; exit 2; }
 }
 
 pending_csv "${TMP}/pending.csv"
@@ -232,11 +232,17 @@ pending_csv "${TMP}/pending.csv"
 MISSING="$(pending_total "${TMP}/pending.csv")"
 BEFORE="$(log_rows)"
 echo "🔁 再執行一次 bench.sql：還沒成功的有 ${MISSING} 個，成功過的不應該再呼叫"
+RERUN="yes"
 if [[ "${MISSING}" -gt 0 ]]; then
   estimate "${TMP}/pending.csv"
-  confirm "還有 ${MISSING} 個沒成功，這一次會再呼叫這些，"
+  read -r -p "還有 ${MISSING} 個沒成功，這一次會再呼叫這些，輸入 yes 繼續，其他輸入會跳過這一步、直接對答案：" RERUN || RERUN=""
 fi
-run_sql bench.sql --format=pretty --parameter=batch_limit:INT64:24
+if [[ "${RERUN}" == "yes" ]]; then
+  run_sql bench.sql --format=pretty --parameter=batch_limit:INT64:24
+else
+  echo "   跳過了，沒有再呼叫"
+  MISSING=0
+fi
 AFTER="$(log_rows)"
 RERUN_CALLS="$(( AFTER - BEFORE ))"
 echo "   這一次呼叫了 ${RERUN_CALLS} 次"

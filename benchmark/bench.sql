@@ -10,7 +10,7 @@
 -- 這裡五段都寫，但只會呼叫「還沒有成功紀錄」的組合，所以第一次執行實際上只呼叫三個組合，執行第二次是 0 次
 -- @batch_limit：每個組合這次最多呼叫幾張，run.sh 先用 1 試一張（確認模型叫得動、看實際用掉多少 Token），再用 24 跑完
 -- 這一步會產生 Token 費用，run.sh 會先印出估價再問要不要繼續
--- 只讀 martech_dw，不讀答案表，對答案在 score.sql，run.sh 會用 grep 確認
+-- 只讀 martech_dw，不讀答案表，對答案在 score.sql，run.sh 會在呼叫之前檢查
 -- endpoint 與 model_params 只能寫常數，所以五個組合各寫一段
 
 DECLARE this_run STRING DEFAULT GENERATE_UUID();
@@ -55,7 +55,7 @@ DECLARE gaps_version STRING DEFAULT TO_HEX(MD5(task_text));
 ASSERT features_version = 'd53bb63969eaa3a6febf02caaacdeb6a' AS '簡單題的題目和 Day 16 的 features/extract.sql 不一樣';
 ASSERT gaps_version = '9a7497b1ba445523991489428b9b0af3' AS '難題的題目和 Day 19 的 consistency/compare.sql 不一樣';
 
--- 這次要問的：五個組合 × 24 張廣告圖，扣掉已經有成功紀錄的，每個組合最多取 batch_limit 張
+-- 這次要問的：五個組合 × 24 張廣告圖，扣掉已經有成功紀錄的與不再問的，每個組合最多取 batch_limit 張
 CREATE TEMP TABLE todo AS
 SELECT task, model, creative_id, page_id, page_text, intro
 FROM (
@@ -73,9 +73,10 @@ FROM (
   JOIN martech_dw.ref_landing_pages p USING (page_id)
   LEFT JOIN (SELECT DISTINCT task, model, creative_id FROM martech_dw.mm_bench_log WHERE ok) d
     ON d.task = c.task AND d.model = c.model AND d.creative_id = m.creative_id
-  -- 同一張圖在同一個組合已經失敗兩次就不再問（例如每次都被輸出上限截斷），免得每跑一次就再付一次錢，check.sql 會顯示這個組合沒有做完
+  -- 同一張圖在同一個組合已經有兩次「模型有回答、但不算成功」（例如每次都被輸出上限截斷）就不再問，免得每跑一次就再付一次錢，
+  -- check.sql 會顯示這個組合沒有做完，呼叫本身出錯的（status 不是空字串，例如沒有權限或被限流，這種不收費）不算在內，下次照樣重問
   LEFT JOIN (SELECT task, model, creative_id FROM martech_dw.mm_bench_log
-             WHERE source = 'day20' AND NOT ok GROUP BY 1, 2, 3 HAVING COUNT(*) >= 2) x
+             WHERE source = 'day20' AND NOT ok AND status = '' GROUP BY 1, 2, 3 HAVING COUNT(*) >= 2) x
     ON x.task = c.task AND x.model = c.model AND x.creative_id = m.creative_id
   WHERE d.creative_id IS NULL AND x.creative_id IS NULL
 )

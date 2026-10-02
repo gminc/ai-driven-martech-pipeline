@@ -25,7 +25,7 @@ text_density 圖上只有一行標題（有沒有按鈕都不算）填 low，標
 headline 只抄最大的那一行標題，不含賣點、標籤與按鈕上的字'''
 SUFFIX = "\n只輸出一個 JSON 物件，鍵是 has_person、cta_position、dominant_color、text_density、headline，不要加任何說明"
 
-DEADLINE = 1500   # 這支腳本在 VM 上最多跑幾秒，超過就自己結束，免得外面的電腦睡著或斷線時 VM 一直開著
+DEADLINE = 1380   # 這支腳本在 VM 上最多跑幾秒（比 colab run 的 --timeout 1,500 秒短一點），超過就自己結束，免得外面的電腦睡著或斷線時 VM 一直開著
 
 # 兩條執行緒都會印東西，一次寫一整行並上鎖，RESULT 那幾行才不會被插進別的字
 LOCK = threading.Lock()
@@ -35,7 +35,14 @@ def say(*a):
         sys.stdout.flush()
 
 def give_up():
-    say(f"⏰ 超過 {DEADLINE} 秒，腳本自己結束")
+    # 輸出卡住時鎖可能拿不到，等 5 秒就不等了，一定要結束
+    got = LOCK.acquire(timeout=5)
+    try:
+        if got:
+            sys.stdout.write(f"⏰ 超過 {DEADLINE} 秒，腳本自己結束\n")
+            sys.stdout.flush()
+    except Exception:
+        pass
     os._exit(3)
 killer = threading.Timer(DEADLINE, give_up)
 killer.daemon = True
