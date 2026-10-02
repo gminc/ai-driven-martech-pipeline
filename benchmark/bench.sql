@@ -14,6 +14,7 @@
 -- endpoint 與 model_params 只能寫常數，所以五個組合各寫一段
 
 DECLARE this_run STRING DEFAULT GENERATE_UUID();
+DECLARE batch_limit INT64 DEFAULT @batch_limit;  -- 直接用 bq query 執行時要加 --parameter=batch_limit:INT64:24
 
 -- 簡單題的題目：和 features/extract.sql 的 prompt_b 一字不差
 DECLARE prompt_b STRING DEFAULT '''這是一張電商廣告圖，請看圖回答下面五個欄位：
@@ -54,7 +55,7 @@ DECLARE gaps_version STRING DEFAULT TO_HEX(MD5(task_text));
 ASSERT features_version = 'd53bb63969eaa3a6febf02caaacdeb6a' AS '簡單題的題目和 Day 16 的 features/extract.sql 不一樣';
 ASSERT gaps_version = '9a7497b1ba445523991489428b9b0af3' AS '難題的題目和 Day 19 的 consistency/compare.sql 不一樣';
 
--- 這次要問的：五個組合 × 24 張廣告圖，扣掉已經有成功紀錄的，每個組合最多取 @batch_limit 張
+-- 這次要問的：五個組合 × 24 張廣告圖，扣掉已經有成功紀錄的，每個組合最多取 batch_limit 張
 CREATE TEMP TABLE todo AS
 SELECT task, model, creative_id, page_id, page_text, intro
 FROM (
@@ -72,9 +73,13 @@ FROM (
   JOIN martech_dw.ref_landing_pages p USING (page_id)
   LEFT JOIN (SELECT DISTINCT task, model, creative_id FROM martech_dw.mm_bench_log WHERE ok) d
     ON d.task = c.task AND d.model = c.model AND d.creative_id = m.creative_id
-  WHERE d.creative_id IS NULL
+  -- 同一張圖在同一個組合已經失敗兩次就不再問（例如每次都被輸出上限截斷），免得每跑一次就再付一次錢，check.sql 會顯示這個組合沒有做完
+  LEFT JOIN (SELECT task, model, creative_id FROM martech_dw.mm_bench_log
+             WHERE source = 'day20' AND NOT ok GROUP BY 1, 2, 3 HAVING COUNT(*) >= 2) x
+    ON x.task = c.task AND x.model = c.model AND x.creative_id = m.creative_id
+  WHERE d.creative_id IS NULL AND x.creative_id IS NULL
 )
-WHERE rn <= @batch_limit;
+WHERE rn <= batch_limit;
 
 -- 簡單題 × gemini-3.5-flash-lite
 INSERT INTO martech_dw.mm_bench_log (run_id, task, model, creative_id, page_id, result,
@@ -82,9 +87,9 @@ INSERT INTO martech_dw.mm_bench_log (run_id, task, model, creative_id, page_id, 
 SELECT this_run, 'features', 'gemini-3.5-flash-lite', creative_id, CAST(NULL AS STRING),
   TO_JSON_STRING(STRUCT(g.has_person AS has_person, g.cta_position AS cta_position, g.dominant_color AS dominant_color,
     g.text_density AS text_density, g.headline AS headline)),
-  CAST(JSON_VALUE(g.full_response, '$.usage_metadata.prompt_token_count') AS INT64),
-  CAST(JSON_VALUE(g.full_response, '$.usage_metadata.candidates_token_count') AS INT64),
-  CAST(JSON_VALUE(g.full_response, '$.usage_metadata.thoughts_token_count') AS INT64),
+  SAFE_CAST(JSON_VALUE(g.full_response, '$.usage_metadata.prompt_token_count') AS INT64),
+  SAFE_CAST(JSON_VALUE(g.full_response, '$.usage_metadata.candidates_token_count') AS INT64),
+  SAFE_CAST(JSON_VALUE(g.full_response, '$.usage_metadata.thoughts_token_count') AS INT64),
   JSON_VALUE(g.full_response, '$.candidates[0].finish_reason'),
   g.status, CURRENT_TIMESTAMP(), 'day20', features_version,
   IFNULL(g.status = '' AND g.has_person IS NOT NULL AND g.cta_position IS NOT NULL AND g.dominant_color IS NOT NULL
@@ -109,9 +114,9 @@ INSERT INTO martech_dw.mm_bench_log (run_id, task, model, creative_id, page_id, 
 SELECT this_run, 'features', 'gemini-3.6-flash', creative_id, CAST(NULL AS STRING),
   TO_JSON_STRING(STRUCT(g.has_person AS has_person, g.cta_position AS cta_position, g.dominant_color AS dominant_color,
     g.text_density AS text_density, g.headline AS headline)),
-  CAST(JSON_VALUE(g.full_response, '$.usage_metadata.prompt_token_count') AS INT64),
-  CAST(JSON_VALUE(g.full_response, '$.usage_metadata.candidates_token_count') AS INT64),
-  CAST(JSON_VALUE(g.full_response, '$.usage_metadata.thoughts_token_count') AS INT64),
+  SAFE_CAST(JSON_VALUE(g.full_response, '$.usage_metadata.prompt_token_count') AS INT64),
+  SAFE_CAST(JSON_VALUE(g.full_response, '$.usage_metadata.candidates_token_count') AS INT64),
+  SAFE_CAST(JSON_VALUE(g.full_response, '$.usage_metadata.thoughts_token_count') AS INT64),
   JSON_VALUE(g.full_response, '$.candidates[0].finish_reason'),
   g.status, CURRENT_TIMESTAMP(), 'day20', features_version,
   IFNULL(g.status = '' AND g.has_person IS NOT NULL AND g.cta_position IS NOT NULL AND g.dominant_color IS NOT NULL
@@ -134,9 +139,9 @@ FROM (
 INSERT INTO martech_dw.mm_bench_log (run_id, task, model, creative_id, page_id, result,
   prompt_tokens, output_tokens, thoughts_tokens, finish_reason, status, created_at, source, prompt_version, ok)
 SELECT this_run, 'gaps', 'gemini-3.5-flash-lite', creative_id, page_id, g.result,
-  CAST(JSON_VALUE(g.full_response, '$.usage_metadata.prompt_token_count') AS INT64),
-  CAST(JSON_VALUE(g.full_response, '$.usage_metadata.candidates_token_count') AS INT64),
-  CAST(JSON_VALUE(g.full_response, '$.usage_metadata.thoughts_token_count') AS INT64),
+  SAFE_CAST(JSON_VALUE(g.full_response, '$.usage_metadata.prompt_token_count') AS INT64),
+  SAFE_CAST(JSON_VALUE(g.full_response, '$.usage_metadata.candidates_token_count') AS INT64),
+  SAFE_CAST(JSON_VALUE(g.full_response, '$.usage_metadata.thoughts_token_count') AS INT64),
   JSON_VALUE(g.full_response, '$.candidates[0].finish_reason'),
   g.status, CURRENT_TIMESTAMP(), 'day20', gaps_version,
   IFNULL(g.status = '' AND IFNULL(JSON_VALUE(g.full_response, '$.candidates[0].finish_reason'), '') != 'MAX_TOKENS'
@@ -171,9 +176,9 @@ FROM (
 INSERT INTO martech_dw.mm_bench_log (run_id, task, model, creative_id, page_id, result,
   prompt_tokens, output_tokens, thoughts_tokens, finish_reason, status, created_at, source, prompt_version, ok)
 SELECT this_run, 'gaps', 'gemini-3.6-flash', creative_id, page_id, g.result,
-  CAST(JSON_VALUE(g.full_response, '$.usage_metadata.prompt_token_count') AS INT64),
-  CAST(JSON_VALUE(g.full_response, '$.usage_metadata.candidates_token_count') AS INT64),
-  CAST(JSON_VALUE(g.full_response, '$.usage_metadata.thoughts_token_count') AS INT64),
+  SAFE_CAST(JSON_VALUE(g.full_response, '$.usage_metadata.prompt_token_count') AS INT64),
+  SAFE_CAST(JSON_VALUE(g.full_response, '$.usage_metadata.candidates_token_count') AS INT64),
+  SAFE_CAST(JSON_VALUE(g.full_response, '$.usage_metadata.thoughts_token_count') AS INT64),
   JSON_VALUE(g.full_response, '$.candidates[0].finish_reason'),
   g.status, CURRENT_TIMESTAMP(), 'day20', gaps_version,
   IFNULL(g.status = '' AND IFNULL(JSON_VALUE(g.full_response, '$.candidates[0].finish_reason'), '') != 'MAX_TOKENS'
@@ -208,9 +213,9 @@ FROM (
 INSERT INTO martech_dw.mm_bench_log (run_id, task, model, creative_id, page_id, result,
   prompt_tokens, output_tokens, thoughts_tokens, finish_reason, status, created_at, source, prompt_version, ok)
 SELECT this_run, 'gaps', 'gemini-3.1-pro-preview', creative_id, page_id, g.result,
-  CAST(JSON_VALUE(g.full_response, '$.usage_metadata.prompt_token_count') AS INT64),
-  CAST(JSON_VALUE(g.full_response, '$.usage_metadata.candidates_token_count') AS INT64),
-  CAST(JSON_VALUE(g.full_response, '$.usage_metadata.thoughts_token_count') AS INT64),
+  SAFE_CAST(JSON_VALUE(g.full_response, '$.usage_metadata.prompt_token_count') AS INT64),
+  SAFE_CAST(JSON_VALUE(g.full_response, '$.usage_metadata.candidates_token_count') AS INT64),
+  SAFE_CAST(JSON_VALUE(g.full_response, '$.usage_metadata.thoughts_token_count') AS INT64),
   JSON_VALUE(g.full_response, '$.candidates[0].finish_reason'),
   g.status, CURRENT_TIMESTAMP(), 'day20', gaps_version,
   IFNULL(g.status = '' AND IFNULL(JSON_VALUE(g.full_response, '$.candidates[0].finish_reason'), '') != 'MAX_TOKENS'

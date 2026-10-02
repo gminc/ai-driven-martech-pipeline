@@ -3,8 +3,9 @@
 # 由 run_gemma_colab.sh 透過 colab run 送到 Colab 的 VM 上執行，不是在自己的電腦上跑
 # 題目和 features/extract.sql 的 prompt_b 一字不差，後面多加一句請它只回 JSON（Gemini 那邊是用 output_schema 鎖的，這裡沒有）
 # 圖片直接從公開的 GitHub 儲存庫下載，這支腳本不讀答案，結果印在標準輸出（每張圖一行 RESULT 開頭的 JSON）
+# 目前只到「跑得動、量得到速度」這一步：回來的是模型的原文，還沒有接上對答案的流程，試跑成功之後再補
 # 用法：python gemma_bench.py [模型 ID] [要跑幾張]     預設 google/gemma-4-E2B-it、24 張
-import json, subprocess, sys, threading, time
+import json, os, subprocess, sys, threading, time
 
 MODEL = sys.argv[1] if len(sys.argv) > 1 else "google/gemma-4-E2B-it"
 LIMIT = int(sys.argv[2]) if len(sys.argv) > 2 else 24
@@ -24,10 +25,24 @@ text_density 圖上只有一行標題（有沒有按鈕都不算）填 low，標
 headline 只抄最大的那一行標題，不含賣點、標籤與按鈕上的字'''
 SUFFIX = "\n只輸出一個 JSON 物件，鍵是 has_person、cta_position、dominant_color、text_density、headline，不要加任何說明"
 
-def say(*a):
-    print(*a, flush=True)
+DEADLINE = 1500   # 這支腳本在 VM 上最多跑幾秒，超過就自己結束，免得外面的電腦睡著或斷線時 VM 一直開著
 
-# colab run 預設 30 秒沒有輸出就會中斷，下載模型時可能好幾分鐘沒有輸出，所以每 15 秒印一行
+# 兩條執行緒都會印東西，一次寫一整行並上鎖，RESULT 那幾行才不會被插進別的字
+LOCK = threading.Lock()
+def say(*a):
+    with LOCK:
+        sys.stdout.write(" ".join(str(x) for x in a) + "\n")
+        sys.stdout.flush()
+
+def give_up():
+    say(f"⏰ 超過 {DEADLINE} 秒，腳本自己結束")
+    os._exit(3)
+killer = threading.Timer(DEADLINE, give_up)
+killer.daemon = True
+killer.start()
+
+# colab run 的 --timeout 預設 30 秒（run_gemma_colab.sh 會設成 1,500 秒），它算的是總時間還是多久沒有輸出還沒確認過，
+# 下載模型時可能好幾分鐘沒有輸出，所以每 15 秒印一行
 ALIVE = True
 def heartbeat():
     t0 = time.time()
@@ -49,6 +64,9 @@ import torch
 from transformers import AutoModelForImageTextToText, AutoProcessor
 import transformers
 say(f"transformers {transformers.__version__}｜torch {torch.__version__}｜cuda {torch.cuda.is_available()}")
+if not torch.cuda.is_available():
+    say("❌ 這台 VM 沒有 GPU，不跑了（在 CPU 上跑會一直耗運算單元）")
+    sys.exit(2)
 
 say(f"== 載入 {MODEL} ==")
 t0 = time.time()
@@ -56,7 +74,7 @@ t0 = time.time()
 processor = AutoProcessor.from_pretrained(MODEL)
 model = AutoModelForImageTextToText.from_pretrained(MODEL, device_map="auto", torch_dtype=torch.float16)
 load_seconds = time.time() - t0
-say(f"載入 {load_seconds:.1f} 秒｜顯存 {torch.cuda.memory_allocated() / 2**30:.1f} GB")
+say(f"載入 {load_seconds:.1f} 秒｜GPU 記憶體 {torch.cuda.memory_allocated() / 2**30:.1f} GB")
 
 say(f"== 開始看圖：{min(LIMIT, len(IDS))} 張 ==")
 rows = []
@@ -91,6 +109,8 @@ summary = {
     "generate_seconds": round(sum(r["seconds"] for r in ok), 1),
     "seconds_per_image": round(sum(r["seconds"] for r in ok) / len(ok), 2) if ok else None,
     "total_seconds": round(time.time() - T_START, 1),
-    "peak_vram_gb": round(torch.cuda.max_memory_allocated() / 2**30, 2) if torch.cuda.is_available() else None,
+    "peak_vram_gb": round(torch.cuda.max_memory_allocated() / 2**30, 2),
 }
 say("SUMMARY\t" + json.dumps(summary, ensure_ascii=False))
+killer.cancel()
+sys.exit(0 if ok else 1)

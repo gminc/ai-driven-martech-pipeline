@@ -1,4 +1,4 @@
--- Day 20：流程檢查，一列＝一項，ok 欄位是 OK 或 DIFF（run.sh 再補第 16、17、18 項，共 18 項）
+-- Day 20：流程檢查，一列＝一項，ok 欄位是 OK 或 DIFF（run.sh 再補第 18、19、20 項，共 20 項）
 -- 檢查的是「評測有沒有照設計跑完、比的是不是同一份題目和答案」，各模型答對幾成在 report.sql 看
 -- 會讀答案表，查詢在每月 1 TiB 免費額度內
 
@@ -80,6 +80,21 @@ checks AS (
             SELECT 1 FROM martech_dw.mm_bench_log earlier
             WHERE earlier.task = later.task AND earlier.model = later.model AND earlier.creative_id = later.creative_id
               AND earlier.ok AND earlier.created_at < later.created_at)) AS STRING)
+  -- 同一段 INSERT 裡同一張圖被呼叫兩次（例如物件表裡有兩個檔案對到同一個 creative_id）
+  UNION ALL SELECT '16 duplicate calls in one batch', '0',
+    CAST((SELECT COUNT(*) FROM (
+            SELECT 1 FROM martech_dw.mm_bench_log
+            GROUP BY run_id, task, model, creative_id, created_at HAVING COUNT(*) > 1)) AS STRING)
+  -- 沿用 Day 16 的那一組，四個分類欄位要和 Day 16 的特徵表一樣（特徵表萬一挑的是用 enum 補問的那一筆，這裡會不一樣）
+  UNION ALL SELECT '17 lite features same as day 16 table', '0',
+    CAST((SELECT COUNT(*) FROM martech_dw.mart_bench_features b
+          JOIN martech_dw.mart_creative_features f USING (creative_id)
+          WHERE b.model = 'gemini-3.5-flash-lite' AND b.field != 'headline'
+            AND b.said IS DISTINCT FROM CASE b.field
+              WHEN 'has_person' THEN CAST(f.has_person AS STRING)
+              WHEN 'cta_position' THEN f.cta_position
+              WHEN 'dominant_color' THEN f.dominant_color
+              WHEN 'text_density' THEN f.text_density END) AS STRING)
 )
 SELECT check_name, expected, actual, IF(expected = actual, 'OK', 'DIFF') AS ok
 FROM checks
