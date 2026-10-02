@@ -1,0 +1,90 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1240 600" width="1240" height="600" font-family="'Noto Sans TC','Noto Sans CJK TC','PingFang TC','Microsoft JhengHei',sans-serif">
+  <defs>
+    <style>
+      .title { font-size: 22px; font-weight: 700; fill: #202124; }
+      .zone { font-size: 14px; font-weight: 700; fill: #5f6368; }
+      .raw { fill: #f1f3f4; stroke: #dadce0; stroke-width: 1.2; }
+      .step { fill: #ffffff; stroke: #1a73e8; stroke-width: 1.4; }
+      .out { fill: #e6f4ea; stroke: #188038; stroke-width: 1.6; }
+      .key { fill: #fef7e0; stroke: #f29900; stroke-width: 1.6; }
+      .h { font-size: 15px; font-weight: 700; fill: #1a73e8; }
+      .hg { font-size: 15px; font-weight: 700; fill: #188038; }
+      .ho { font-size: 15px; font-weight: 700; fill: #b06000; }
+      .hr { font-size: 15px; font-weight: 700; fill: #3c4043; }
+      .t { font-size: 13px; fill: #3c4043; }
+      .to { font-size: 13px; fill: #5f4100; }
+      .note { font-size: 13px; fill: #5f6368; }
+      .flow { stroke: #1a73e8; stroke-width: 2.2; fill: none; }
+      .gflow { stroke: #188038; stroke-width: 2; fill: none; }
+      .oflow { stroke: #f29900; stroke-width: 2; fill: none; }
+    </style>
+    <marker id="a" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto"><path d="M0,0 L10,5 L0,10 z" fill="#1a73e8"/></marker>
+    <marker id="g" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto"><path d="M0,0 L10,5 L0,10 z" fill="#188038"/></marker>
+    <marker id="o" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto"><path d="M0,0 L10,5 L0,10 z" fill="#f29900"/></marker>
+  </defs>
+  <rect width="1240" height="600" fill="#ffffff"/>
+  <text x="40" y="44" class="title">Day 19｜廣告圖和它導去的頁面一起交給 Gemini，列出對不上的地方</text>
+  <text x="40" y="70" class="note">比對只讀分析資料集，答案表放在答案資料集、呼叫之前就寫好，頁面用截圖和文字兩種方式各給一次</text>
+
+  <text x="40" y="110" class="zone">分析資料集 martech_dw</text>
+
+  <rect x="40" y="126" width="280" height="88" rx="10" class="raw"/>
+  <text x="58" y="154" class="hr">① 廣告圖 24 張</text>
+  <text x="58" y="178" class="t">obj_creatives（Day 14 物件表）</text>
+  <text x="58" y="200" class="note">標題、賣點與徽章都畫在圖上</text>
+
+  <rect x="40" y="226" width="280" height="88" rx="10" class="raw"/>
+  <text x="58" y="254" class="hr">② 頁面截圖 9 張</text>
+  <text x="58" y="278" class="t">obj_landing（3 個頁面各切 3 段）</text>
+  <text x="58" y="300" class="note">長截圖先切開，小字才讀得到</text>
+
+  <rect x="40" y="326" width="280" height="88" rx="10" class="raw"/>
+  <text x="58" y="354" class="hr">③ 頁面文字與對照表</text>
+  <text x="58" y="378" class="t">ref_landing_pages 與廣告對頁面的對照表</text>
+  <text x="58" y="400" class="note">劃掉的原價另外註明</text>
+
+  <rect x="360" y="126" width="300" height="288" rx="10" class="step"/>
+  <text x="378" y="154" class="h">④ compare.sql 比對</text>
+  <text x="378" y="180" class="t">AI.GENERATE × gemini-3.6-flash</text>
+  <text x="378" y="202" class="t">response_schema：先抄廣告文字</text>
+  <text x="378" y="224" class="t">再列落差，種類用 enum 鎖在 8 個選項</text>
+  <text x="378" y="258" class="hr">兩種給頁面的方式</text>
+  <text x="378" y="282" class="t">image：廣告圖＋三段截圖（四張圖）</text>
+  <text x="378" y="304" class="t">text：廣告圖＋頁面文字</text>
+  <text x="378" y="338" class="note">24 張 × 2 種＝48 次呼叫</text>
+  <text x="378" y="360" class="note">呼叫紀錄 mm_gaps_log，跑過的不重跑</text>
+  <text x="378" y="382" class="note">Token 記進 ops_llm_usage</text>
+
+  <rect x="700" y="126" width="240" height="132" rx="10" class="step"/>
+  <text x="718" y="154" class="h">⑤ score.sql 對答案</text>
+  <text x="718" y="178" class="t">同一種落差</text>
+  <text x="718" y="200" class="t">而且抄下來的廣告文字</text>
+  <text x="718" y="222" class="t">有答案表的那個詞才算抓到</text>
+  <text x="718" y="244" class="note">抓到、漏掉、多列、有爭議</text>
+
+  <rect x="980" y="126" width="220" height="132" rx="10" class="out"/>
+  <text x="998" y="154" class="hg">⑥ 成績</text>
+  <text x="998" y="178" class="t">mart_ad_page_gaps</text>
+  <text x="998" y="200" class="t">給截圖 18／21</text>
+  <text x="998" y="222" class="t">給文字 20／21</text>
+  <text x="998" y="244" class="note">14 項檢查、八段報表</text>
+
+  <text x="700" y="306" class="zone">答案資料集 martech_gt</text>
+  <rect x="700" y="322" width="240" height="92" rx="10" class="key"/>
+  <text x="718" y="350" class="ho">答案表 gt_ad_page_gaps</text>
+  <text x="718" y="374" class="to">計分 21 列、有爭議 9 列</text>
+  <text x="718" y="396" class="to">呼叫 Gemini 之前先 commit</text>
+
+  <path d="M320,170 L356,170" class="flow" marker-end="url(#a)"/>
+  <path d="M320,270 L356,270" class="flow" marker-end="url(#a)"/>
+  <path d="M320,370 L356,370" class="flow" marker-end="url(#a)"/>
+  <path d="M660,190 L696,190" class="flow" marker-end="url(#a)"/>
+  <path d="M940,190 L976,190" class="gflow" marker-end="url(#g)"/>
+  <path d="M820,322 L820,262" class="oflow" marker-end="url(#o)"/>
+
+  <text x="40" y="462" class="zone">結果</text>
+  <text x="40" y="490" class="note">免運少了門檻、專案價找不到優惠、短襪對上中筒襪，三種落差兩種給法都全部抓到</text>
+  <text x="40" y="514" class="note">6 張沒有計分落差的廣告圖沒有被多列，清單上兩種不存在的落差（贈品、保固）一次都沒有被填</text>
+  <text x="40" y="538" class="note">給截圖每次輸入約 5,000 個 Token，給文字約 2,150 個，差 2.3 倍</text>
+  <text x="40" y="572" class="note">費用：48 次約新台幣 5.5 元</text>
+</svg>
