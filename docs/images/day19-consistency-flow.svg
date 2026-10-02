@@ -40,7 +40,7 @@
 
   <rect x="40" y="326" width="280" height="88" rx="10" class="raw"/>
   <text x="58" y="354" class="hr">③ 頁面文字與對照表</text>
-  <text x="58" y="378" class="t">ref_landing_pages 與廣告對頁面的對照表</text>
+  <text x="58" y="378" class="t">ref_landing_pages 與廣告對照表</text>
   <text x="58" y="400" class="note">劃掉的原價另外註明</text>
 
   <rect x="360" y="126" width="300" height="288" rx="10" class="step"/>
@@ -84,7 +84,7 @@
 
   <text x="40" y="462" class="zone">結果</text>
   <text x="40" y="490" class="note">免運少了門檻、專案價找不到優惠、短襪對上中筒襪，三種落差兩種給法都全部抓到</text>
-  <text x="40" y="514" class="note">6 張沒有計分落差的廣告圖沒有被多列，清單上兩種不存在的落差（贈品、保固）一次都沒有被填</text>
-  <text x="40" y="538" class="note">給截圖每次輸入約 5,000 個 Token，給文字約 2,150 個，差 2.3 倍</text>
+  <text x="40" y="514" class="note">6 張沒有計分落差的廣告圖只被列了有爭議的名稱差異，清單上兩種不存在的落差（贈品、保固）一次都沒有被填</text>
+  <text x="40" y="538" class="note">給截圖每次輸入約 5,000 個 Token，給文字約 2,150 個，是 2.3 倍</text>
   <text x="40" y="572" class="note">費用：48 次約新台幣 5.5 元</text>
 </svg>

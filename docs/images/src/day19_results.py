@@ -48,7 +48,7 @@ for i, r in enumerate(rows):
         d.text((X3 + 4, yy + 32), a, font=f_t, fill=GREY)
         d.text((X3 + 4, yy + 54), b, font=f_t, fill=GREY)
         yy += 84
-d.text((40, img.height - 46), '21 個計分落差，給截圖抓到 18 個、給文字抓到 20 個，6 張沒有計分落差的廣告圖沒有被多列', font=f_s, fill=GREY)
+d.text((40, img.height - 46), '21 個計分落差，給截圖抓到 18 個、給文字抓到 20 個，6 張沒有計分落差的廣告圖只被列了有爭議的名稱差異', font=f_s, fill=GREY)
 d.text((40, img.height - 24), '抓到不代表理由正確：導到重訓活動頁的短襪廣告，引用的頁面證據多半是另一個商品', font=f_s, fill=GREY)
 img.save(f'{ROOT}/docs/images/day19-consistency-results.jpg', quality=88, optimize=True)
 print(img.size)
