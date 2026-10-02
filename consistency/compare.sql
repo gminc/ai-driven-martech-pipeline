@@ -10,7 +10,7 @@
 -- 寫法沿用 Day 18：AI.GENERATE 搭配 response_schema（gap_type 用 enum 鎖在八個選項裡），跑過的不重跑（只補還沒成功的組合），
 -- 每次呼叫都記進 mm_gaps_log，再抄一份進共用的 Token 用量表 ops_llm_usage（Day 25 用）
 -- 模型用 gemini-3.6-flash，thinking_level 設 LOW，思考 Token 也算在 max_output_tokens 裡，上限 2,048
--- 這一步會產生 Token 費用，run.sh 會先印出最壞情況再問要不要繼續
+-- 這一步會產生 Token 費用，run.sh 會先印出估價再問要不要繼續
 -- 只讀 martech_dw（對照表、頁面文字、兩張物件表），不讀答案表，對答案在 score.sql，run.sh 會用 grep 確認
 -- endpoint 與 model_params 只能寫常數、兩種給法傳進去的東西也不一樣，所以各寫一段
 
@@ -34,7 +34,7 @@ page_evidence：頁面上相關的原文，頁面完全沒有提到就填「頁�
 只列有落差的地方，廣告和頁面一致就不用列，都一致時 gaps 回空陣列
 形容觸感、質感或使用感受的文案不用列''';
 
--- 題目的指紋，跟著每一次呼叫記進紀錄表，之後看得出哪一筆是用哪一版題目問的
+-- 題目的指紋（只涵蓋 task_text 這一段，開頭那兩句、選項的 enum、頁面文字與截圖改了不會變），跟著每一次呼叫記進紀錄表，之後看得出哪一筆是用哪一版題目問的
 -- 題目改過之後要重問，請先把 mm_gaps_log 改名留存再執行，成功過的組合不會因為題目變了就自動重問
 DECLARE this_prompt STRING DEFAULT TO_HEX(MD5(task_text));
 
@@ -104,7 +104,7 @@ SELECT this_run, 'image', creative_id, page_id, 'gemini-3.6-flash', g.result,
 FROM (
   SELECT t.creative_id, t.page_id,
     AI.GENERATE(
-      (CONCAT(t.intro, '第一張圖是廣告圖，後面三張圖是那個頁面的截圖，由上到下切成三段。\n\n', task_text), a.ref, l1.ref, l2.ref, l3.ref),
+      (CONCAT(t.intro, '第一張圖是廣告圖，後面三張圖是那個頁面的截圖，由上到下切成三段，相鄰兩段有一小部分重疊。\n\n', task_text), a.ref, l1.ref, l2.ref, l3.ref),
       connection_id => 'us.vertex_ai_conn',
       endpoint => 'gemini-3.6-flash',
       model_params => JSON '''{"generation_config": {
