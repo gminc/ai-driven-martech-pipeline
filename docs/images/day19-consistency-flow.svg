@@ -80,7 +80,7 @@
   <path d="M320,370 L356,370" class="flow" marker-end="url(#a)"/>
   <path d="M660,190 L696,190" class="flow" marker-end="url(#a)"/>
   <path d="M940,190 L976,190" class="gflow" marker-end="url(#g)"/>
-  <path d="M820,322 L820,262" class="oflow" marker-end="url(#o)"/>
+  <path d="M900,322 L900,262" class="oflow" marker-end="url(#o)"/>
 
   <text x="40" y="462" class="zone">結果</text>
   <text x="40" y="490" class="note">免運少了門檻、專案價找不到優惠、短襪對上中筒襪，三種落差兩種給法都全部抓到</text>
