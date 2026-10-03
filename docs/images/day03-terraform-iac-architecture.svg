@@ -120,7 +120,7 @@
       <text x="14" y="45" class="body-text">• 核心資料集：martech_dw (星狀綱要)</text>
       <text x="14" y="65" class="body-text">• 駐留位置：US 多區域</text>
       <text x="14" y="85" class="body-text">• 承載廣告成效、歸因日誌與 AI 診斷特徵</text>
-      <text x="14" y="103" class="sub-text">• 就地運算核心，享有每月 10 GB 免費儲存</text>
+      <text x="14" y="103" class="sub-text">• 就地運算核心，享有每月 10 GiB 免費儲存</text>
     </g>
 
     <!-- Box 3: Cloud Storage -->
@@ -165,7 +165,7 @@
       <text x="272" y="22" class="badge-text">預算警報</text>
       <text x="14" y="45" class="body-text">• 預算基準：NT$ 300 或 US$ 10 (對齊幣別)</text>
       <text x="14" y="65" class="body-text">• 三階警報：50% 預警 / 80% 警戒 / 100% 警告</text>
-      <text x="14" y="85" class="body-text">• 觸發時即時以 Email 通報帳單管理員</text>
+      <text x="14" y="85" class="body-text">• 觸發時以 Email 通報帳單管理員</text>
       <text x="14" y="103" class="sub-text">• 未指定帳單帳戶時條件式跳過，不阻礙部署</text>
     </g>
 
@@ -177,7 +177,7 @@
       <text x="272" y="22" class="badge-text">生命週期</text>
       <text x="14" y="45" class="body-text">• quickstart.sh：一鍵偵測專案並自動重試 API</text>
       <text x="14" y="65" class="body-text">• bq show：即時驗證跨服務遠端連線狀態</text>
-      <text x="14" y="85" class="body-text">• terraform destroy：移除資源，不留持續計費項目</text>
+      <text x="14" y="85" class="body-text">• terraform destroy：移除本次建立的資源</text>
       <text x="14" y="103" class="sub-text">• 提供開箱即用體驗與完整雲端資源生命週期</text>
     </g>
   </g>

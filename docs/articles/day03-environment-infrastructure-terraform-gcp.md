@@ -30,7 +30,7 @@ Day 03 | 環境基礎建設：Terraform 輕鬆建置 GCP 環境 —— 從 IAM �
 
 # 3. 核心 Terraform 程式碼深度拆解
 
-本專案的所有 Terraform 腳本均存放於專案儲存庫的 `terraform/` 目錄下。以下我們逐一拆解四大關鍵模組的設計細節與架構考量。
+本專案的所有 Terraform 腳本均存放於專案儲存庫的 `terraform/` 目錄下。以下我們逐一拆解六個部分的設計細節與架構考量。
 
 ## 3.1 參數化宣告與在地化設定 (variables.tf)
 
@@ -38,7 +38,7 @@ Day 03 | 環境基礎建設：Terraform 輕鬆建置 GCP 環境 —— 從 IAM �
 
 - `project_id`：Google Cloud 專案 ID（必填且無預設值，請於 `terraform.tfvars` 填入自己的專案 ID）
 - `region`：Cloud Storage 等區域型資源預設 `us-central1`（愛荷華），可適用 Cloud Storage 每月 5GB 免費額度
-- `bq_location`：BigQuery Dataset 與遠端連線的位置，預設 `US` 多區域。BigQuery 生成式 AI 函式對 Gemini 3.x 新模型的支援以 US／EU 多區域為主，選 `US` 可避免日後呼叫新模型時找不到模型
+- `bq_location`：BigQuery Dataset 與遠端連線的位置，預設 `US` 多區域。BigQuery 生成式 AI 函式對 Gemini 3.x 新模型的支援以 US／EU 多區域為主，選 `US` 與官方範例一致，後續各天也都以 `US` 為準
 - `dataset_id`：`martech_dw`
 - `dataset_description`：AI-Driven MarTech 資料倉儲：廣告日誌、多觸點歸因分析與多模態素材特徵庫
 - `storage_bucket_name`：留空時自動使用「專案ID-martech-assets」，避免與其他讀者的儲存庫重名
@@ -46,6 +46,8 @@ Day 03 | 環境基礎建設：Terraform 輕鬆建置 GCP 環境 —— 從 IAM �
 - `budget_amount`：預算警報基準金額，預設 300（新台幣帳戶填 300、美元帳戶填 10）
 - `budget_currency`：預設 TWD，必須與帳單帳戶幣別一致
 - `allow_destroy_with_data`：`terraform destroy` 時是否連同資料一併刪除，教學環境預設 `true`，正式環境請改為 `false`
+
+⚠️ 後續各天的腳本都以這些預設值為準（儲存庫「專案ID-martech-assets」、資料集 `martech_dw`、位置 `US`），跟著系列做的話請不要更改
 
 ## 3.2 啟用專案必要 Google Cloud API 服務 (main.tf)
 
@@ -81,7 +83,8 @@ BigQuery 是整個 MarTech 系統的「資料心臟」。在此建立廣告成�
 
 1. 宣告 `google_bigquery_connection`（`connection_id = "vertex_ai_conn"`），GCP 自動配發受管服務帳號。
 2. 透過 `google_project_iam_member` 將該服務帳號賦予 `roles/aiplatform.user` 角色（Agent Platform User）。
-3. 日後執行 `AI.GENERATE_TEXT` 等生成式 AI 函式時，BigQuery 會以這個託管服務帳號呼叫 Gemini，全程不產生、不暴露任何 JSON 金鑰。
+3. 另以 `google_storage_bucket_iam_member` 給同一個服務帳號素材儲存庫的 `roles/storage.objectViewer`（唯讀，只限這一個儲存庫），Day 14 的物件表與看圖會用到，2026/9/24 以前建好環境的讀者請 `git pull` 後在 `terraform/` 再執行一次 `terraform apply`
+4. 日後執行 `AI.GENERATE_TEXT`、`AI.GENERATE` 等生成式 AI 函式時，BigQuery 會以這個託管服務帳號呼叫 Gemini，全程不產生、不暴露任何 JSON 金鑰。
 
 ## 3.6 資料管線專用服務帳號與最小權限綁定
 
@@ -92,7 +95,7 @@ BigQuery 是整個 MarTech 系統的「資料心臟」。在此建立廣告成�
 - `roles/bigquery.jobUser`：查詢作業提交（此角色需授予在專案層級）
 - `roles/aiplatform.user`：Gemini 模型呼叫（專案層級）
 
-這樣即使專案內之後新增其他資料集或儲存庫，這個服務帳號也碰不到。
+這樣即使專案內之後新增其他資料集或儲存庫，這個服務帳號也碰不到。這個帳號是留給之後的排程服務（Cloud Workflows、Cloud Run）使用，Day 04 到 Day 19 的指令都以你自己的帳號執行。
 
 ---
 
@@ -103,8 +106,8 @@ BigQuery 是整個 MarTech 系統的「資料心臟」。在此建立廣告成�
 我們透過三道防線構築完整的成本護欄：
 
 1. **第一道防線：善用 Google Cloud 每月免費額度**（BigQuery 每月 10 GiB 儲存與 1 TiB 查詢、Cloud Run 每月 200 萬次請求、Cloud Storage 於 us-central1、us-east1、us-west1 三個美國區域每月 5GB 標準儲存），教學與開發階段的基礎資源費用幾乎為零；Vertex AI Gemini 呼叫則依用量計費，由第二、三道防線把關。
-2. **第二道防線：架構層被動成本防護**（GCS 90 天過期清理與非現行版本 7 天清除、Gemini 3.5 Flash-Lite 優先、Context Caching 快取命中的輸入 Token 約以原價一成計費、批次處理時將 `thinking_level` 設為 `minimal` 或 `low`）。
-3. **第三道防線：Cloud Billing 預算警報**（新台幣帳戶 NT$ 300／美元帳戶 US$ 10：50% 早期預警、80% 警戒通知、100% 超支警告）。預算警報會以 Email 通知帳單管理員，但不會自動停止服務，收到通知後請及時檢查用量。
+2. **第二道防線：架構層被動成本防護**（GCS 90 天過期清理與非現行版本 7 天清除、Gemini 3.5 Flash-Lite 優先、Context Caching 快取命中的輸入 Token 約以原價一成計費、批次處理時調低或關閉思考，SDK 用 `thinking_level`，BigQuery 的 SQL 函式實作時用 `thinking_budget`，見 Day 09）。
+3. **第三道防線：Cloud Billing 預算警報**（新台幣帳戶 NT$ 300／美元帳戶 US$ 10：50% 早期預警、80% 警戒通知、100% 超支警告）。預算警報會以 Email 通知帳單帳戶的管理員與使用者，通知可能延遲數小時，也不會自動停止服務，收到通知後請及時檢查用量。預算以抵免前的用量計算（免費額度內的用量與免費試用額度抵掉的部分都算），所以還在使用免費試用額度的期間也收得到通知。
 
 ---
 
@@ -112,9 +115,9 @@ BigQuery 是整個 MarTech 系統的「資料心臟」。在此建立廣告成�
 
 前面我們拆解了每一段 Terraform 程式碼設計考量，這一節要帶大家實際把環境建置起來。即使平常較少接觸終端機也不用擔心，所有操作都在瀏覽器中完成，不需要在自己的電腦安裝任何軟體。
 
-Google Cloud 提供的 **Cloud Shell** 是一台免費的線上 Linux 環境，已預先安裝好 gcloud 與 bq 等工具，並附有 5GB 的永久儲存空間，非常適合作為本專案的標準操作環境。
+Google Cloud 提供的 **Cloud Shell** 是一台免費的線上 Linux 環境，已預先安裝好 gcloud 與 bq 等工具，並附有 5GB 的家目錄儲存空間（120 天沒有使用會被清除），非常適合作為本專案的標準操作環境。
 
-要注意的是 Cloud Shell 自 2026/6/20 起不再預設內建 Terraform，需要自己安裝一次，裝在家目錄的 `~/bin` 就會跟著永久儲存空間保留下來，路線 A 的懶人包會自動處理，路線 B 則在步驟 3 手動完成。
+要注意的是 Cloud Shell 自 2026/6/20 起不再預設內建 Terraform，需要自己安裝一次，裝在家目錄的 `~/bin` 就會跟著家目錄保留下來，路線 A 的懶人包會自動處理，路線 B 則在步驟 3 手動完成。
 
 我們準備了兩種路線，請依照自己的需求選擇：
 
@@ -151,9 +154,9 @@ cd ~ && if [ -d ai-driven-martech-pipeline/.git ]; then git -C ai-driven-martech
 
 - **確認 Terraform**：找不到 `terraform` 時自動下載 HashiCorp 官方版本，核對 SHA256 後安裝到 `~/bin`
 - **偵測專案與帳單**：讀取目前的專案 ID，檢查帳單是否已啟用；若目前帳號具備建立預算的權限，會依帳戶幣別自動設定預算警報（TWD 帳戶 NT$ 300、USD 帳戶 US$ 10），否則自動略過
-- **產生設定檔**：依照 `terraform.tfvars.example` 的欄位，自動產生 `terraform.tfvars` 並填入上述資訊
+- **產生設定檔**：依照 `terraform.tfvars.example` 的欄位，自動產生 `terraform.tfvars` 並填入上述資訊，原本已有設定檔時會先備份成 `terraform.tfvars.bak.時間`
 - **預覽變更**：執行 `terraform init` 與 `terraform plan`，列出即將建立的所有資源
-- **確認後才建置**：等你輸入 yes 後才真正執行；若遇到 API 剛啟用尚未生效，會自動等待 60 秒重試一次（重試時沿用你剛才的確認，不會再次詢問）
+- **確認後才建立雲端資源**：等你輸入 yes 後才真正執行；若遇到 API 剛啟用尚未生效，會自動等待 60 秒重試一次（重試時沿用你剛才的確認，不會再次詢問）
 - **自動驗證**：建置完成後檢查 BigQuery 遠端連線，並列出所有輸出資訊
 
 看到畫面出現「🎉 建置完成！」就代表成功了，可以直接跳到 5.4 確認成果。
@@ -175,11 +178,11 @@ gcloud config set project YOUR_PROJECT_ID
 ### 步驟 2：下載專案程式碼
 
 ```bash
-git clone https://github.com/gminc/ai-driven-martech-pipeline.git
+cd ~ && git clone https://github.com/gminc/ai-driven-martech-pipeline.git
 cd ~/ai-driven-martech-pipeline/terraform
 ```
 
-第一行把開源專案複製到你的 Cloud Shell 中，第二行進入存放 Terraform 腳本的資料夾。
+第一行把開源專案複製到你的 Cloud Shell 家目錄，第二行進入存放 Terraform 腳本的資料夾。已經用路線 A 下載過的話，第一行會顯示 `already exists`，可以忽略。
 
 - ✅ **成功的樣子**：輸入 `ls` 後，可以看到 `main.tf`、`variables.tf`、`outputs.tf` 等檔案
 
@@ -197,7 +200,7 @@ export PATH="$HOME/bin:$PATH"
 cd ~/ai-driven-martech-pipeline/terraform && terraform version
 ```
 
-這段指令從 HashiCorp 官方下載 Terraform，先用官方公布的 SHA256 核對檔案沒有被竄改，再解壓到 `~/bin` 並加進 PATH，之後重開 Cloud Shell 也不用重裝，版本號可以換成[官方下載頁](https://releases.hashicorp.com/terraform/)上的最新穩定版。
+這段指令從 HashiCorp 官方下載 Terraform，先用官方公布的 SHA256 核對下載的檔案完整無誤，再解壓到 `~/bin` 並加進 PATH，之後重開 Cloud Shell 也不用重裝，版本號可以換成[官方下載頁](https://releases.hashicorp.com/terraform/)上的最新穩定版。
 
 - ✅ **成功的樣子**：先看到 `terraform_1.16.3_linux_amd64.zip: OK`，最後一行顯示 `Terraform v1.16.3`
 - 💡 **已經有 Terraform 的話**：輸入 `terraform version` 有顯示版本就可以跳過這一步
@@ -216,7 +219,7 @@ cloudshell edit terraform.tfvars
 - `billing_account_id`：你的帳單帳戶 ID（選填，留空即略過預算警報；需具備建立預算的權限）
 - `budget_currency`：預算幣別，必須與帳單帳戶一致（預設 TWD；若帳戶為美元請改為 USD，並將 `budget_amount` 調整為 10）
 
-其餘參數皆有預設值，例如 Cloud Storage 區域預設為 `us-central1`、BigQuery 位置預設為 `US`、素材儲存庫名稱會自動使用「專案ID-martech-assets」，避免與其他讀者重名。
+其餘參數皆有預設值，例如 Cloud Storage 區域預設為 `us-central1`、BigQuery 位置預設為 `US`、素材儲存庫名稱會自動使用「專案ID-martech-assets」，避免與其他讀者重名。後續各天的腳本都以這些預設值為準，跟著系列做的話請不要更改。
 
 🔒 `terraform.tfvars` 已列入 `.gitignore`，填寫的帳單資訊不會被推上 GitHub。
 
@@ -230,7 +233,7 @@ terraform plan
 - `terraform init`：下載 Terraform 所需的 Google Cloud 外掛，每個資料夾第一次使用時執行即可
 - `terraform plan`：就像施工前的藍圖確認，列出接下來要建立哪些資源，不會真的動到雲端
 
-- ✅ **成功的樣子**：畫面最後出現 `Plan: X to add, 0 to change, 0 to destroy.`
+- ✅ **成功的樣子**：畫面最後出現 `Plan: 20 to add, 0 to change, 0 to destroy.`（有填帳單帳戶 ID 則是 21）
 
 ### 步驟 6：正式建置
 
@@ -240,7 +243,7 @@ terraform apply
 
 Terraform 會再次列出變更內容，並詢問 `Enter a value:`。確認無誤後輸入 `yes` 並按下 Enter，接下來約 2 到 3 分鐘，Terraform 會依序完成 API 啟用、BigQuery 資料集、Cloud Storage 儲存庫、服務帳號與 IAM 權限的建置。
 
-- ✅ **成功的樣子**：看到綠色的 `Apply complete! Resources: X added, 0 changed, 0 destroyed.`
+- ✅ **成功的樣子**：看到綠色的 `Apply complete! Resources: 20 added, 0 changed, 0 destroyed.`（有填帳單帳戶 ID 則是 21）
 - ⚠️ **遇到錯誤怎麼辦**：若第一次執行出現 `SERVICE_DISABLED` 或 `API has not been used in project` 等訊息，通常是 API 剛啟用、還在生效中；若出現 `Service account ... does not exist`，則是遠端連線的服務帳號剛配發、尚未同步。這兩種情況都只要稍等 1 到 2 分鐘，再執行一次 `terraform apply` 即可；IAM 權限生效偶爾需要更久（官方說明可能長達 7 分鐘以上），原因詳見第 6 節。
 
 ## 5.4 驗證建置成果
@@ -262,13 +265,17 @@ cd ~/ai-driven-martech-pipeline/terraform && terraform output
 
 畫面會列出資料集 ID、素材儲存庫名稱、遠端連線 ID 與服務帳號等資訊，後續章節會陸續用到。也可以回到 Console 的 BigQuery 頁面，確認左側已出現 `martech_dw` 資料集。
 
+💡 Terraform 把建置紀錄存在 `terraform/terraform.tfstate`，請不要刪除 `~/ai-driven-martech-pipeline` 這個資料夾，之後的 `terraform apply` 與 `terraform destroy` 都靠這份紀錄。
+
 ## 5.5 不用了？一行指令全部清除
+
+⚠️ 要繼續 Day 04 之後的內容請先不要執行這一步，資料集裡的資料表與儲存庫裡的檔案會一併刪除。
 
 ```bash
 cd ~/ai-driven-martech-pipeline/terraform && terraform destroy
 ```
 
-輸入 `yes` 後，Terraform 會移除本次建立的資料集、儲存庫、服務帳號、權限與預算警報，不會留下持續計費的項目（已啟用的 API 會保留，啟用本身不收費）。教學環境預設 `allow_destroy_with_data = true`，即使資料集或儲存庫裡已有資料也能一併清除；若用於正式環境，請改為 `false` 以防誤刪。這正是 IaC 的一大優勢：建置與清除都一樣簡單，隨時可以重新來過。
+輸入 `yes` 後，Terraform 會移除本次建立的資料集、儲存庫、服務帳號、權限與預算警報（已啟用的 API 會保留，啟用本身不收費）。Day 04 之後另外建立的資源（Cloud Run 服務、Artifact Registry 映像檔、GA4 匯出資料集、答案資料集 `martech_gt`）不在這份 Terraform 裡，需要另外刪除。教學環境預設 `allow_destroy_with_data = true`，即使資料集或儲存庫裡已有資料也能一併清除；若用於正式環境，請改為 `false` 以防誤刪。這正是 IaC 的一大優勢：建置與清除都一樣簡單，隨時可以重新來過。
 
 ## 5.6 常用指令速查
 

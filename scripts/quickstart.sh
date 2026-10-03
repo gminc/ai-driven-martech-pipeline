@@ -115,6 +115,13 @@ fi
 # ------------------------------------------------------------------------------
 cd "${TF_DIR}"
 
+# 已經有設定檔時先備份，避免蓋掉讀者自己填的值
+if [[ -f terraform.tfvars ]]; then
+  TFVARS_BACKUP="terraform.tfvars.bak.$(date +%Y%m%d%H%M%S)"
+  cp terraform.tfvars "${TFVARS_BACKUP}"
+  echo "ℹ️  已把原有的 terraform.tfvars 備份為 ${TFVARS_BACKUP}"
+fi
+
 cat << VAR_EOF > terraform.tfvars
 project_id              = "${CURRENT_PROJECT}"
 region                  = "us-central1"
@@ -160,7 +167,8 @@ rm -f tfplan
 echo ""
 echo "🔍 驗證 BigQuery 遠端連線狀態："
 BQ_LOCATION="$(terraform output -raw bq_location)"
-bq show --connection "${CURRENT_PROJECT}.${BQ_LOCATION,,}.vertex_ai_conn" || true
+bq show --connection "${CURRENT_PROJECT}.${BQ_LOCATION,,}.vertex_ai_conn" \
+  || echo "⚠️  暫時查不到遠端連線，請稍候一兩分鐘再執行一次上面的 bq show 指令確認"
 
 echo ""
 terraform output

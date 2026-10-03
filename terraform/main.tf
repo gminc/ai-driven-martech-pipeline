@@ -196,8 +196,9 @@ resource "google_billing_budget" "budget_alert" {
   display_name    = "MarTech-2026-Ironman-Defense-Budget"
 
   budget_filter {
+    # credit_types_treatment 設為以抵免前的用量計算：免費試用額度或其他抵免還沒用完時，警報一樣會寄出
     projects               = ["projects/${data.google_project.current.number}"]
-    credit_types_treatment = "INCLUDE_ALL_CREDITS"
+    credit_types_treatment = "EXCLUDE_ALL_CREDITS"
   }
 
   amount {
