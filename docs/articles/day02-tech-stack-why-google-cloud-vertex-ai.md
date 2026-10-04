@@ -19,10 +19,10 @@
 | :--- | :--- | :--- | :--- |
 | **核心殺手級優勢** | **數據與 AI 物理融合**：GA4/Ads 原生匯入、BigQuery 內以 SQL 直接驅動 Gemini、Context Caching 快取讀取約為原價一成 | **模型多元化與成熟 MLOps**：Bedrock 單一 API 聚合 Anthropic Claude、Meta Llama、Mistral 等主流模型；SageMaker 工具鏈最為成熟 | **OpenAI 生態與企業 SaaS 協同**：企業級存取 OpenAI 最新 GPT 系列模型；深度整合 Microsoft 365、Teams、Power Platform |
 | **行銷生態原生整合** | **原生支援**：GA4 內建 BigQuery Export（每日匯出免費；串流匯出數分鐘內可用，另計費）；Google Ads 透過 BigQuery Data Transfer Service 匯入，免傳輸費 | **需依賴中繼**：需使用 AppFlow、第三方 ETL（如 Fivetran）或自建管線寫入 S3 | **需依賴管線**：需透過 Azure Data Factory 或 API 排程寫入 OneLake / Fabric |
-| **倉儲內 SQL 呼叫 AI** | **原生 SQL 呼叫**：`AI.GENERATE_TEXT` 等生成式 AI 函式原生內嵌，分析師無需跳出 SQL 即可診斷 | **Redshift ML 支援**：支援呼叫 SageMaker 模型，但需額外維護端點與權限 | **Fabric Copilot**：內建 Copilot 輔助分析，但對複雜自訂 Prompt 批次日誌處理的彈性稍不同 |
-| **多模態特徵結構化解析** | **Gemini 原生強項**：百萬級 Token 上下文視窗能同時處理高解析素材，原生 JSON Schema 強制輸出穩定 | **多模型可選**：可選用 Anthropic Claude 系列（多模態與程式碼推理表現頂尖），靈活性極高 | **GPT 系列多模態支援**：多模態識別精準度極高，唯大批次處理長上下文與高解析圖文時費用需審慎評估 |
+| **倉儲內 SQL 呼叫 AI** | **原生 SQL 呼叫**：`AI.GENERATE_TEXT` 等生成式 AI 函式原生內嵌，分析師無需跳出 SQL 即可診斷 | **Redshift ML 支援**：可用 `CREATE EXTERNAL MODEL` 在 SQL 內直接呼叫 Bedrock 上的模型，自訂模型則走 SageMaker 端點，GA4 與 Ads 資料仍須先搬進 Redshift | **Fabric AI 函式（預覽）**：Data Warehouse 可用 T-SQL 的 `AI_GENERATE_RESPONSE` 等函式呼叫模型，目前仍為預覽，另有 Copilot 輔助分析 |
+| **多模態特徵結構化解析** | **Gemini 原生強項**：百萬級 Token 上下文視窗能同時處理高解析素材，原生支援以 JSON Schema 規定輸出格式 | **多模型可選**：可選用 Anthropic Claude 系列（多模態與程式碼推理表現頂尖），靈活性極高 | **GPT 系列多模態支援**：多模態識別精準度極高，唯大批次處理長上下文與高解析圖文時費用需審慎評估 |
 | **長上下文視窗與快取經濟性** | **百萬級 Token + Context Caching**：隱含式快取預設啟用，快取命中的輸入 Token 約以原價一成計費（明確快取另計儲存費） | **Prompt Caching 支援**：Bedrock 上的 Claude 等模型支援快取，但與資料倉儲的原生整合需自行串接 | **Prompt Caching 預設啟用**：支援的模型自動快取，但與 Fabric 倉儲批次分析的整合需額外設計 |
-| **開源重現與開發環境** | **Cloud Shell 零配置**：免費提供預載 gcloud、docker 的 5GB 永久環境，Terraform 裝在家目錄即可保留 | **CloudShell 永久儲存較小**：每個區域 1 GB，部分 IaC 工具需自行安裝 | **暫時性工作階段免儲存體帳戶**：但檔案不會保留，需要保留檔案時仍須掛載儲存體帳戶 |
+| **開源重現與開發環境** | **Cloud Shell 零配置**：免費提供預載 gcloud、docker 的環境與 5GB 家目錄儲存空間（120 天未使用會被清除），Terraform 裝在家目錄即可保留 | **CloudShell 永久儲存較小**：每個區域 1 GB，部分 IaC 工具需自行安裝 | **暫時性工作階段免儲存體帳戶**：但檔案不會保留，需要保留檔案時仍須掛載儲存體帳戶 |
 | **最佳適用場景** | **以 Google 數據生態為核心的 MarTech、大樣本日誌歸因、需兼顧極致 FinOps 預算防爆者** | **追求避免單一廠商鎖定、重度自訂模型訓練與微調之大型架構** | **企業內部系統高度綁定微軟生態、需開發員工內部助理（Teams/SharePoint）、強烈依賴 OpenAI 旗艦模型者** |
 
 ### 雲端平台沒有絕對優劣，只有場景適配
@@ -30,16 +30,16 @@
 如果跳脫本專案的特定邊界，三大雲端平台在生成式 AI 的佈局各具頂尖優勢：
 
 1. **AWS（Amazon Bedrock + SageMaker + Redshift）—— 模型多樣性與靈活架構的王牌：**
-   - 優勢：AWS Bedrock 的核心哲學是「不把雞蛋放在同一個籃子裡」。透過單一 API，企業能自由在 Anthropic Claude（程式碼與邏輯推理的業界標竿之一）、Meta Llama、Mistral 等開源與閉源模型間切換，徹底避免單一供應商鎖定。同時，SageMaker 在模型微調、分散式訓練與 MLOps 維運上，依然是業界成熟度最高的老牌標竿。
-   - 何時選它：如果專案的核心需求是構建跨模型比對系統、需要深度自訂訓練自有權重模型，或企業原本的海量資料就沉澱在 Amazon S3，AWS 無疑是最佳選擇。
+   - 優勢：AWS Bedrock 的核心哲學是「不把雞蛋放在同一個籃子裡」。透過單一 API，企業能自由在 Anthropic Claude（程式碼與邏輯推理的業界標竿之一）、Meta Llama、Mistral 等開源與閉源模型間切換，徹底避免單一供應商鎖定。同時，SageMaker 在模型微調、分散式訓練與 MLOps 維運上，依然是成熟度很高的老牌方案。
+   - 何時選它：如果專案的核心需求是構建跨模型比對系統、需要深度自訂訓練自有權重模型，或企業原本的海量資料就沉澱在 Amazon S3，AWS 會是很自然的選擇。
 
 2. **Microsoft Azure —— 企業級商務協同與 OpenAI 旗艦推理的重鎮：**
-   - 優勢：微軟與 OpenAI 的深度結盟，讓 Azure OpenAI（現整合於 Microsoft Foundry）成為使用 OpenAI 最新 GPT 系列與推理模型最具企業合規保障（含專屬輸送量 PTU、私有端點）的平台。更關鍵的是它與微軟企業生態的無縫共振——無論是 Teams、Microsoft 365、Dynamics 365 還是 Power Platform，Azure 都能做到「點擊即整合」。
-   - 何時選它：如果系統的主要任務是打造企業內部知識庫、串接 Office 辦公套件或 CRM 流程，或是業務邏輯非 OpenAI 旗艦推理模型不可，Azure 具有壓倒性的商務協同優勢。
+   - 優勢：微軟與 OpenAI 的深度結盟，讓 Azure OpenAI（現整合於 Microsoft Foundry）成為使用 OpenAI 最新 GPT 系列與推理模型具備企業合規保障（含專屬輸送量 PTU、私有端點）的主要平台之一。更關鍵的是它與微軟企業生態的無縫共振——無論是 Teams、Microsoft 365、Dynamics 365 還是 Power Platform，Azure 都能做到「點擊即整合」。
+   - 何時選它：如果系統的主要任務是打造企業內部知識庫、串接 Office 辦公套件或 CRM 流程，或是業務邏輯非 OpenAI 旗艦推理模型不可，Azure 在商務協同上有明顯優勢。
 
 3. **Google Cloud —— 資料重力（Data Gravity）與行銷場景的最佳解：**
    - 專案歸因：回到本專案的命題《AI-Driven MarTech》，我們的核心資料源是 GA4 與跨通路廣告日誌。Google 在行銷數據鏈路上擁有天然的「數據重力」——GA4 原生支援 BigQuery Export（每日匯出免費），省去了昂貴且脆弱的第三方 ETL 管線。
-   - 運算整合：BigQuery 的 `AI.GENERATE_TEXT` 實現了「運算向資料靠攏」，讓我們能在百萬筆成效日誌所在的倉儲內，直接用 SQL 完成多模態診斷；再搭配 Context Caching（快取命中的輸入 Token 約以原價一成計費），大幅壓低重複分析的成本。這不是「Google 贏了全世界」，而是在「行銷數據分析 × 雲端原生運算 × 嚴密成本控管」這個交集點上，Google Cloud 展現出最高的整合效益與投資報酬率（ROI）。
+   - 運算整合：BigQuery 的 `AI.GENERATE_TEXT`、`AI.GENERATE` 等函式實現了「運算向資料靠攏」，讓我們能在成效日誌所在的倉儲內，直接用 SQL 完成診斷與看圖分析；再搭配 Context Caching（快取命中的輸入 Token 約以原價一成計費），大幅壓低重複分析的成本。這不是「Google 贏了全世界」，而是在「行銷數據分析 × 雲端原生運算 × 嚴密成本控管」這個交集點上，Google Cloud 對本專案需要的整合步驟最少。
 
 從評估結果可看出，在處理以 GA4 與數位廣告日誌為核心的 MarTech 場景時，Google Cloud 提供了阻力最小的端對端整合路徑。
 
@@ -57,7 +57,7 @@
 
 > 📌 **名稱說明**：Google 已於 2026 年 4 月將 Vertex AI 更名為 **Gemini Enterprise Agent Platform**，API、SDK 與端點皆維持不變。本系列沿用「Vertex AI」名稱，兩者指同一個平台。
 
-值得一提的是，一般使用者在 Gemini App 中看到的模型滾動更新，屬於面向終端消費者的應用層；而在 Vertex AI（Agent Platform）中，每個模型版本都有明確的發布日與停用日。例如 Gemini 2.0 Flash 已於 2026 年 6 月 1 日停用，Gemini 2.5 系列也預計最早於 2026 年 10 月 16 日後停用。因此本專案以目前仍在官方支援週期內的 Gemini 3.x 為基準，並依任務複雜度分級使用：
+值得一提的是，一般使用者在 Gemini App 中看到的模型滾動更新，屬於面向終端消費者的應用層；而在 Vertex AI（Agent Platform）中，每個模型版本都有明確的發布日與停用日。例如 Gemini 2.0 Flash 已於 2026 年 6 月 1 日停用，Gemini 2.5 系列也已排定於 2026 年 10 月中下旬停用（官方 release notes 寫 10 月 16 日，請以模型生命週期頁為準）。因此本專案以目前仍在官方支援週期內的 Gemini 3.x 為基準，並依任務複雜度分級使用：
 
 | 用途 | 模型 ID | 說明 |
 | :--- | :--- | :--- |
@@ -65,26 +65,27 @@
 | 一般任務 | `gemini-3.6-flash` | 官方建議取代 Gemini 2.0 Flash 的模型 |
 | 複雜推理 | `gemini-3.1-pro-preview` | 目前為預覽版，僅用於需要深度推理的環節 |
 
-所有呼叫都透過 Google Gen AI SDK 的標準介面進行，未來換用新模型時只需調整模型 ID。
+本系列到 Day 19 為止，Gemini 呼叫主要透過 BigQuery 的 SQL 函式進行，少數（建立快取、Veo 影片）直接呼叫 REST API，需要寫 Python 時一律使用 Google Gen AI SDK（`google-genai`），未來換用新模型時只需調整模型 ID。
 
-- **Google AI Studio（敏捷原型軌）**：負責「實驗與探勘」。在 Day 14–16 設計廣告圖文特徵萃取提示詞時，我們會在 AI Studio 進行小樣本盲測，迅速調校色系、排版、主標題情緒等萃取規格。
-- **Vertex AI（正式上線軌）**：負責「自動化與治理」。當 Prompt 規格定型後，程式碼透過 Google Gen AI SDK（`google-genai`，設定為 Vertex AI 模式）呼叫，享有 IAM 權限控管與稽核日誌，並可搭配 VPC Service Controls 限制資料外流。（舊版 `google-cloud-aiplatform` SDK 的生成式 AI 模組已於 2026 年 6 月 24 日移除，新專案請直接使用 `google-genai`。）
+- **Google AI Studio（敏捷原型軌）**：負責「實驗與探勘」。適合用來快速試提示詞與確認輸出規格。本系列實作時（Day 14–16）為了讓讀者能完整重現，小樣本測試改為直接在 BigQuery 內進行。
+- **Vertex AI（正式上線軌）**：負責「自動化與治理」。當 Prompt 規格定型後，由 BigQuery 的 SQL 函式或程式碼（需要寫程式時使用 Google Gen AI SDK `google-genai`，設定為 Vertex AI 模式）呼叫，享有 IAM 權限控管與稽核日誌，並可搭配 VPC Service Controls 限制資料外流。（舊版 `google-cloud-aiplatform` SDK 的生成式 AI 模組已於 2026 年 6 月 24 日移除，新專案請直接使用 `google-genai`。）
 
 ---
 
 ## 4. 資料與 AI 的物理融合：BigQuery 零搬遷直連架構
 
-傳統上將 AI 引入資料分析的架構，往往依賴「多跳跨雲搬遷」：倉儲資料先匯出為 CSV 或 Pandas DataFrame，經由中繼伺服器清洗後，再透過外部 HTTP 請求呼叫 LLM API，最後將推論特徵寫回資料庫。這種拼裝車做法存在記憶體暴量（OOM）、網路逾時中斷、429 速率限制以及高額跨雲資料傳輸費（Egress Fees）等致命痛點。
+傳統上將 AI 引入資料分析的架構，往往依賴「多跳跨雲搬遷」：倉儲資料先匯出為 CSV 或 Pandas DataFrame，經由中繼伺服器清洗後，再透過外部 HTTP 請求呼叫 LLM API，最後將推論特徵寫回資料庫。這種拼裝車做法存在記憶體暴量（OOM）、網路逾時中斷、429 速率限制以及跨雲資料傳輸費（Egress Fees）等問題。
 
 而在 Google Cloud 原生體系中，我們採用**倉儲內就地運算（In-Warehouse Execution）**的零搬遷模式：
 
 ![資料與 AI 的物理融合：倉儲內零搬遷運算架構對比圖](https://raw.githubusercontent.com/gminc/ai-driven-martech-pipeline/main/docs/images/day02-zero-copy-architecture.svg)
 
-> 💡 **零搬遷核心原則**：「數據重力」決定運算位置。讓運算向資料靠攏，直接在倉儲內完成推論，徹底終結傳統 ETL 拼裝車的效能瓶頸、資安隱患與跨雲資料傳輸費用。
+> 💡 **零搬遷核心原則**：「數據重力」決定運算位置。讓運算向資料靠攏，直接在倉儲內完成推論，大幅減少資料搬運與中繼程式，但呼叫模型仍可能失敗或被截斷，重跑與補跑的做法見 Day 16。
 
-透過建立 BigQuery 與 Vertex AI 的遠端連線（Remote Connection），分析人員只需撰寫一段標準 SQL，即可在 Google 專用骨幹私網內完成大規模分析：
+透過建立 BigQuery 與 Vertex AI 的遠端連線（Remote Connection），分析人員只需撰寫一段標準 SQL，即可在倉儲內直接呼叫 Gemini 完成分析：
 
 ```sql
+-- 示意用，實際可執行的版本見 Day 09 的 diagnosis/ 目錄
 -- 步驟 1：建立指向 Gemini 3.5 Flash-Lite 的遠端模型（Dataset 與連線皆位於 US 多區域）
 CREATE OR REPLACE MODEL `martech_dw.gemini_flash_lite`
   REMOTE WITH CONNECTION `us.vertex_ai_conn`
@@ -109,9 +110,9 @@ FROM
   );
 ```
 
-> 💡 輸入的查詢必須提供名為 `prompt` 的欄位，模型回覆會放在 `result` 欄位。遠端模型的建立、權限設定與錯誤處理，將在 Day 09 完整實作。
+> 💡 輸入的查詢必須提供名為 `prompt` 的欄位，模型回覆會放在 `result` 欄位。遠端模型的建立、權限設定與錯誤處理，將在 Day 09 完整實作，Day 14 起的看圖分析則改用不需要先建遠端模型的 `AI.GENERATE`。
 
-這代表著：**百萬行級別的廣告異常歸因與日誌診斷，完全在 Google 雲端骨幹網路內部完成**，大幅提升執行效能與安全性。
+這代表著：**資料不必離開倉儲**，先用 SQL 把數十萬筆日誌濃縮成少數幾筆異常摘要，再交給 Gemini 判讀（Day 09 實作）。
 
 ---
 
@@ -129,19 +130,19 @@ FROM
 本專案貫徹以下四層防爆機制：
 
 1. **GCP Always Free 免費額度極大化**：
-   - **BigQuery**：每月享有 10GB 儲存空間與 1TB 查詢額度，支撐 90 天 50 萬筆合成資料的日常查詢綽綽有餘。
+   - **BigQuery**：每月享有 10 GiB 儲存空間與 1 TiB 查詢額度，支撐 90 天約 52 萬筆合成資料的日常查詢綽綽有餘。
    - **Cloud Run**：每月提供 200 萬次免費請求，足以承載行銷決策 AI 代理與展示介面。
 2. **模型分級配置（Flash / Flash-Lite 為主，按需呼叫）**：
-   - 例行性、大批次的特徵擷取與格式化資料處理，優先採用 **Gemini 3.5 Flash-Lite**（輸入每百萬 Token 約 US$ 0.30）；需要較強理解力的一般任務則使用 **Gemini 3.6 Flash**。兩者都擁有極佳的首字回應時間（TTFT）與推論速度；以官方定價計算，Flash-Lite 的單價約為 Pro 的七分之一，3.6 Flash 約為 Pro 的六到七成；同時原生支援嚴格的結構化輸出（Structured Outputs），確保資料處理管線的穩定性。
+   - 例行性、大批次的特徵擷取與格式化資料處理，優先採用 **Gemini 3.5 Flash-Lite**（global 端點輸入每百萬 Token 約 US$ 0.30，在 BigQuery 只寫模型名稱時會走非 global 端點，為 US$ 0.33，詳見 Day 10、Day 14）；需要較強理解力的一般任務則使用 **Gemini 3.6 Flash**。以官方定價計算（global 端點），Flash-Lite 的輸入單價約為 Pro 的七分之一、輸出約五分之一，3.6 Flash 在 2026 年底前的優惠價約為 Pro 的三到四成，2027 年 1 月 1 日起恢復原價後約為六到七成五，兩者同時原生支援嚴格的結構化輸出（Structured Outputs），確保資料處理管線的穩定性。
    - 僅在需要複雜邏輯推理、多步驟歸因診斷與 AI 代理最終決策環節時，才按需呼叫 **Gemini 3.1 Pro（預覽版）**，精準發揮高階模型的推理優勢，達到最佳的成本效益比。
-   - ⚠️ **警惕思考 Token（Thinking Tokens）的費用陷阱**：Gemini 3 系列模型會先「思考」再回答，思考過程產生的 Token 在 API 中是以輸出 Token 計費的。若在數十萬筆的批次管線中使用過高的思考等級，Token 消耗量可能激增數倍，瞬間突破預算防線。因此在自動化資料處理流程中，應透過 `thinking_level` 參數設為 `minimal` 或 `low`（Gemini 3 系列無法完全關閉思考；3.5 Flash-Lite 預設即為 `minimal`，3.6 Flash 預設為 `medium`，3.1 Pro 最低只能設為 `low`）。
+   - ⚠️ **警惕思考 Token（Thinking Tokens）的費用陷阱**：Gemini 3 系列模型會先「思考」再回答，思考過程產生的 Token 在 API 中是以輸出 Token 計費的。若在數十萬筆的批次管線中使用過高的思考等級，Token 消耗量可能激增數倍，瞬間突破預算防線。因此在自動化資料處理流程中，應透過 `thinking_level` 參數設為 `minimal` 或 `low`（Gemini 3 系列無法完全關閉思考；3.5 Flash-Lite 預設即為 `minimal`，3.6 Flash 預設為 `medium`，3.1 Pro 最低只能設為 `low`）。後續實測補充：在 BigQuery 的 `model_params` 裡 `thinking_level` 要寫成大寫（如 `"LOW"`），本系列 Day 09 起的分類與批次題目改用 `thinking_budget` 設 0，詳見 Day 09、Day 10。
 3. **長上下文快取（Context Caching）技術實測**：
-   - 在批次分析多通路日誌與大量素材規範時，把系統提示詞與星狀綱要等重複內容固定放在提示詞開頭以提高快取命中率。**快取命中的輸入 Token 約以原價一成計費**（隱含式快取預設啟用；明確快取可保證折扣，但會依快取時間另計儲存費），實際降本幅度將在 Day 10 實測。
+   - 在批次分析多通路日誌與大量素材規範時，把系統提示詞與星狀綱要等重複內容固定放在提示詞開頭以提高快取命中率（固定內容至少要 4,096 個 Token 才會快取，Day 10 實測隱含式快取命中不穩定，要確實省到錢需用明確快取）。**快取命中的輸入 Token 約以原價一成計費**（隱含式快取預設啟用；明確快取可保證折扣，但會依快取時間另計儲存費），實際降本幅度將在 Day 10 實測。
 4. **硬性預算警報**：
-   - 專案已建立 NT$ 300（約 US$ 10）的雲端預算警報，在 50%、80%、100% 門檻即時以 Email 通知。請注意預算警報只會通知、不會自動停止服務，收到通知後需及時檢查用量。
+   - Day 03 會用 Terraform 建立 NT$ 300（約 US$ 10）的雲端預算警報，在 50%、80%、100% 門檻以 Email 通知（通知可能延遲數小時）。請注意預算警報只會通知、不會自動停止服務，收到通知後需及時檢查用量。
 
 > 💡 **工程思維亮點：避免過度架構化**  
-> 在生成式 AI 爆發的時代，許多架構設計傾向導入大量複雜的開源封裝框架與外部向量資料庫。然而在企業實務中，過多的中繼依賴往往造成「除錯黑箱」與「套件版本衝突」。本專案堅持「雲原生精簡主義」——以 BigQuery 原生能力、Google Gen AI SDK 與標準 Terraform IaC 為骨幹，去除冗餘抽象層，確保讀者皆能以最高透明度完整重現。
+> 在生成式 AI 爆發的時代，許多架構設計傾向導入大量複雜的開源封裝框架與外部向量資料庫。然而在企業實務中，過多的中繼依賴往往造成「除錯黑箱」與「套件版本衝突」。本專案堅持「雲原生精簡主義」——以 BigQuery 原生能力與標準 Terraform IaC 為骨幹，需要寫程式時才使用 Google Gen AI SDK，去除冗餘抽象層，確保讀者皆能以最高透明度完整重現。
 
 ---
 

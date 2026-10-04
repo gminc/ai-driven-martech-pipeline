@@ -52,7 +52,7 @@
 
   <!-- Header Banner -->
   <text x="45" y="42" class="title-text">BigQuery 與 Vertex AI 跨服務 IAM 連線與零信任授權架構圖</text>
-  <text x="45" y="66" class="subtitle-text">利用 BigQuery Connection 橋接 Vertex AI：無金鑰暴露、內部專網互通與最小權限原則實踐</text>
+  <text x="45" y="66" class="subtitle-text">利用 BigQuery Connection 橋接 Vertex AI：無金鑰暴露與最小權限原則實踐</text>
 
   <!-- ======================================================================== -->
   <!-- Step 1: BigQuery SQL Engine (Left) -->
@@ -99,7 +99,7 @@
     <rect x="12" y="160" width="186" height="92" class="inner-box" />
     <text x="20" y="182" class="section-label">架構防護核心</text>
     <text x="20" y="202" class="body-text">• 建立專用雲端連線抽象層</text>
-    <text x="20" y="221" class="body-text">• 阻絕外部網路直接暴露</text>
+    <text x="20" y="221" class="body-text">• 不產生 JSON 金鑰</text>
     <text x="20" y="240" class="body-text">• 無需人工配置靜態金鑰</text>
   </g>
 
@@ -116,13 +116,13 @@
     <text x="14" y="62" class="section-label">GCP 自動託管專用身分</text>
     
     <rect x="12" y="74" width="186" height="76" class="inner-box" />
-    <text x="20" y="95" class="code-sub">service-&lt;PROJECT_NUM&gt;</text>
+    <text x="20" y="95" class="code-sub">bqcx-&lt;編號&gt;-xxxx</text>
     <text x="20" y="112" class="code-sub">@gcp-sa-bigquery-...</text>
     <text x="20" y="134" class="code-text">roles/aiplatform.user</text>
     
     <rect x="12" y="160" width="186" height="92" class="inner-box-accent" />
     <text x="20" y="182" class="section-label" fill="#1a73e8">最小權限原則實踐</text>
-    <text x="20" y="202" class="body-text">• 僅授予 Vertex AI 呼叫權</text>
+    <text x="20" y="202" class="body-text">• 呼叫 Gemini＋唯讀素材庫</text>
     <text x="20" y="221" class="body-text">• 遵循最小權限存取原則</text>
     <text x="20" y="240" class="body-text" fill="#188038">• 零 JSON 私密金鑰暴露風險</text>
   </g>
@@ -142,7 +142,7 @@
     <rect x="12" y="74" width="186" height="76" class="inner-box" />
     <text x="20" y="96" class="code-text">gemini-3.5-flash-lite</text>
     <text x="20" y="116" class="body-text">呼叫位置: US 多區域</text>
-    <text x="20" y="136" class="body-text">百萬 Token Context 視窗</text>
+    <text x="20" y="136" class="body-text">模型依任務分級選用</text>
     
     <rect x="12" y="160" width="186" height="92" class="inner-box" />
     <text x="20" y="182" class="section-label">推論結果直回</text>
@@ -165,12 +165,12 @@
 
     <!-- Connector 3 -> 4 (Gap from 815 to 885, center 850) -->
     <path d="M 822 225 L 878 225" class="arrow" marker-end="url(#arrowhead)" />
-    <text x="850" y="215" class="arrow-label">內網呼叫</text>
+    <text x="850" y="215" class="arrow-label">呼叫模型</text>
   </g>
 
   <!-- Return Flow Dashed Arrow -->
   <path d="M 990 357 L 990 398 L 150 398 L 150 357" class="return-arrow" marker-end="url(#arrowgreen)" />
-  <text x="570" y="392" class="return-label">Google 專用骨幹內部網路零搬遷高速回傳（免外部資料傳輸費 Egress Fees・就地完成診斷）</text>
+  <text x="570" y="392" class="return-label">BigQuery 直接取回 Gemini 的回覆，結果留在倉儲內（就地完成診斷）</text>
 
   <!-- ======================================================================== -->
   <!-- Bottom Architecture Specification Bar -->

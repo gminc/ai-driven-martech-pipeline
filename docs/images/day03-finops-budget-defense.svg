@@ -48,7 +48,7 @@
 
   <!-- Header Banner -->
   <text x="45" y="42" class="title-text">AI MarTech 專案 FinOps 成本防護與三道防線架構圖</text>
-  <text x="45" y="66" class="subtitle-text">結合 GCP 免費配額上限、架構層自動化治理與 Cloud Billing 即時預算警報</text>
+  <text x="45" y="66" class="subtitle-text">結合 GCP 免費配額上限、架構層自動化治理與 Cloud Billing 預算警報</text>
 
   <!-- ======================================================================== -->
   <!-- Pillar 1: Monthly Free Quota Defense -->
@@ -57,7 +57,7 @@
     <rect width="336" height="370" class="pillar-card" />
     <rect width="336" height="48" class="pillar-header" />
     <text x="168" y="24" class="pillar-title">第一道防線：每月免費額度把關</text>
-    <text x="168" y="40" class="pillar-subtitle">優先消耗 GCP 永久免費配額，達成開發零花費</text>
+    <text x="168" y="40" class="pillar-subtitle">優先使用每月免費額度，基礎資源費用趨近於零</text>
 
     <!-- Item 1: BigQuery -->
     <g transform="translate(14, 58)">
@@ -65,8 +65,8 @@
       <text x="14" y="22" class="item-title">BigQuery 資料倉儲配額</text>
       <rect x="222" y="8" width="72" height="20" class="badge-green" />
       <text x="258" y="22" class="badge-text-green">NT$ 0 免費</text>
-      <text x="14" y="44" class="body-text">• 每月 10 GB 儲存空間（免費用滿）</text>
-      <text x="14" y="63" class="body-text">• 每月 1 TB 查詢額度（SQL 最佳化）</text>
+      <text x="14" y="44" class="body-text">• 每月 10 GiB 儲存空間（免費用滿）</text>
+      <text x="14" y="63" class="body-text">• 每月 1 TiB 查詢額度（SQL 最佳化）</text>
       <text x="14" y="82" class="sub-text">• 足以支應日常日誌分析（模型呼叫另計）</text>
     </g>
 
@@ -143,7 +143,7 @@
     <rect width="336" height="370" class="pillar-card" />
     <rect width="336" height="48" class="pillar-header" />
     <text x="168" y="24" class="pillar-title">第三道防線：雲端帳單預算警報</text>
-    <text x="168" y="40" class="pillar-subtitle">Cloud Billing 預算警報三階門檻即時通知</text>
+    <text x="168" y="40" class="pillar-subtitle">Cloud Billing 預算警報三階門檻 Email 通知</text>
 
     <!-- Threshold 50% -->
     <g transform="translate(14, 58)">
@@ -174,7 +174,7 @@
       <rect x="222" y="8" width="72" height="20" class="badge-red" />
       <text x="258" y="22" class="badge-text-red">100% 門檻</text>
       <text x="14" y="44" class="body-text">• 當月花費觸及 NT$ 300 (約 US$ 10)</text>
-      <text x="14" y="63" class="body-text">• 即時發送緊急警報 Email 通報</text>
+      <text x="14" y="63" class="body-text">• 發送超支警報 Email（可能延遲）</text>
       <text x="14" y="82" class="sub-text">• 警報不會停機，請立即檢查用量</text>
     </g>
   </g>

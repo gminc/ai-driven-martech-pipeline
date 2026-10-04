@@ -29,7 +29,7 @@ output "vertex_ai_connection_id" {
 }
 
 output "bq_connection_service_account" {
-  description = "GCP 自動託管之 BigQuery 連線服務帳號 (已賦予 roles/aiplatform.user)"
+  description = "GCP 自動託管之 BigQuery 連線服務帳號 (已賦予 roles/aiplatform.user 與素材儲存庫的 roles/storage.objectViewer)"
   value       = google_bigquery_connection.vertex_ai_connection.cloud_resource[0].service_account_id
 }
 

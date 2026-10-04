@@ -44,7 +44,7 @@
     <!-- Item: Google Ads / Stripe -->
     <rect x="16" y="146" width="228" height="74" class="highlight-box" />
     <text x="28" y="168" class="bold-text">Google Ads &amp; 電商事件</text>
-    <text x="28" y="188" class="body-text">跨通路成效日誌與 Stripe 交易</text>
+    <text x="28" y="188" class="body-text">跨通路成效日誌與綠界測試交易</text>
     <text x="28" y="206" class="code-text">原生整合 BigQuery Data Transfer</text>
 
     <!-- Item: Data Synthesizer -->
@@ -57,7 +57,7 @@
     <rect x="16" y="334" width="228" height="126" fill="#ffffff" stroke="#1a73e8" stroke-width="1" rx="6" ry="6" />
     <text x="28" y="356" class="bold-text" fill="#1a73e8">生態位優勢：零搬遷匯入</text>
     <text x="28" y="378" class="body-text">• 完全免去第三方 ETL 訂閱成本</text>
-    <text x="28" y="400" class="body-text">• 免除跨雲網路傳輸 (Egress) 費用</text>
+    <text x="28" y="400" class="body-text">• 資料不必匯出到倉儲外</text>
     <text x="28" y="422" class="body-text">• 資料不離開 Google Cloud 利於合規</text>
     <text x="28" y="444" class="body-text">• 行銷人熟悉之第一手維度完全保留</text>
   </g>
@@ -89,7 +89,7 @@
     <text x="28" y="316" class="bold-text">BigQuery ML 與 Always Free 極大化</text>
     <text x="28" y="338" class="body-text">• K-means 顧客畫像分群 &amp; LTV 預測</text>
     <text x="28" y="360" class="body-text">• 多觸點歸因 (MTA)：First / Last / Time-Decay</text>
-    <text x="28" y="382" class="body-text">• 每月 10 GB 儲存 + 1 TB 查詢完全免費</text>
+    <text x="28" y="382" class="body-text">• 每月 10 GiB 儲存 + 1 TiB 查詢免費</text>
     <text x="28" y="404" class="body-text">• 分區與分群 (Partition/Cluster) 降低掃描量</text>
     <text x="28" y="426" class="bold-text" fill="#1a73e8">✓ 實現極致 FinOps 零額外資料開銷</text>
   </g>
