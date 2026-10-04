@@ -1,0 +1,68 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1240 610" width="1240" height="610" font-family="'Noto Sans TC','Noto Sans CJK TC','PingFang TC','Microsoft JhengHei',sans-serif">
+  <defs>
+    <style>
+      .title { font-size: 22px; font-weight: 700; fill: #202124; }
+      .zone { font-size: 15px; font-weight: 700; fill: #3c4043; }
+      .note { font-size: 13px; fill: #5f6368; }
+      .m { font-size: 14px; font-weight: 700; fill: #202124; }
+      .v { font-size: 15px; font-weight: 700; fill: #202124; }
+      .s { font-size: 13px; fill: #3c4043; }
+      .hit { fill: #188038; }
+      .miss { fill: #ffffff; stroke: #9aa0a6; stroke-width: 1.2; stroke-dasharray: 4 3; }
+      .extra { fill: #e37400; }
+      .cost { fill: #1a73e8; }
+      .grid { stroke: #dadce0; stroke-width: 1; }
+      .panel { fill: #f8f9fa; stroke: #dadce0; stroke-width: 1; }
+    </style>
+  </defs>
+  <rect width="1240" height="610" fill="#ffffff"/>
+  <text x="40" y="44" class="title">Day 20｜難題：三個等級的 Gemini 抓到幾個落差、問 1,000 張多少錢</text>
+  <text x="40" y="70" class="note">題目是 Day 19 的廣告圖對頁面文字，計分落差 21 個，每個組合每張圖只問一次</text>
+
+  <text x="40" y="112" class="zone">抓到與多列（滿分 21 個）</text>
+  <rect x="44" y="124" width="14" height="14" class="hit"/><text x="64" y="136" class="s">抓到</text>
+  <rect x="114" y="124" width="14" height="14" class="miss"/><text x="134" y="136" class="s">漏掉</text>
+  <rect x="184" y="124" width="14" height="14" class="extra"/><text x="204" y="136" class="s">多列（列了但不是答案表的落差）</text>
+
+  <!-- 每個落差 18px，21 個＝378px，起點 x=220 -->
+  <text x="40" y="186" class="m">gemini-3.5-flash-lite</text>
+  <rect x="220" y="166" width="324" height="26" class="hit"/>
+  <rect x="544" y="166" width="54" height="26" class="miss"/>
+  <text x="608" y="185" class="v">18／21</text>
+  <rect x="220" y="198" width="90" height="14" class="extra"/>
+  <text x="318" y="210" class="s">多列 5 個</text>
+
+  <text x="40" y="276" class="m">gemini-3.6-flash</text>
+  <rect x="220" y="256" width="360" height="26" class="hit"/>
+  <rect x="580" y="256" width="18" height="26" class="miss"/>
+  <text x="608" y="275" class="v">20／21</text>
+  <rect x="220" y="288" width="18" height="14" class="extra"/>
+  <text x="246" y="300" class="s">多列 1 個</text>
+
+  <text x="40" y="366" class="m">gemini-3.1-pro-preview</text>
+  <rect x="220" y="346" width="378" height="26" class="hit"/>
+  <text x="608" y="365" class="v">21／21</text>
+  <text x="220" y="390" class="s">多列 0 個</text>
+
+  <line x1="690" y1="96" x2="690" y2="410" class="grid"/>
+
+  <text x="720" y="112" class="zone">問 1,000 張的費用（新台幣）</text>
+  <!-- 234.5 元＝360px，起點 x=720 -->
+  <rect x="720" y="166" width="51" height="26" class="cost"/>
+  <text x="781" y="185" class="v">32.9 元</text>
+  <text x="720" y="210" class="s">一批 22 張等 4.0 秒</text>
+
+  <rect x="720" y="256" width="126" height="26" class="cost"/>
+  <text x="856" y="275" class="v">81.8 元</text>
+  <text x="720" y="300" class="s">flash-lite 的 2.5 倍，一批 24 張等 7.6 秒</text>
+
+  <rect x="720" y="346" width="360" height="26" class="cost"/>
+  <text x="1090" y="365" class="v">234.5 元</text>
+  <text x="720" y="390" class="s">3.6-flash 的 2.9 倍，一批 23 張等 20.4 秒</text>
+
+  <text x="40" y="436" class="note">三個模型都沒有填清單上那兩種不存在的落差（贈品、保固），6 張沒有計分落差的廣告圖也都沒有被多列</text>
+  <rect x="40" y="466" width="1160" height="104" rx="10" class="panel"/>
+  <text x="60" y="496" class="zone">對照：簡單題（Day 16 看圖填欄位，分類欄位滿分 95 格）</text>
+  <text x="60" y="524" class="s">gemini-3.5-flash-lite　95／95，問 1,000 張新台幣 20.7 元</text>
+  <text x="60" y="548" class="s">gemini-3.6-flash　95／95，問 1,000 張新台幣 46.5 元，費用是 2.2 倍，沒有多對任何一格</text>
+</svg>

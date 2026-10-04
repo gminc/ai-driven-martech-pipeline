@@ -1,0 +1,92 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1240 600" width="1240" height="600" font-family="'Noto Sans TC','Noto Sans CJK TC','PingFang TC','Microsoft JhengHei',sans-serif">
+  <defs>
+    <style>
+      .title { font-size: 22px; font-weight: 700; fill: #202124; }
+      .zone { font-size: 14px; font-weight: 700; fill: #5f6368; }
+      .raw { fill: #f1f3f4; stroke: #dadce0; stroke-width: 1.2; }
+      .step { fill: #ffffff; stroke: #1a73e8; stroke-width: 1.4; }
+      .out { fill: #e6f4ea; stroke: #188038; stroke-width: 1.6; }
+      .key { fill: #fef7e0; stroke: #f29900; stroke-width: 1.6; }
+      .h { font-size: 15px; font-weight: 700; fill: #1a73e8; }
+      .hg { font-size: 15px; font-weight: 700; fill: #188038; }
+      .ho { font-size: 15px; font-weight: 700; fill: #b06000; }
+      .hr { font-size: 15px; font-weight: 700; fill: #3c4043; }
+      .t { font-size: 13px; fill: #3c4043; }
+      .to { font-size: 13px; fill: #5f4100; }
+      .note { font-size: 13px; fill: #5f6368; }
+      .flow { stroke: #1a73e8; stroke-width: 2.2; fill: none; }
+      .gflow { stroke: #188038; stroke-width: 2; fill: none; }
+      .oflow { stroke: #f29900; stroke-width: 2; fill: none; }
+    </style>
+    <marker id="a" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto"><path d="M0,0 L10,5 L0,10 z" fill="#1a73e8"/></marker>
+    <marker id="g" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto"><path d="M0,0 L10,5 L0,10 z" fill="#188038"/></marker>
+    <marker id="o" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto"><path d="M0,0 L10,5 L0,10 z" fill="#f29900"/></marker>
+  </defs>
+  <rect width="1240" height="600" fill="#ffffff"/>
+  <text x="40" y="44" class="title">Day 20｜同一份題目和答案，換三個等級的 Gemini 各做一次</text>
+  <text x="40" y="70" class="note">題目、欄位鎖法、輸出上限與思考設定都不動，每個組合只換 endpoint，問過的組合沿用舊紀錄不重問</text>
+
+  <text x="40" y="110" class="zone">分析資料集 martech_dw</text>
+
+  <rect x="40" y="126" width="280" height="138" rx="10" class="raw"/>
+  <text x="58" y="154" class="hr">① 簡單題（Day 16）</text>
+  <text x="58" y="178" class="t">一張廣告圖填五個固定欄位</text>
+  <text x="58" y="200" class="t">output_schema、上限 256、不思考</text>
+  <text x="58" y="224" class="note">滿分：分類 95 格，標題 24 格</text>
+  <text x="58" y="246" class="note">已有紀錄：flash-lite 24 筆</text>
+
+  <rect x="40" y="276" width="280" height="138" rx="10" class="raw"/>
+  <text x="58" y="304" class="hr">② 難題（Day 19 給文字）</text>
+  <text x="58" y="328" class="t">廣告圖＋頁面文字，列出落差</text>
+  <text x="58" y="350" class="t">response_schema、上限 2,048、思考 LOW</text>
+  <text x="58" y="374" class="note">滿分：計分落差 21 個</text>
+  <text x="58" y="396" class="note">已有紀錄：3.6-flash 24 筆</text>
+
+  <rect x="360" y="126" width="300" height="118" rx="10" class="step"/>
+  <text x="378" y="154" class="h">③ reuse.sql 沿用</text>
+  <text x="378" y="180" class="t">簡單題 × flash-lite（Day 16）</text>
+  <text x="378" y="202" class="t">難題 × 3.6-flash（Day 19）</text>
+  <text x="378" y="226" class="note">抄進 mm_bench_log 48 列，不呼叫模型</text>
+
+  <rect x="360" y="256" width="300" height="158" rx="10" class="step"/>
+  <text x="378" y="284" class="h">④ bench.sql 補問</text>
+  <text x="378" y="310" class="t">簡單題 × 3.6-flash</text>
+  <text x="378" y="332" class="t">難題 × flash-lite</text>
+  <text x="378" y="354" class="t">難題 × 3.1-pro-preview（global 端點）</text>
+  <text x="378" y="378" class="note">已有成功紀錄的不問，共 73 列（含重問 1 次）</text>
+  <text x="378" y="400" class="note">run.sh 呼叫前逐字比對，只換 endpoint</text>
+
+  <rect x="700" y="126" width="240" height="132" rx="10" class="step"/>
+  <text x="718" y="154" class="h">⑤ score.sql 對答案</text>
+  <text x="718" y="178" class="t">用 Day 16、Day 19 原本的規則</text>
+  <text x="718" y="200" class="t">沿用的兩組重新評分後</text>
+  <text x="718" y="222" class="t">要和當天的結果相同</text>
+  <text x="718" y="244" class="note">之後 20 項檢查、十段報表</text>
+
+  <rect x="980" y="126" width="220" height="132" rx="10" class="out"/>
+  <text x="998" y="154" class="hg">⑥ 成績</text>
+  <text x="998" y="178" class="t">簡單題：兩個模型 95／95</text>
+  <text x="998" y="200" class="t">難題：18、20、21（滿分 21）</text>
+  <text x="998" y="222" class="note">mart_bench_features</text>
+  <text x="998" y="244" class="note">mart_bench_gaps</text>
+
+  <text x="700" y="306" class="zone">答案資料集 martech_gt</text>
+  <rect x="700" y="322" width="240" height="92" rx="10" class="key"/>
+  <text x="718" y="350" class="ho">三張答案表，今天沒有改</text>
+  <text x="718" y="374" class="to">Day 15、16、19 就 commit 了</text>
+  <text x="718" y="396" class="to">每次評分記一次指紋</text>
+
+  <path d="M338,185 L338,335" class="flow"/>
+  <path d="M320,185 L356,185" class="flow" marker-end="url(#a)"/>
+  <path d="M320,335 L356,335" class="flow" marker-end="url(#a)"/>
+  <path d="M660,185 L696,185" class="flow" marker-end="url(#a)"/>
+  <path d="M660,335 L680,335 L680,215 L696,215" class="flow" marker-end="url(#a)"/>
+  <path d="M940,190 L976,190" class="gflow" marker-end="url(#g)"/>
+  <path d="M900,322 L900,262" class="oflow" marker-end="url(#o)"/>
+
+  <text x="40" y="462" class="zone">結果</text>
+  <text x="40" y="490" class="note">簡單題最便宜的 flash-lite 就拿滿分，3.6-flash 的費用是 2.2 倍，沒有多對任何一格</text>
+  <text x="40" y="514" class="note">難題照價格排開：flash-lite 漏 3 個、多列 5 個，3.6-flash 漏 1 個、多列 1 個，Pro 全部抓到、沒有多列</text>
+  <text x="40" y="538" class="note">難題問 1,000 張的費用是新台幣 32.9、81.8、234.5 元</text>
+  <text x="40" y="572" class="note">費用：今天新問的 73 次約新台幣 7.6 元</text>
+</svg>
