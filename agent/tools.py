@@ -21,6 +21,10 @@ DATA_START, DATA_END = "2026-06-19", "2026-09-16"
 ATTRIBUTION_MODELS = {"first_touch": "credit_first", "last_touch": "credit_last", "time_decay": "credit_decay"}
 CHANNELS = ("meta", "line", "google_cpc", "all")
 METRICS = ("ctr", "cvr")
+# Day 22 新增：廣告花費
+AD_START, AD_END = "2026-06-19", "2026-09-16"
+SPEND_GROUPS = {"creative": "creative_id", "ad_group": "ad_group_id", "campaign": "utm_campaign", "channel": "channel"}
+AD_CHANNELS = ("meta", "line", "google_cpc", "all")
 
 # ── 宣告：寫給模型看的，說明文字決定它什麼時候會選這個工具 ──────────────────
 DECLARATIONS = [
@@ -90,6 +94,35 @@ DECLARATIONS = [
         },
     },
 ]
+
+# Day 22 的助理多一個查廣告花費的工具，另外組一份清單，上面那份 Day 21 的實驗還在用所以不動
+SPEND_DECLARATION = {
+    "name": "get_ad_spend",
+    "description": (
+        "查一段期間內的廣告花費、曝光、點擊、點擊率與每次點擊成本，可以依素材（單支廣告）、廣告群組、活動或通路彙總，"
+        "依花費由高到低排序，用來回答「哪支廣告最貴」「某個通路花了多少」「上週的廣告費是多少」這類問題。"
+        f"資料期間是 {AD_START} 到 {AD_END}，金額是新台幣，通路只有 meta、line、google_cpc。"
+    ),
+    "parameters": {
+        "type": "OBJECT",
+        "properties": {
+            "start_date": {"type": "STRING", "description": "起始日，格式 YYYY-MM-DD"},
+            "end_date": {"type": "STRING", "description": "結束日（含當天），格式 YYYY-MM-DD"},
+            "group_by": {
+                "type": "STRING",
+                "enum": list(SPEND_GROUPS),
+                "description": "彙總的單位：creative 是單支廣告素材、ad_group 是廣告群組、campaign 是活動、channel 是通路。使用者說「哪支廣告」時用 creative",
+            },
+            "channel": {
+                "type": "STRING",
+                "enum": list(AD_CHANNELS),
+                "description": "只看某一個通路時填 meta、line 或 google_cpc，沒有指定時用 all",
+            },
+        },
+        "required": ["start_date", "end_date", "group_by"],
+    },
+}
+DECLARATIONS_V2 = DECLARATIONS + [SPEND_DECLARATION]
 
 FEATURE_LABELS = {"person": "有人物", "cta": "按鈕在右下", "warm": "暖色系", "text": "文字多"}
 
@@ -189,7 +222,47 @@ ORDER BY lift DESC"""
     return {"metric": metric, "rows": rows}, billed
 
 
+def get_ad_spend(client, args):
+    _only(args, ("start_date", "end_date", "group_by", "channel"), "get_ad_spend")
+    group_by = args.get("group_by")
+    if not isinstance(group_by, str) or group_by not in SPEND_GROUPS:
+        raise BadArgs(f"group_by 只能是 {', '.join(SPEND_GROUPS)}，拿到「{group_by}」")
+    channel = args.get("channel", "all")
+    if not isinstance(channel, str) or channel not in AD_CHANNELS:
+        raise BadArgs(f"channel 只能是 {', '.join(AD_CHANNELS)}，拿到「{channel}」")
+    if not args.get("start_date") or not args.get("end_date"):
+        raise BadArgs("start_date 和 end_date 都要給")
+    start = _date(args.get("start_date"), AD_START, "start_date")
+    end = _date(args.get("end_date"), AD_END, "end_date")
+    if start > end:
+        raise BadArgs("start_date 不能晚於 end_date")
+    if end < AD_START or start > AD_END:
+        raise BadArgs(f"資料期間是 {AD_START} 到 {AD_END}，{start} 到 {end} 沒有資料")
+    column = SPEND_GROUPS[group_by]   # 欄位名稱來自白名單對照表
+    sql = f"""
+SELECT {column} AS {group_by},
+  STRING_AGG(DISTINCT channel ORDER BY channel) AS channel,
+  CAST(ROUND(SUM(cost)) AS INT64) AS cost_twd,
+  SUM(impressions) AS impressions,
+  SUM(clicks) AS clicks,
+  ROUND(SAFE_DIVIDE(SUM(clicks), SUM(impressions)), 4) AS ctr,
+  ROUND(SAFE_DIVIDE(CAST(SUM(cost) AS FLOAT64), SUM(clicks)), 2) AS cpc_twd,
+  COUNT(DISTINCT date) AS days_with_data
+FROM {DATASET}.fct_ad_daily
+WHERE date BETWEEN @start_date AND @end_date
+  AND (@channel = 'all' OR channel = @channel)
+GROUP BY {column}
+ORDER BY cost_twd DESC, {group_by}"""
+    rows, billed = _query(client, sql, [
+        bigquery.ScalarQueryParameter("start_date", "DATE", start),
+        bigquery.ScalarQueryParameter("end_date", "DATE", end),
+        bigquery.ScalarQueryParameter("channel", "STRING", channel)])
+    return {"start_date": start, "end_date": end, "group_by": group_by, "channel": channel,
+            "rows_returned": len(rows), "max_rows": MAX_ROWS, "rows": rows}, billed
+
+
 TOOLS = {
+    "get_ad_spend": get_ad_spend,
     "get_channel_attribution": get_channel_attribution,
     "get_anomaly_diagnosis": get_anomaly_diagnosis,
     "get_creative_feature_lift": get_creative_feature_lift,
