@@ -239,9 +239,10 @@ def get_ad_spend(client, args):
     if end < AD_START or start > AD_END:
         raise BadArgs(f"資料期間是 {AD_START} 到 {AD_END}，{start} 到 {end} 沒有資料")
     column = SPEND_GROUPS[group_by]   # 欄位名稱來自白名單對照表
+    # 依通路彙總時通路本身就是第一欄，其他彙總單位另外帶出它屬於哪個通路
+    channel_col = "" if group_by == "channel" else "\n  STRING_AGG(DISTINCT channel ORDER BY channel) AS channel,"
     sql = f"""
-SELECT {column} AS {group_by},
-  STRING_AGG(DISTINCT channel ORDER BY channel) AS channel,
+SELECT {column} AS {group_by},{channel_col}
   CAST(ROUND(SUM(cost)) AS INT64) AS cost_twd,
   SUM(impressions) AS impressions,
   SUM(clicks) AS clicks,
