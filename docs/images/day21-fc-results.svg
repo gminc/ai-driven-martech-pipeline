@@ -1,0 +1,75 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1240 640" width="1240" height="640" font-family="'Noto Sans TC','Noto Sans CJK TC','PingFang TC','Microsoft JhengHei',sans-serif">
+  <defs>
+    <style>
+      .title { font-size: 22px; font-weight: 700; fill: #202124; }
+      .note { font-size: 13px; fill: #5f6368; }
+      .head { font-size: 15px; font-weight: 700; fill: #3c4043; }
+      .q { font-size: 14px; font-weight: 700; fill: #202124; }
+      .kind { font-size: 12.5px; fill: #5f6368; }
+      .t { font-size: 14px; fill: #3c4043; }
+      .ok { fill: #e6f4ea; stroke: #188038; stroke-width: 1.4; }
+      .bad { fill: #fce8e6; stroke: #d93025; stroke-width: 1.4; }
+      .tagok { font-size: 12.5px; font-weight: 700; fill: #188038; }
+      .tagbad { font-size: 12.5px; font-weight: 700; fill: #c5221f; }
+      .line { stroke: #dadce0; stroke-width: 1; }
+    </style>
+  </defs>
+  <rect width="1240" height="640" fill="#ffffff"/>
+  <text x="40" y="44" class="title">Day 21｜同樣六個問題，有工具和沒有工具各問一次</text>
+  <text x="40" y="70" class="note">模型 gemini-3.6-flash、溫度 0、系統指示相同，唯一的差別是有沒有附上三個查詢工具的定義，每題每種情況只問一次</text>
+  <text x="40" y="112" class="head">問題</text>
+  <text x="400" y="112" class="head">有工具</text>
+  <text x="820" y="112" class="head">沒有工具</text>
+  <line x1="40" y1="124" x2="1200" y2="124" class="line"/>
+  <text x="40" y="168" class="q">時間衰減下哪個通路功勞最多</text>
+  <text x="40" y="190" class="kind">一個工具</text>
+  <rect x="400" y="140" width="380" height="62" rx="8" class="ok"/>
+  <text x="416" y="166" class="t">直接流量約 620 筆</text>
+  <text x="416" y="188" class="tagok">對得上資料表</text>
+  <rect x="820" y="140" width="380" height="62" rx="8" class="ok"/>
+  <text x="836" y="166" class="t">說查不到，沒有編數字</text>
+  <text x="836" y="188" class="tagok">沒有編數字</text>
+  <text x="40" y="242" class="q">meta 的成效出過哪些狀況</text>
+  <text x="40" y="264" class="kind">一個工具</text>
+  <rect x="400" y="214" width="380" height="62" rx="8" class="ok"/>
+  <text x="416" y="240" class="t">素材疲乏、競價變貴</text>
+  <text x="416" y="262" class="tagok">對得上資料表</text>
+  <rect x="820" y="214" width="380" height="62" rx="8" class="bad"/>
+  <text x="836" y="240" class="t">iOS 14.5、API 異常等泛用原因</text>
+  <text x="836" y="262" class="tagbad">資料表裡沒有</text>
+  <text x="40" y="316" class="q">有人物的圖點擊率會不會比較高</text>
+  <text x="40" y="338" class="kind">一個工具</text>
+  <rect x="400" y="288" width="380" height="62" rx="8" class="ok"/>
+  <text x="416" y="314" class="t">1.282 倍</text>
+  <text x="416" y="336" class="tagok">對得上資料表</text>
+  <rect x="820" y="288" width="380" height="62" rx="8" class="bad"/>
+  <text x="836" y="314" class="t">「約 20% 到 50%」的泛稱</text>
+  <text x="836" y="336" class="tagbad">資料表裡沒有</text>
+  <text x="40" y="390" class="q">meta 兩種算法的功勞與異常原因</text>
+  <text x="40" y="412" class="kind">兩個工具</text>
+  <rect x="400" y="362" width="380" height="62" rx="8" class="ok"/>
+  <text x="416" y="388" class="t">380 筆與 596.6 筆，原因也對</text>
+  <text x="416" y="410" class="tagok">對得上資料表</text>
+  <rect x="820" y="362" width="380" height="62" rx="8" class="bad"/>
+  <text x="836" y="388" class="t">編出 1,250 筆與 980 筆</text>
+  <text x="836" y="410" class="tagbad">資料表裡沒有</text>
+  <text x="40" y="464" class="q">時間衰減是什麼意思</text>
+  <text x="40" y="486" class="kind">不需要查</text>
+  <rect x="400" y="436" width="380" height="62" rx="8" class="ok"/>
+  <text x="416" y="462" class="t">沒有呼叫工具，直接解釋</text>
+  <text x="416" y="484" class="tagok">不需要資料</text>
+  <rect x="820" y="436" width="380" height="62" rx="8" class="ok"/>
+  <text x="836" y="462" class="t">正確解釋</text>
+  <text x="836" y="484" class="tagok">不需要資料</text>
+  <text x="40" y="538" class="q">上個月 TikTok 廣告花了多少</text>
+  <text x="40" y="560" class="kind">查不到</text>
+  <rect x="400" y="510" width="380" height="62" rx="8" class="ok"/>
+  <text x="416" y="536" class="t">回答沒有這份資料</text>
+  <text x="416" y="558" class="tagok">沒有編數字</text>
+  <rect x="820" y="510" width="380" height="62" rx="8" class="bad"/>
+  <text x="836" y="536" class="t">編出新台幣 125,000 元、ROAS 3.5</text>
+  <text x="836" y="558" class="tagbad">資料表裡沒有</text>
+  <line x1="40" y1="586" x2="1200" y2="586" class="line"/>
+  <text x="40" y="612" class="note">有工具：需要查的四題都選對工具、參數正確，10 次模型呼叫約新台幣 0.40 元</text>
+  <text x="40" y="634" class="note">沒有工具：四題給了資料表裡沒有的內容，6 次模型呼叫約新台幣 0.48 元</text>
+</svg>

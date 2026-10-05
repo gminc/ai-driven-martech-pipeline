@@ -1,0 +1,108 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1240 600" width="1240" height="600" font-family="'Noto Sans TC','Noto Sans CJK TC','PingFang TC','Microsoft JhengHei',sans-serif">
+  <defs>
+    <style>
+      .title { font-size: 22px; font-weight: 700; fill: #202124; }
+      .zone { font-size: 14px; font-weight: 700; fill: #5f6368; }
+      .raw { fill: #f1f3f4; stroke: #dadce0; stroke-width: 1.2; }
+      .step { fill: #ffffff; stroke: #1a73e8; stroke-width: 1.4; }
+      .out { fill: #e6f4ea; stroke: #188038; stroke-width: 1.6; }
+      .key { fill: #fef7e0; stroke: #f29900; stroke-width: 1.6; }
+      .band { fill: #f8f9fa; stroke: #dadce0; stroke-width: 1; stroke-dasharray: 5 4; }
+      .h { font-size: 15px; font-weight: 700; fill: #1a73e8; }
+      .hg { font-size: 15px; font-weight: 700; fill: #188038; }
+      .ho { font-size: 15px; font-weight: 700; fill: #b06000; }
+      .hr { font-size: 15px; font-weight: 700; fill: #3c4043; }
+      .t { font-size: 13px; fill: #3c4043; }
+      .to { font-size: 13px; fill: #5f4100; }
+      .note { font-size: 13px; fill: #5f6368; }
+      .n { font-size: 13px; font-weight: 700; fill: #ffffff; }
+      .lbl { font-size: 12.5px; fill: #3c4043; }
+      .flow { stroke: #1a73e8; stroke-width: 2.2; fill: none; }
+      .gflow { stroke: #188038; stroke-width: 2.2; fill: none; }
+      .oflow { stroke: #f29900; stroke-width: 2.2; fill: none; }
+    </style>
+    <marker id="a" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto"><path d="M0,0 L10,5 L0,10 z" fill="#1a73e8"/></marker>
+    <marker id="g" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto"><path d="M0,0 L10,5 L0,10 z" fill="#188038"/></marker>
+    <marker id="o" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto"><path d="M0,0 L10,5 L0,10 z" fill="#f29900"/></marker>
+  </defs>
+  <rect width="1240" height="600" fill="#ffffff"/>
+  <text x="40" y="44" class="title">Day 21｜模型只提出要求，真正去查資料庫的是我們的程式</text>
+  <text x="40" y="70" class="note">Gemini 沒有連上 BigQuery，它回傳的是「要呼叫哪個工具、參數是什麼」，檢查和查詢都在程式這一側</text>
+
+  <!-- 三個區塊 -->
+  <text x="40" y="112" class="zone">使用者</text>
+  <text x="330" y="112" class="zone">我們的程式（agent/ask.py、agent/tools.py）</text>
+  <text x="900" y="112" class="zone">Vertex AI</text>
+
+  <rect x="310" y="124" width="520" height="340" rx="10" class="band"/>
+
+  <!-- 使用者 -->
+  <rect x="40" y="150" width="210" height="92" rx="8" class="raw"/>
+  <text x="56" y="178" class="hr">問題</text>
+  <text x="56" y="202" class="t">用時間衰減算，哪個通路</text>
+  <text x="56" y="222" class="t">分到的訂單功勞最多</text>
+
+  <rect x="40" y="356" width="210" height="92" rx="8" class="out"/>
+  <text x="56" y="384" class="hg">回答</text>
+  <text x="56" y="408" class="t">直接流量最多，約 620 筆</text>
+  <text x="56" y="428" class="t">數字來自查詢結果</text>
+
+  <!-- 程式：送出 -->
+  <rect x="330" y="150" width="220" height="92" rx="8" class="step"/>
+  <text x="346" y="178" class="h">送出問題與工具定義</text>
+  <text x="346" y="202" class="t">三個工具的名稱、說明、參數</text>
+  <text x="346" y="222" class="t">每次呼叫都要一起送</text>
+
+  <!-- 程式：檢查與查詢 -->
+  <rect x="590" y="262" width="220" height="92" rx="8" class="key"/>
+  <text x="606" y="290" class="ho">檢查參數再查表</text>
+  <text x="606" y="314" class="to">白名單、日期格式、查詢參數</text>
+  <text x="606" y="334" class="to">SQL 寫死，最多掃 100 MB</text>
+
+  <!-- 程式：交回 -->
+  <rect x="330" y="356" width="220" height="92" rx="8" class="step"/>
+  <text x="346" y="384" class="h">把結果交回模型</text>
+  <text x="346" y="408" class="t">模型上一輪的內容原樣放回</text>
+  <text x="346" y="428" class="t">再接上每個工具的結果</text>
+
+  <!-- Gemini -->
+  <rect x="900" y="150" width="300" height="298" rx="10" class="step"/>
+  <text x="918" y="180" class="h">Gemini（gemini-3.6-flash）</text>
+  <text x="918" y="206" class="t">只看得到工具的名稱、說明與參數</text>
+  <text x="918" y="226" class="t">看不到 SQL，也碰不到資料表</text>
+  <rect x="918" y="246" width="264" height="84" rx="6" class="raw"/>
+  <text x="930" y="270" class="hr">第 1 次呼叫：回傳要求</text>
+  <text x="930" y="292" class="lbl">get_channel_attribution</text>
+  <text x="930" y="312" class="lbl">attribution_model = time_decay</text>
+  <rect x="918" y="344" width="264" height="84" rx="6" class="out"/>
+  <text x="930" y="368" class="hg">第 2 次呼叫：寫出回答</text>
+  <text x="930" y="390" class="lbl">根據查到的六個通路整理成文字</text>
+  <text x="930" y="410" class="lbl">不需要查的問題第 1 次就直接回答</text>
+
+  <!-- BigQuery -->
+  <rect x="590" y="492" width="220" height="76" rx="8" class="raw"/>
+  <text x="606" y="520" class="hr">BigQuery（martech_dw）</text>
+  <text x="606" y="544" class="t">Day 08、09、17 建好的表</text>
+
+  <!-- 箭頭 -->
+  <path d="M250,196 L326,196" class="flow" marker-end="url(#a)"/>
+  <circle cx="288" cy="176" r="11" fill="#1a73e8"/><text x="284" y="181" class="n">1</text>
+
+  <path d="M550,196 L896,196" class="flow" marker-end="url(#a)"/>
+
+  <path d="M914,288 L814,300" class="oflow" marker-end="url(#o)"/>
+  <circle cx="862" cy="276" r="11" fill="#f29900"/><text x="858" y="281" class="n">2</text>
+
+  <path d="M700,354 L700,488" class="oflow" marker-end="url(#o)"/>
+  <circle cx="724" cy="424" r="11" fill="#f29900"/><text x="720" y="429" class="n">3</text>
+
+  <path d="M590,330 L500,330 L500,352" class="oflow" marker-end="url(#o)"/>
+
+  <path d="M550,402 L914,390" class="flow" marker-end="url(#a)"/>
+  <circle cx="862" cy="412" r="11" fill="#1a73e8"/><text x="858" y="417" class="n">4</text>
+
+  <path d="M1050,448 L1050,476 L145,476 L145,452" class="gflow" marker-end="url(#g)"/>
+  <circle cx="288" cy="476" r="11" fill="#188038"/><text x="284" y="481" class="n">5</text>
+
+  <text x="330" y="590" class="note">參數沒通過檢查時不會查 BigQuery，只把錯誤訊息當成工具的結果回給模型</text>
+</svg>
