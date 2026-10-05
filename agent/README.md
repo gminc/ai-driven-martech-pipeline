@@ -50,7 +50,7 @@
 - q4 在同一輪提出三個呼叫（歸因兩次、診斷一次），所以也只呼叫了模型兩次
 - 三個工具的定義約 600 個 Token，每次呼叫模型都會算進輸入
 - 沒有工具時思考 Token 用了 3,364 個，有工具時 907 個，所以這一輪沒有工具反而比較貴
-- 文章：[Day 21｜教 AI 自己去查資料庫，省得它在那邊瞎猜](../docs/articles/day21-function-calling.md)
+- 文章：[Day 21｜教 AI 自己去查資料庫免得它在那邊瞎猜](../docs/articles/day21-function-calling.md)
 
 ## 限制
 
