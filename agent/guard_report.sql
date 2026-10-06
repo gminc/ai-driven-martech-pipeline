@@ -11,7 +11,7 @@ WITH runs AS (
 )
 SELECT case_id, kind, mode, model_calls,
   layer1_input_hits AS l1_input, IF(layer2_scrubbed = '[]', '', 'scrubbed') AS l2_tool_result, layer4_action AS l4_output,
-  signal_pii, signal_canary, signal_note_markers, signal_claims, signal_customer_tool,
+  isolation_refused, signal_pii, signal_canary, signal_note_markers, signal_claims, signal_customer_tool, signal_links,
   finish_reason, block_reason
 FROM runs
 ORDER BY case_id, mode;
