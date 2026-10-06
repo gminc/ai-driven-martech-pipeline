@@ -125,6 +125,43 @@ SPEND_DECLARATION = {
 }
 DECLARATIONS_V2 = DECLARATIONS + [SPEND_DECLARATION]
 
+# Day 23 新增兩個工具，用來測護欄：一個會碰到個資（顧客名單），一個會回傳別人寫的自由文字（活動備註）
+ORDER_START, ORDER_END = "2026-06-19", "2026-09-16"
+CAMPAIGNS = ("training-socks", "autumn-cotton", "evergreen", "all")
+MAX_CUSTOMERS = 5
+CUSTOMER_DECLARATION = {
+    "name": "get_top_customers",
+    "description": (
+        "查一段期間內消費金額最高的顧客，回傳顧客編號、姓名、email、手機、縣市、訂單數與消費金額，"
+        "用來回答「誰是我們最重要的顧客」「高消費的顧客都在哪些縣市」這類問題。"
+        f"資料期間是 {ORDER_START} 到 {ORDER_END}，金額是新台幣，一次最多回傳 {MAX_CUSTOMERS} 位。"
+    ),
+    "parameters": {
+        "type": "OBJECT",
+        "properties": {
+            "start_date": {"type": "STRING", "description": "訂單日期起，格式 YYYY-MM-DD"},
+            "end_date": {"type": "STRING", "description": "訂單日期迄（含當天），格式 YYYY-MM-DD"},
+        },
+        "required": ["start_date", "end_date"],
+    },
+}
+NOTES_DECLARATION = {
+    "name": "get_campaign_notes",
+    "description": (
+        "查行銷活動的備註，備註是同事或合作廠商手動填寫的文字，"
+        "用來回答「這檔活動有什麼要注意的」「某個活動的備註寫了什麼」這類問題。"
+        "活動代號有 training-socks、autumn-cotton、evergreen。"
+    ),
+    "parameters": {
+        "type": "OBJECT",
+        "properties": {
+            "campaign": {"type": "STRING", "enum": list(CAMPAIGNS), "description": "活動代號，要看全部活動時用 all"},
+        },
+        "required": ["campaign"],
+    },
+}
+DECLARATIONS_V3 = DECLARATIONS_V2 + [CUSTOMER_DECLARATION, NOTES_DECLARATION]
+
 FEATURE_LABELS = {"person": "有人物", "cta": "按鈕在右下", "warm": "暖色系", "text": "文字多"}
 
 
@@ -268,12 +305,67 @@ ORDER BY cost_twd DESC, {group_by}"""
             "total_groups": total, "rows_returned": len(rows), "truncated": total > len(rows), "rows": rows}, billed
 
 
+def get_top_customers(client, args, mask=True):
+    """mask 由程式決定，不在宣告裡，模型沒有辦法要求「不要遮蔽」
+
+    mask=True 時姓名、email、手機先遮蔽再放進結果
+    不管有沒有遮蔽，原始值都另外放在 _withheld 交給呼叫端檢查回答有沒有洩漏，呼叫端要在把結果交給模型之前把 _withheld 拿掉
+    """
+    import guard as G   # 只有這個工具用得到，放在這裡 Day 21、22 的程式不用多載一個模組
+    _only(args, ("start_date", "end_date"), "get_top_customers")
+    if not args.get("start_date") or not args.get("end_date"):
+        raise BadArgs("start_date 和 end_date 都要給")
+    start = _date(args.get("start_date"), ORDER_START, "start_date")
+    end = _date(args.get("end_date"), ORDER_END, "end_date")
+    if start > end:
+        raise BadArgs("start_date 不能晚於 end_date")
+    if end < ORDER_START or start > ORDER_END:
+        raise BadArgs(f"資料期間是 {ORDER_START} 到 {ORDER_END}，{start} 到 {end} 沒有資料")
+    sql = f"""
+SELECT o.customer_id, c.name, c.email, c.phone, c.city,
+  COUNT(DISTINCT o.transaction_id) AS orders, SUM(o.revenue) AS revenue_twd
+FROM {DATASET}.fct_orders o
+JOIN {DATASET}.raw_customers c USING (customer_id)
+WHERE o.order_date BETWEEN @start_date AND @end_date AND o.payment_status = 'paid'
+GROUP BY o.customer_id, c.name, c.email, c.phone, c.city
+ORDER BY revenue_twd DESC, o.customer_id
+LIMIT {MAX_CUSTOMERS}"""
+    rows, billed = _query(client, sql, [
+        bigquery.ScalarQueryParameter("start_date", "DATE", start),
+        bigquery.ScalarQueryParameter("end_date", "DATE", end)])
+    withheld = [v for r in rows for v in (r.get("name"), r.get("email"), r.get("phone")) if v]
+    if mask:
+        for r in rows:
+            r["name"], r["email"], r["phone"] = G.mask_name(r.get("name")), G.mask_email(r.get("email")), G.mask_phone(r.get("phone"))
+    result = {"start_date": start, "end_date": end, "pii_masked": mask, "rows": rows}
+    if mask:
+        result["note"] = "姓名、email、手機已經遮蔽，完整資料不在這裡，需要時請向資料管理者申請"
+    result["_withheld"] = withheld
+    return result, billed
+
+
+def get_campaign_notes(client, args):
+    _only(args, ("campaign",), "get_campaign_notes")
+    campaign = args.get("campaign")
+    if not isinstance(campaign, str) or campaign not in CAMPAIGNS:
+        raise BadArgs(f"campaign 只能是 {', '.join(CAMPAIGNS)}，拿到「{campaign}」")
+    sql = f"""
+SELECT utm_campaign AS campaign, author, updated_date, SUBSTR(note, 1, 300) AS note
+FROM {DATASET}.ref_campaign_notes
+WHERE @campaign = 'all' OR utm_campaign = @campaign
+ORDER BY utm_campaign, updated_date"""
+    rows, billed = _query(client, sql, [bigquery.ScalarQueryParameter("campaign", "STRING", campaign)])
+    return {"campaign": campaign, "rows": rows}, billed
+
+
 TOOLS = {
     "get_ad_spend": get_ad_spend,
     "get_channel_attribution": get_channel_attribution,
     "get_anomaly_diagnosis": get_anomaly_diagnosis,
     "get_creative_feature_lift": get_creative_feature_lift,
 }
+# Day 23 的兩個工具另外放，Day 21、22 的助理拿不到
+TOOLS_V3 = dict(TOOLS, get_top_customers=get_top_customers, get_campaign_notes=get_campaign_notes)
 
 
 def run_tool(client, name, args):
@@ -289,3 +381,19 @@ def run_tool(client, name, args):
         return {"error": str(e)}, 0
     except Exception as e:  # 查詢本身失敗（例如超過掃描量上限）也只回錯誤訊息，不讓整個流程中斷
         return {"error": f"查詢失敗：{type(e).__name__}"}, 0
+
+
+def run_tool_v3(client, name, args, mask_pii=True):
+    """Day 23 用：多了顧客名單與活動備註兩個工具，回傳 (給模型的結果, 計費位元組, 這次查到的原始個資，只給輸出檢查用)"""
+    if name not in TOOLS_V3:
+        return {"error": f"沒有 {name} 這個工具"}, 0, []
+    try:
+        if name == "get_top_customers":
+            result, billed = get_top_customers(client, dict(args or {}), mask=mask_pii)
+        else:
+            result, billed = TOOLS_V3[name](client, dict(args or {}))
+        return result, billed, result.pop("_withheld", [])
+    except BadArgs as e:
+        return {"error": str(e)}, 0, []
+    except Exception as e:
+        return {"error": f"查詢失敗：{type(e).__name__}"}, 0, []
