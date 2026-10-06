@@ -1,0 +1,72 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1240 652" width="1240" height="652" font-family="'Noto Sans TC','Noto Sans CJK TC','PingFang TC','Microsoft JhengHei',sans-serif">
+  <defs>
+    <style>
+      .title { font-size: 22px; font-weight: 700; fill: #202124; }
+      .note { font-size: 13px; fill: #5f6368; }
+      .head { font-size: 15px; font-weight: 700; fill: #3c4043; }
+      .q { font-size: 14px; font-weight: 700; fill: #202124; }
+      .tool { font-size: 12.5px; fill: #188038; }
+      .notool { font-size: 12.5px; fill: #b06000; }
+      .num { font-size: 13px; font-weight: 700; fill: #202124; }
+      .lbl { font-size: 12.5px; fill: #5f6368; }
+      .bar { fill: #1a73e8; }
+      .bar2 { fill: #8ab4f8; }
+      .line { stroke: #dadce0; stroke-width: 1; }
+      .axis { stroke: #9aa0a6; stroke-width: 1.2; }
+      .cap { stroke: #d93025; stroke-width: 2; }
+      .capt { font-size: 12.5px; font-weight: 700; fill: #c5221f; }
+    </style>
+  </defs>
+  <rect width="1240" height="652" fill="#ffffff"/>
+  <text x="40" y="44" class="title">Day 22｜對話越長，每一次呼叫要重送的紀錄越多</text>
+  <text x="40" y="70" class="note">五輪對話共呼叫模型 8 次，橫條是每一次的輸入 Token，最後一次是第一次的 5.9 倍，合計約新台幣 1.09 元</text>
+  <text x="40" y="112" class="head">我問的，和模型查了什麼</text>
+  <text x="470" y="112" class="head">每一次呼叫模型的輸入 Token</text>
+  <line x1="40" y1="124" x2="1200" y2="124" class="line"/>
+  <text x="40" y="160" class="q">1. 上週哪支廣告花最多錢？</text>
+  <text x="58" y="182" class="tool">查花費（依單支廣告）</text>
+  <rect x="470" y="146" width="74" height="22" rx="3" class="bar"/>
+  <text x="552" y="162" class="num">1,056</text>
+  <text x="606" y="162" class="lbl">問題</text>
+  <rect x="470" y="182" width="170" height="22" rx="3" class="bar2"/>
+  <text x="648" y="198" class="num">2,433</text>
+  <text x="702" y="198" class="lbl">＋上週 20 支廣告的花費</text>
+  <line x1="40" y1="218" x2="1200" y2="218" class="line"/>
+  <text x="40" y="250" class="q">2. 它的點擊率跟其他幾支比起來怎麼樣？</text>
+  <text x="58" y="272" class="notool">沒有查，用紀錄裡的資料</text>
+  <rect x="470" y="236" width="184" height="22" rx="3" class="bar"/>
+  <text x="662" y="252" class="num">2,627</text>
+  <text x="716" y="252" class="lbl">＋第 1 輪的回答</text>
+  <line x1="40" y1="290" x2="1200" y2="290" class="line"/>
+  <text x="40" y="322" class="q">3. 那再前一週呢？一樣是它最貴嗎？</text>
+  <text x="58" y="344" class="tool">查花費（前一週）</text>
+  <rect x="470" y="308" width="228" height="22" rx="3" class="bar"/>
+  <text x="706" y="324" class="num">3,261</text>
+  <text x="760" y="324" class="lbl">＋第 2 輪的問答</text>
+  <rect x="470" y="344" width="321" height="22" rx="3" class="bar2"/>
+  <text x="799" y="360" class="num">4,584</text>
+  <text x="853" y="360" class="lbl">＋前一週 20 支廣告的花費</text>
+  <line x1="40" y1="380" x2="1200" y2="380" class="line"/>
+  <text x="40" y="412" class="q">4. 上週花最多錢的通路功勞排第幾？</text>
+  <text x="58" y="434" class="tool">查花費（依通路）＋歸因</text>
+  <rect x="470" y="398" width="345" height="22" rx="3" class="bar"/>
+  <text x="823" y="414" class="num">4,927</text>
+  <text x="877" y="414" class="lbl">＋第 3 輪的回答</text>
+  <rect x="470" y="434" width="397" height="22" rx="3" class="bar2"/>
+  <text x="875" y="450" class="num">5,678</text>
+  <text x="929" y="450" class="lbl">＋通路花費與歸因</text>
+  <line x1="40" y1="470" x2="1200" y2="470" class="line"/>
+  <text x="40" y="502" class="q">5. 幫我整理成三點貼給主管</text>
+  <text x="58" y="524" class="notool">沒有查，用紀錄裡的資料</text>
+  <rect x="470" y="488" width="434" height="22" rx="3" class="bar"/>
+  <text x="912" y="504" class="num">6,195</text>
+  <text x="966" y="504" class="lbl">＋第 4 輪的回答</text>
+  <line x1="470" y1="552" x2="1030" y2="552" class="axis"/>
+  <line x1="470" y1="547" x2="470" y2="557" class="axis"/><text x="470" y="574" class="lbl">0</text>
+  <line x1="750" y1="547" x2="750" y2="557" class="axis"/><text x="750" y="574" text-anchor="middle" class="lbl">4,000</text>
+  <line x1="1030" y1="544" x2="1030" y2="560" class="cap"/><text x="1040" y="557" class="capt">輸入上限 8,000</text>
+  <text x="1040" y="575" class="lbl">超過就請使用者開新對話</text>
+  <rect x="40" y="604" width="14" height="14" rx="2" class="bar"/><text x="62" y="616" class="lbl">每一輪的第 1 次呼叫</text>
+  <rect x="220" y="604" width="14" height="14" rx="2" class="bar2"/><text x="242" y="616" class="lbl">拿到工具結果之後的第 2 次呼叫</text>
+  <text x="470" y="616" class="lbl">一份 20 支廣告的花費約 1,300 個 Token，查過之後每一次都要跟著重送</text>
+</svg>
