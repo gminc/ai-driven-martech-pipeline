@@ -212,6 +212,7 @@ def main():
 SELECT session_id FROM {DATASET}.chat_turns WHERE mode = 'script'
 GROUP BY 1 HAVING COUNTIF(status = '') = {len(SCRIPT)} LIMIT 1""").result())
         if done:
+            log_usage(bq)   # 上次如果剛好在抄用量之前中斷，這裡補抄，抄過的不會重複
             print(f"✅ 固定腳本已經完整跑過一次（session {done[0]['session_id']}），不再呼叫模型，要重跑請用 --talk 自己問")
             return
     # 花錢之前先確認花費工具查得到上週的資料（不收費的查詢）
@@ -222,16 +223,36 @@ GROUP BY 1 HAVING COUNTIF(status = '') = {len(SCRIPT)} LIMIT 1""").result())
                                                "group_by": "creative"})
     if "error" in probe or not probe.get("rows"):
         sys.exit(f"❌ 預檢：上週（{monday} 起七天）查不到廣告花費（{probe.get('error', '0 列')}），沒有呼叫模型")
-    print(f"🔎 預檢：把 {TODAY} 當成今天，上週是 {monday} 到 {monday + datetime.timedelta(days=6)}，查得到 {len(probe['rows'])} 支廣告的花費")
+    print(f"🔎 預檢：把 {TODAY} 當成今天，上週是 {monday} 到 {monday + datetime.timedelta(days=6)}，查得到 {probe['total_groups']} 支廣告的花費（一次回前 {len(probe['rows'])} 名）")
+    client = genai.Client(vertexai=True, project=project, location=LOCATION)
+    config = make_config()
+    # 照固定腳本大概會查到的四份結果組一份對話，數一次輸入 Token（不收費），太接近上限就不開始
+    week = {"start_date": monday.isoformat(), "end_date": (monday + datetime.timedelta(days=6)).isoformat()}
+    prev = {"start_date": (monday - datetime.timedelta(days=7)).isoformat(), "end_date": (monday - datetime.timedelta(days=1)).isoformat()}
+    wanted = [("get_ad_spend", dict(week, group_by="creative")), ("get_ad_spend", dict(prev, group_by="creative")),
+              ("get_ad_spend", dict(week, group_by="channel")), ("get_channel_attribution", dict(week, attribution_model="time_decay"))]
+    parts = []
+    for n, a in wanted:
+        result, _ = T.run_tool(bq, n, a)
+        if "error" in result or not result.get("rows"):
+            sys.exit(f"❌ 預檢：{n} {a} 查不到資料或失敗（{result.get('error', '0 列')}），沒有呼叫模型")
+        parts.append(types.Part.from_function_response(name=n, response=result))
+    probe_contents = [types.Content(role="user", parts=[types.Part(text="".join(SCRIPT))]),
+                      types.Content(role="model", parts=[types.Part(function_call=types.FunctionCall(name=n, args=a)) for n, a in wanted]),
+                      types.Content(role="user", parts=parts)]
+    n_in = count_input(client, probe_contents, config)
+    if n_in is None or n_in > INPUT_CAP * 0.7:
+        sys.exit(f"❌ 預檢：四份工具結果加起來輸入 {n_in} 個 Token，太接近上限 {INPUT_CAP:,}，沒有呼叫模型")
+    print(f"🔎 預檢：四份工具結果加上工具定義共 {n_in:,} 個輸入 Token，上限 {INPUT_CAP:,}")
     turns = len(SCRIPT) if mode == "script" else MAX_TURNS
     print(f"💰 模型 {MODEL}，最多 {turns} 輪、每輪最多呼叫模型 {MAX_STEPS} 次")
     print(f"   最壞情況：每次輸入都頂到 {INPUT_CAP:,}、輸出都寫滿 {MAX_OUTPUT:,} 個 Token，約新台幣 {worst(turns):.2f} 元")
-    print(f"   預期：五輪約新台幣 1 元上下（估計值，對話越長每一輪的輸入越多）")
+    if mode == "script":
+        print("   預期：五輪約新台幣 1 元上下（估計值，對話越長每一輪的輸入越多）")
     if input("輸入 yes 開始呼叫模型：").strip() != "yes":
         print("已停在這裡，沒有呼叫模型")
         sys.exit(2)
-    client = genai.Client(vertexai=True, project=project, location=LOCATION)
-    config, contents, session_id, spent = make_config(), [], uuid.uuid4().hex[:12], 0.0
+    contents, session_id, spent = [], uuid.uuid4().hex[:12], 0.0
     try:
         for turn in range(1, turns + 1):
             if mode == "script":
@@ -249,7 +270,7 @@ GROUP BY 1 HAVING COUNTIF(status = '') = {len(SCRIPT)} LIMIT 1""").result())
             spent += cost(calls)
             for t in tool_rows:
                 print(f"   🔧 {t['tool']} {t['args']}" + (f" ❌ {t['error']}" if t["error"] else f" → {t['result_rows']} 列"))
-            print(f"🤖 {row['answer'] or '（這一輪沒有成功：' + row['status'] + '）'}")
+            print(f"🤖 {row['answer'] or '（沒有回答）'}" + (f"\n   ❌ 這一輪沒有成功：{row['status']}，不會留在對話紀錄裡" if row["status"] else ""))
             print(f"   第 {turn} 輪：呼叫模型 {len(calls)} 次，輸入 {sum(c.get('prompt_tokens', 0) for c in calls):,}、"
                   f"輸出含思考 {sum(c.get('output_tokens', 0) + c.get('thoughts_tokens', 0) for c in calls):,} 個 Token，累計約新台幣 {spent:.2f} 元")
             if row["status"].startswith("input_cap"):

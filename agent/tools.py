@@ -101,7 +101,8 @@ SPEND_DECLARATION = {
     "description": (
         "查一段期間內的廣告花費、曝光、點擊、點擊率與每次點擊成本，可以依素材（單支廣告）、廣告群組、活動或通路彙總，"
         "依花費由高到低排序，用來回答「哪支廣告最貴」「某個通路花了多少」「上週的廣告費是多少」這類問題。"
-        f"資料期間是 {AD_START} 到 {AD_END}，金額是新台幣，通路只有 meta、line、google_cpc。"
+        f"資料期間是 {AD_START} 到 {AD_END}，金額是新台幣，一次最多回傳花費前 {MAX_ROWS} 名，total_groups 是全部有幾個。"
+        "通路只有 meta、line、google_cpc，分別對應歸因工具裡的 meta / paid_social、line / display、google / cpc。"
     ),
     "parameters": {
         "type": "OBJECT",
@@ -227,7 +228,7 @@ def get_ad_spend(client, args):
     group_by = args.get("group_by")
     if not isinstance(group_by, str) or group_by not in SPEND_GROUPS:
         raise BadArgs(f"group_by 只能是 {', '.join(SPEND_GROUPS)}，拿到「{group_by}」")
-    channel = args.get("channel", "all")
+    channel = args.get("channel") or "all"
     if not isinstance(channel, str) or channel not in AD_CHANNELS:
         raise BadArgs(f"channel 只能是 {', '.join(AD_CHANNELS)}，拿到「{channel}」")
     if not args.get("start_date") or not args.get("end_date"):
@@ -248,7 +249,8 @@ SELECT {column} AS {group_by},{channel_col}
   SUM(clicks) AS clicks,
   ROUND(SAFE_DIVIDE(SUM(clicks), SUM(impressions)), 4) AS ctr,
   ROUND(SAFE_DIVIDE(CAST(SUM(cost) AS FLOAT64), SUM(clicks)), 2) AS cpc_twd,
-  COUNT(DISTINCT date) AS days_with_data
+  COUNT(DISTINCT date) AS days_with_data,
+  COUNT(*) OVER () AS total_groups
 FROM {DATASET}.fct_ad_daily
 WHERE date BETWEEN @start_date AND @end_date
   AND (@channel = 'all' OR channel = @channel)
@@ -258,8 +260,12 @@ ORDER BY cost_twd DESC, {group_by}"""
         bigquery.ScalarQueryParameter("start_date", "DATE", start),
         bigquery.ScalarQueryParameter("end_date", "DATE", end),
         bigquery.ScalarQueryParameter("channel", "STRING", channel)])
+    total = rows[0]["total_groups"] if rows else 0
+    for r in rows:
+        r.pop("total_groups", None)
+    # 被列數上限截掉的時候要讓模型知道，不然它會把前幾名當成全部
     return {"start_date": start, "end_date": end, "group_by": group_by, "channel": channel,
-            "rows_returned": len(rows), "max_rows": MAX_ROWS, "rows": rows}, billed
+            "total_groups": total, "rows_returned": len(rows), "truncated": total > len(rows), "rows": rows}, billed
 
 
 TOOLS = {
