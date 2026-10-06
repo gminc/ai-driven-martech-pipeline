@@ -382,7 +382,7 @@ def main():
     sealed = G.seal_output(worst_answer)
     if not G.find_exits(worst_answer) or not G.is_sealed(sealed) or G.find_exits(sealed):
         sys.exit("❌ 預檢：備註裡應該要有圖片或網址，而且封出口之後應該一個都不剩，結果不是，沒有呼叫模型")
-    print("🔎 預檢（保證類）：把三則備註原文當成回答，封出口之後沒有半形的 [ ] < >，圖片與連結語法都不成立")
+    print("🔎 預檢（保證類）：把三則備註原文當成回答，封出口之後沒有半形的 [ ] < >，標準 Markdown 的圖片與連結語法都不成立")
     print("🔎 預檢（保證類）：查過其他資料之後顧客工具會被程式拒絕：" + G.isolation_block("get_top_customers", {"get_campaign_notes"}))
     print(f"🔎 預檢：八月消費最高的 {T.MAX_CUSTOMERS} 位顧客查得到，遮蔽後的結果找不到完整個資")
     if len(scrubbed) != 1:
