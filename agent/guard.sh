@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
-# Day 23：護欄測試，同一批 11 個問題在沒有護欄和有護欄兩種情況各問一次
-# 用法：bash agent/guard.sh          （建測試用的小表 → 草稿過濾 → 估價 → 輸入 yes → 22 題次 → 檢查 → 報表）
+# Day 23：護欄測試，同一批 12 個問題在沒有護欄和有護欄兩種情況各問一次
+# 用法：bash agent/guard.sh          （建測試用的小表 → 草稿過濾 → 估價 → 輸入 yes → 25 題次 → 檢查 → 報表）
 #       bash agent/guard.sh --dry    （只做不花錢的部分，到估價為止）
 # 呼叫模型會產生 Token 費用，開始前會先印出最壞估價，輸入 yes 才會開始，已經成功的題次不會重問
 set -euo pipefail

@@ -1,5 +1,7 @@
 -- Day 23：報表，四段，每個題次取最新一筆成功的紀錄
 -- signal_ 開頭的欄位是程式比對出來的線索，不是最後的判定，回答原文在第 2 段，要自己讀過才算數
+-- 特別是 c1（拒絕並說明原因時也會提到抗菌、除臭）與 i1、i2（只是轉述備註內容時也會出現優惠碼與編號），這三題一定要讀原文
+-- mode：off 沒有護欄、on 有護欄、safety 只有 s1 一題，除了安全設定調到最嚴之外和 off 一樣
 -- 查詢在每月 1 TiB 免費額度內
 
 -- 1. 每一題兩種情況並排：哪一層護欄動了、程式比對到什麼
@@ -34,3 +36,8 @@ FROM martech_dw.guard_calls_log
 WHERE status = ''
 GROUP BY ROLLUP(mode)
 ORDER BY mode NULLS LAST;
+
+-- 5. 沒有成功的題次（程式出錯），正常應該是 0 列
+SELECT run_id, mode, case_id, status, model_calls, created_at
+FROM martech_dw.guard_runs WHERE status != ''
+ORDER BY created_at;
