@@ -1,0 +1,72 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1240 652" width="1240" height="652" font-family="'Noto Sans TC','Noto Sans CJK TC','PingFang TC','Microsoft JhengHei',sans-serif">
+  <defs>
+    <style>
+      .title { font-size: 22px; font-weight: 700; fill: #202124; }
+      .note { font-size: 13px; fill: #5f6368; }
+      .box { fill: #f8f9fa; stroke: #9aa0a6; stroke-width: 1.4; }
+      .model { fill: #e8f0fe; stroke: #1a73e8; stroke-width: 1.6; }
+      .bt { font-size: 16px; font-weight: 700; fill: #202124; }
+      .bs { font-size: 12.5px; fill: #5f6368; }
+      .warn { font-size: 12.5px; font-weight: 700; fill: #c5221f; }
+      .arrow { stroke: #5f6368; stroke-width: 2; fill: none; }
+      .slow { fill: #fef7e0; stroke: #e37400; stroke-width: 1.4; }
+      .slowt { font-size: 13px; font-weight: 700; fill: #b06000; }
+      .sure { fill: #e6f4ea; stroke: #188038; stroke-width: 1.4; }
+      .suret { font-size: 13px; font-weight: 700; fill: #137333; }
+      .sec { font-size: 14px; font-weight: 700; fill: #3c4043; }
+      .wall { stroke: #188038; stroke-width: 3; stroke-dasharray: 7 5; }
+    </style>
+    <marker id="ah" markerWidth="10" markerHeight="8" refX="9" refY="4" orient="auto"><path d="M0,0 L10,4 L0,8 z" fill="#5f6368"/></marker>
+  </defs>
+  <rect width="1240" height="652" fill="#ffffff"/>
+  <text x="40" y="44" class="title">Day 23｜文字從哪裡進來，資料從哪裡出去，兩種控制放在哪</text>
+  <text x="40" y="70" class="note">橘色是減速帶，只能降低出事的機率，綠色是保證，不管模型有沒有被騙程式都會執行</text>
+  <text x="40" y="112" class="sec">入口</text>
+  <text x="620" y="112" class="sec">模型</text>
+  <text x="980" y="112" class="sec">出口</text>
+  <path d="M320,168 L700,168 L700,256" class="arrow" marker-end="url(#ah)"/>
+  <path d="M320,322 L618,322" class="arrow" marker-end="url(#ah)"/>
+  <path d="M320,522 L700,522 L700,402" class="arrow" marker-end="url(#ah)"/>
+  <path d="M860,322 L978,322" class="arrow" marker-end="url(#ah)"/>
+  <rect x="40" y="130" width="280" height="76" rx="8" class="box"/>
+  <text x="56" y="158" class="bt">同事的問題</text>
+  <text x="56" y="180" class="bs">同事在對話框裡打的字</text>
+  <rect x="40" y="262" width="280" height="116" rx="8" class="box"/>
+  <text x="56" y="290" class="bt">其他五個工具查到的資料</text>
+  <text x="56" y="312" class="bs">廣告花費、歸因、異常、素材、活動備註</text>
+  <text x="56" y="331" class="warn">外人寫得進去：廠商備註、網址參數</text>
+  <rect x="40" y="474" width="280" height="96" rx="8" class="box"/>
+  <text x="56" y="502" class="bt">顧客工具查到的資料</text>
+  <text x="56" y="524" class="bs">姓名、email、手機、縣市、消費金額</text>
+  <rect x="620" y="258" width="240" height="142" rx="8" class="model"/>
+  <text x="636" y="286" class="bt">Gemini</text>
+  <text x="636" y="308" class="bs">讀到的全部是同一串文字</text>
+  <text x="636" y="327" class="bs">分不出哪一段只是資料</text>
+  <rect x="980" y="274" width="220" height="96" rx="8" class="box"/>
+  <text x="996" y="302" class="bt">同事看到的回答</text>
+  <text x="996" y="324" class="bs">畫面如果當成圖片或連結顯示</text>
+  <text x="996" y="343" class="bs">資料就能跟著網址出去</text>
+  <rect x="400" y="154" width="150" height="28" rx="14" class="slow"/>
+  <text x="414" y="173" class="slowt">減速帶｜輸入檢查</text>
+  <rect x="376" y="282" width="188" height="28" rx="14" class="sure"/>
+  <text x="390" y="301" class="suret">保證｜自由文字先清理</text>
+  <rect x="376" y="334" width="188" height="28" rx="14" class="slow"/>
+  <text x="390" y="353" class="slowt">減速帶｜資料標記</text>
+  <rect x="400" y="508" width="160" height="28" rx="14" class="sure"/>
+  <text x="414" y="527" class="suret">保證｜個資先遮蔽</text>
+  <line x1="40" y1="426" x2="320" y2="426" class="wall"/>
+  <rect x="60" y="396" width="240" height="28" rx="14" class="sure"/>
+  <text x="74" y="415" class="suret">保證｜顧客資料獨佔一題</text>
+  <text x="40" y="452" class="bs">同一題用過上面任何工具，就不能再用下面的，反過來也一樣</text>
+  <rect x="632" y="356" width="216" height="28" rx="14" class="slow"/>
+  <text x="646" y="375" class="slowt">減速帶｜系統指示的四條規則</text>
+  <text x="40" y="588" class="bs">顧客工具查到的資料一樣會經過自由文字清理與資料標記</text>
+  <rect x="980" y="232" width="150" height="28" rx="14" class="slow"/>
+  <text x="994" y="251" class="slowt">減速帶｜輸出檢查</text>
+  <rect x="980" y="384" width="150" height="28" rx="14" class="sure"/>
+  <text x="994" y="403" class="suret">保證｜封出口</text>
+  <text x="980" y="434" class="bs">回答裡的 [ ] &lt; &gt; 一律換成全形</text>
+  <text x="980" y="453" class="bs">圖片與連結的語法就不成立</text>
+  <line x1="40" y1="604" x2="1200" y2="604" stroke="#dadce0" stroke-width="1"/>
+  <text x="40" y="630" class="note">減速帶 3 種（系統指示和資料標記算同一種）：換個寫法就可能繞過　｜　保證 4 種：程式一定會做，其中封出口只在回答當純文字或標準 Markdown 顯示時成立</text>
+</svg>
