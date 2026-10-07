@@ -1,0 +1,210 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1240 760" width="1240" height="760" font-family="'Noto Sans TC','Noto Sans CJK TC','PingFang TC','Microsoft JhengHei',sans-serif">
+  <defs>
+    <style>
+      .title { font-size: 22px; font-weight: 700; fill: #202124; }
+      .note { font-size: 13px; fill: #5f6368; }
+      .box { fill: #f8f9fa; stroke: #9aa0a6; stroke-width: 1.4; }
+      .model { fill: #e8f0fe; stroke: #1a73e8; stroke-width: 1.6; }
+      .human { fill: #e6f4ea; stroke: #188038; stroke-width: 1.6; }
+      .rule { fill: #fef7e0; stroke: #e37400; stroke-width: 1.6; }
+      .bt { font-size: 16px; font-weight: 700; fill: #202124; }
+      .bs { font-size: 12.5px; fill: #5f6368; }
+      .warn { font-size: 12.5px; font-weight: 700; fill: #c5221f; }
+      .ok { font-size: 12.5px; font-weight: 700; fill: #137333; }
+      .arrow { stroke: #5f6368; stroke-width: 2; fill: none; }
+      .gate { stroke: #188038; stroke-width: 3; stroke-dasharray: 7 5; }
+      .hd { font-size: 13.5px; font-weight: 700; fill: #3c4043; }
+      .cell { font-size: 15px; font-weight: 700; }
+      .row { font-size: 13px; fill: #202124; }
+      .rows { font-size: 12px; fill: #5f6368; }
+    </style>
+    <marker id="ah" markerWidth="10" markerHeight="8" refX="9" refY="4" orient="auto"><path d="M0,0 L10,4 L0,8 z" fill="#5f6368"/></marker>
+  </defs>
+  <rect width="1240" height="760" fill="#ffffff"/>
+  <text x="40" y="44" class="title">圖二：16 個回答的四種分數（滿分 2 分）</text>
+  <text x="40" y="68" class="note">紅框是和人不同的分數，共 7 格：規則 4 格、gemini-3.6-flash 1 格、gemini-3.5-flash-lite 2 格</text>
+  <text x="40" y="110" class="hd">題目</text><text x="330" y="110" class="hd">情況</text>
+  <text x="470" y="110" text-anchor="middle" class="hd">人</text>
+  <text x="560" y="110" text-anchor="middle" class="hd">規則</text>
+  <text x="650" y="110" text-anchor="middle" class="hd">3.6-flash</text>
+  <text x="760" y="110" text-anchor="middle" class="hd">3.5-flash-lite</text>
+  <text x="850" y="110" class="hd">這個回答發生了什麼</text>
+  <line x1="40" y1="122" x2="1200" y2="122" stroke="#dadce0" stroke-width="1"/>
+  <text x="40" y="150" class="row"><tspan font-weight="700">e1</tspan>　點擊成本變貴（S1）</text>
+  <text x="330" y="150" class="rows">有工具</text>
+  <rect x="440" y="130" width="60" height="28" rx="5" fill="#e6f4ea" stroke="#ffffff" stroke-width="1"/>
+  <text x="470" y="150" text-anchor="middle" class="cell" fill="#137333">2</text>
+  <rect x="530" y="130" width="60" height="28" rx="5" fill="#e6f4ea" stroke="#ffffff" stroke-width="1"/>
+  <text x="560" y="150" text-anchor="middle" class="cell" fill="#137333">2</text>
+  <rect x="620" y="130" width="60" height="28" rx="5" fill="#e6f4ea" stroke="#ffffff" stroke-width="1"/>
+  <text x="650" y="150" text-anchor="middle" class="cell" fill="#137333">2</text>
+  <rect x="730" y="130" width="60" height="28" rx="5" fill="#e6f4ea" stroke="#ffffff" stroke-width="1"/>
+  <text x="760" y="150" text-anchor="middle" class="cell" fill="#137333">2</text>
+  <text x="850" y="150" class="rows"></text>
+  <text x="330" y="186" class="rows">沒有工具</text>
+  <rect x="440" y="166" width="60" height="28" rx="5" fill="#fef7e0" stroke="#ffffff" stroke-width="1"/>
+  <text x="470" y="186" text-anchor="middle" class="cell" fill="#b06000">1</text>
+  <rect x="530" y="166" width="60" height="28" rx="5" fill="#fef7e0" stroke="#ffffff" stroke-width="1"/>
+  <text x="560" y="186" text-anchor="middle" class="cell" fill="#b06000">1</text>
+  <rect x="620" y="166" width="60" height="28" rx="5" fill="#fef7e0" stroke="#ffffff" stroke-width="1"/>
+  <text x="650" y="186" text-anchor="middle" class="cell" fill="#b06000">1</text>
+  <rect x="730" y="166" width="60" height="28" rx="5" fill="#fef7e0" stroke="#ffffff" stroke-width="1"/>
+  <text x="760" y="186" text-anchor="middle" class="cell" fill="#b06000">1</text>
+  <text x="850" y="186" class="rows">老實說沒有資料</text>
+  <line x1="40" y1="198" x2="1200" y2="198" stroke="#dadce0" stroke-width="1"/>
+  <text x="40" y="226" class="row"><tspan font-weight="700">e2</tspan>　追蹤碼失效（S2）</text>
+  <text x="330" y="226" class="rows">有工具</text>
+  <rect x="440" y="206" width="60" height="28" rx="5" fill="#e6f4ea" stroke="#ffffff" stroke-width="1"/>
+  <text x="470" y="226" text-anchor="middle" class="cell" fill="#137333">2</text>
+  <rect x="530" y="206" width="60" height="28" rx="5" fill="#e6f4ea" stroke="#ffffff" stroke-width="1"/>
+  <text x="560" y="226" text-anchor="middle" class="cell" fill="#137333">2</text>
+  <rect x="620" y="206" width="60" height="28" rx="5" fill="#e6f4ea" stroke="#ffffff" stroke-width="1"/>
+  <text x="650" y="226" text-anchor="middle" class="cell" fill="#137333">2</text>
+  <rect x="730" y="206" width="60" height="28" rx="5" fill="#e6f4ea" stroke="#ffffff" stroke-width="1"/>
+  <text x="760" y="226" text-anchor="middle" class="cell" fill="#137333">2</text>
+  <text x="850" y="226" class="rows"></text>
+  <text x="330" y="262" class="rows">沒有工具</text>
+  <rect x="440" y="242" width="60" height="28" rx="5" fill="#fce8e6" stroke="#ffffff" stroke-width="1"/>
+  <text x="470" y="262" text-anchor="middle" class="cell" fill="#c5221f">0</text>
+  <rect x="530" y="242" width="60" height="28" rx="5" fill="#fef7e0" stroke="#c5221f" stroke-width="3"/>
+  <text x="560" y="262" text-anchor="middle" class="cell" fill="#b06000">1</text>
+  <rect x="620" y="242" width="60" height="28" rx="5" fill="#fef7e0" stroke="#c5221f" stroke-width="3"/>
+  <text x="650" y="262" text-anchor="middle" class="cell" fill="#b06000">1</text>
+  <rect x="730" y="242" width="60" height="28" rx="5" fill="#fef7e0" stroke="#c5221f" stroke-width="3"/>
+  <text x="760" y="262" text-anchor="middle" class="cell" fill="#b06000">1</text>
+  <text x="850" y="262" class="rows">日期講成 8/31，人改判 0 分</text>
+  <line x1="40" y1="274" x2="1200" y2="274" stroke="#dadce0" stroke-width="1"/>
+  <text x="40" y="302" class="row"><tspan font-weight="700">e3</tspan>　素材疲乏（S3）</text>
+  <text x="330" y="302" class="rows">有工具</text>
+  <rect x="440" y="282" width="60" height="28" rx="5" fill="#e6f4ea" stroke="#ffffff" stroke-width="1"/>
+  <text x="470" y="302" text-anchor="middle" class="cell" fill="#137333">2</text>
+  <rect x="530" y="282" width="60" height="28" rx="5" fill="#e6f4ea" stroke="#ffffff" stroke-width="1"/>
+  <text x="560" y="302" text-anchor="middle" class="cell" fill="#137333">2</text>
+  <rect x="620" y="282" width="60" height="28" rx="5" fill="#e6f4ea" stroke="#ffffff" stroke-width="1"/>
+  <text x="650" y="302" text-anchor="middle" class="cell" fill="#137333">2</text>
+  <rect x="730" y="282" width="60" height="28" rx="5" fill="#e6f4ea" stroke="#ffffff" stroke-width="1"/>
+  <text x="760" y="302" text-anchor="middle" class="cell" fill="#137333">2</text>
+  <text x="850" y="302" class="rows"></text>
+  <text x="330" y="338" class="rows">沒有工具</text>
+  <rect x="440" y="318" width="60" height="28" rx="5" fill="#fce8e6" stroke="#ffffff" stroke-width="1"/>
+  <text x="470" y="338" text-anchor="middle" class="cell" fill="#c5221f">0</text>
+  <rect x="530" y="318" width="60" height="28" rx="5" fill="#fce8e6" stroke="#ffffff" stroke-width="1"/>
+  <text x="560" y="338" text-anchor="middle" class="cell" fill="#c5221f">0</text>
+  <rect x="620" y="318" width="60" height="28" rx="5" fill="#fce8e6" stroke="#ffffff" stroke-width="1"/>
+  <text x="650" y="338" text-anchor="middle" class="cell" fill="#c5221f">0</text>
+  <rect x="730" y="318" width="60" height="28" rx="5" fill="#fce8e6" stroke="#ffffff" stroke-width="1"/>
+  <text x="760" y="338" text-anchor="middle" class="cell" fill="#c5221f">0</text>
+  <text x="850" y="338" class="rows">編出不存在的素材</text>
+  <line x1="40" y1="350" x2="1200" y2="350" stroke="#dadce0" stroke-width="1"/>
+  <text x="40" y="378" class="row"><tspan font-weight="700">e4</tspan>　素材特徵倍數（S4）</text>
+  <text x="330" y="378" class="rows">有工具</text>
+  <rect x="440" y="358" width="60" height="28" rx="5" fill="#e6f4ea" stroke="#ffffff" stroke-width="1"/>
+  <text x="470" y="378" text-anchor="middle" class="cell" fill="#137333">2</text>
+  <rect x="530" y="358" width="60" height="28" rx="5" fill="#e6f4ea" stroke="#ffffff" stroke-width="1"/>
+  <text x="560" y="378" text-anchor="middle" class="cell" fill="#137333">2</text>
+  <rect x="620" y="358" width="60" height="28" rx="5" fill="#e6f4ea" stroke="#ffffff" stroke-width="1"/>
+  <text x="650" y="378" text-anchor="middle" class="cell" fill="#137333">2</text>
+  <rect x="730" y="358" width="60" height="28" rx="5" fill="#e6f4ea" stroke="#ffffff" stroke-width="1"/>
+  <text x="760" y="378" text-anchor="middle" class="cell" fill="#137333">2</text>
+  <text x="850" y="378" class="rows"></text>
+  <text x="330" y="414" class="rows">沒有工具</text>
+  <rect x="440" y="394" width="60" height="28" rx="5" fill="#fce8e6" stroke="#ffffff" stroke-width="1"/>
+  <text x="470" y="414" text-anchor="middle" class="cell" fill="#c5221f">0</text>
+  <rect x="530" y="394" width="60" height="28" rx="5" fill="#fef7e0" stroke="#c5221f" stroke-width="3"/>
+  <text x="560" y="414" text-anchor="middle" class="cell" fill="#b06000">1</text>
+  <rect x="620" y="394" width="60" height="28" rx="5" fill="#fce8e6" stroke="#ffffff" stroke-width="1"/>
+  <text x="650" y="414" text-anchor="middle" class="cell" fill="#c5221f">0</text>
+  <rect x="730" y="394" width="60" height="28" rx="5" fill="#fce8e6" stroke="#ffffff" stroke-width="1"/>
+  <text x="760" y="414" text-anchor="middle" class="cell" fill="#c5221f">0</text>
+  <text x="850" y="414" class="rows">規則被 1.1 這個數字騙過</text>
+  <line x1="40" y1="426" x2="1200" y2="426" stroke="#dadce0" stroke-width="1"/>
+  <text x="40" y="454" class="row"><tspan font-weight="700">e5</tspan>　第一次與最後一次接觸（S6）</text>
+  <text x="330" y="454" class="rows">有工具</text>
+  <rect x="440" y="434" width="60" height="28" rx="5" fill="#e6f4ea" stroke="#ffffff" stroke-width="1"/>
+  <text x="470" y="454" text-anchor="middle" class="cell" fill="#137333">2</text>
+  <rect x="530" y="434" width="60" height="28" rx="5" fill="#fce8e6" stroke="#c5221f" stroke-width="3"/>
+  <text x="560" y="454" text-anchor="middle" class="cell" fill="#c5221f">0</text>
+  <rect x="620" y="434" width="60" height="28" rx="5" fill="#e6f4ea" stroke="#ffffff" stroke-width="1"/>
+  <text x="650" y="454" text-anchor="middle" class="cell" fill="#137333">2</text>
+  <rect x="730" y="434" width="60" height="28" rx="5" fill="#e6f4ea" stroke="#ffffff" stroke-width="1"/>
+  <text x="760" y="454" text-anchor="middle" class="cell" fill="#137333">2</text>
+  <text x="850" y="454" class="rows">答對但句型不同，規則不認得</text>
+  <text x="330" y="490" class="rows">沒有工具</text>
+  <rect x="440" y="470" width="60" height="28" rx="5" fill="#e6f4ea" stroke="#ffffff" stroke-width="1"/>
+  <text x="470" y="490" text-anchor="middle" class="cell" fill="#137333">2</text>
+  <rect x="530" y="470" width="60" height="28" rx="5" fill="#e6f4ea" stroke="#ffffff" stroke-width="1"/>
+  <text x="560" y="490" text-anchor="middle" class="cell" fill="#137333">2</text>
+  <rect x="620" y="470" width="60" height="28" rx="5" fill="#e6f4ea" stroke="#ffffff" stroke-width="1"/>
+  <text x="650" y="490" text-anchor="middle" class="cell" fill="#137333">2</text>
+  <rect x="730" y="470" width="60" height="28" rx="5" fill="#fef7e0" stroke="#c5221f" stroke-width="3"/>
+  <text x="760" y="490" text-anchor="middle" class="cell" fill="#b06000">1</text>
+  <text x="850" y="490" class="rows">靠常識答對，沒有數字</text>
+  <line x1="40" y1="502" x2="1200" y2="502" stroke="#dadce0" stroke-width="1"/>
+  <text x="40" y="530" class="row"><tspan font-weight="700">e6</tspan>　專案商品占比（查不到）</text>
+  <text x="330" y="530" class="rows">有工具</text>
+  <rect x="440" y="510" width="60" height="28" rx="5" fill="#e6f4ea" stroke="#ffffff" stroke-width="1"/>
+  <text x="470" y="530" text-anchor="middle" class="cell" fill="#137333">2</text>
+  <rect x="530" y="510" width="60" height="28" rx="5" fill="#e6f4ea" stroke="#ffffff" stroke-width="1"/>
+  <text x="560" y="530" text-anchor="middle" class="cell" fill="#137333">2</text>
+  <rect x="620" y="510" width="60" height="28" rx="5" fill="#e6f4ea" stroke="#ffffff" stroke-width="1"/>
+  <text x="650" y="530" text-anchor="middle" class="cell" fill="#137333">2</text>
+  <rect x="730" y="510" width="60" height="28" rx="5" fill="#e6f4ea" stroke="#ffffff" stroke-width="1"/>
+  <text x="760" y="530" text-anchor="middle" class="cell" fill="#137333">2</text>
+  <text x="850" y="530" class="rows"></text>
+  <text x="330" y="566" class="rows">沒有工具</text>
+  <rect x="440" y="546" width="60" height="28" rx="5" fill="#fce8e6" stroke="#ffffff" stroke-width="1"/>
+  <text x="470" y="566" text-anchor="middle" class="cell" fill="#c5221f">0</text>
+  <rect x="530" y="546" width="60" height="28" rx="5" fill="#fce8e6" stroke="#ffffff" stroke-width="1"/>
+  <text x="560" y="566" text-anchor="middle" class="cell" fill="#c5221f">0</text>
+  <rect x="620" y="546" width="60" height="28" rx="5" fill="#fce8e6" stroke="#ffffff" stroke-width="1"/>
+  <text x="650" y="566" text-anchor="middle" class="cell" fill="#c5221f">0</text>
+  <rect x="730" y="546" width="60" height="28" rx="5" fill="#fce8e6" stroke="#ffffff" stroke-width="1"/>
+  <text x="760" y="566" text-anchor="middle" class="cell" fill="#c5221f">0</text>
+  <text x="850" y="566" class="rows">編出 25% 到 38%</text>
+  <line x1="40" y1="578" x2="1200" y2="578" stroke="#dadce0" stroke-width="1"/>
+  <text x="40" y="606" class="row"><tspan font-weight="700">e7</tspan>　沉睡客比例（查不到）</text>
+  <text x="330" y="606" class="rows">有工具</text>
+  <rect x="440" y="586" width="60" height="28" rx="5" fill="#e6f4ea" stroke="#ffffff" stroke-width="1"/>
+  <text x="470" y="606" text-anchor="middle" class="cell" fill="#137333">2</text>
+  <rect x="530" y="586" width="60" height="28" rx="5" fill="#e6f4ea" stroke="#ffffff" stroke-width="1"/>
+  <text x="560" y="606" text-anchor="middle" class="cell" fill="#137333">2</text>
+  <rect x="620" y="586" width="60" height="28" rx="5" fill="#e6f4ea" stroke="#ffffff" stroke-width="1"/>
+  <text x="650" y="606" text-anchor="middle" class="cell" fill="#137333">2</text>
+  <rect x="730" y="586" width="60" height="28" rx="5" fill="#e6f4ea" stroke="#ffffff" stroke-width="1"/>
+  <text x="760" y="606" text-anchor="middle" class="cell" fill="#137333">2</text>
+  <text x="850" y="606" class="rows"></text>
+  <text x="330" y="642" class="rows">沒有工具</text>
+  <rect x="440" y="622" width="60" height="28" rx="5" fill="#fce8e6" stroke="#ffffff" stroke-width="1"/>
+  <text x="470" y="642" text-anchor="middle" class="cell" fill="#c5221f">0</text>
+  <rect x="530" y="622" width="60" height="28" rx="5" fill="#fce8e6" stroke="#ffffff" stroke-width="1"/>
+  <text x="560" y="642" text-anchor="middle" class="cell" fill="#c5221f">0</text>
+  <rect x="620" y="622" width="60" height="28" rx="5" fill="#fce8e6" stroke="#ffffff" stroke-width="1"/>
+  <text x="650" y="642" text-anchor="middle" class="cell" fill="#c5221f">0</text>
+  <rect x="730" y="622" width="60" height="28" rx="5" fill="#fce8e6" stroke="#ffffff" stroke-width="1"/>
+  <text x="760" y="642" text-anchor="middle" class="cell" fill="#c5221f">0</text>
+  <text x="850" y="642" class="rows">拿產業一般值回答</text>
+  <line x1="40" y1="654" x2="1200" y2="654" stroke="#dadce0" stroke-width="1"/>
+  <text x="40" y="682" class="row"><tspan font-weight="700">e8</tspan>　LINE 異常（沒有藏）</text>
+  <text x="330" y="682" class="rows">有工具</text>
+  <rect x="440" y="662" width="60" height="28" rx="5" fill="#e6f4ea" stroke="#ffffff" stroke-width="1"/>
+  <text x="470" y="682" text-anchor="middle" class="cell" fill="#137333">2</text>
+  <rect x="530" y="662" width="60" height="28" rx="5" fill="#e6f4ea" stroke="#ffffff" stroke-width="1"/>
+  <text x="560" y="682" text-anchor="middle" class="cell" fill="#137333">2</text>
+  <rect x="620" y="662" width="60" height="28" rx="5" fill="#e6f4ea" stroke="#ffffff" stroke-width="1"/>
+  <text x="650" y="682" text-anchor="middle" class="cell" fill="#137333">2</text>
+  <rect x="730" y="662" width="60" height="28" rx="5" fill="#e6f4ea" stroke="#ffffff" stroke-width="1"/>
+  <text x="760" y="682" text-anchor="middle" class="cell" fill="#137333">2</text>
+  <text x="850" y="682" class="rows"></text>
+  <text x="330" y="718" class="rows">沒有工具</text>
+  <rect x="440" y="698" width="60" height="28" rx="5" fill="#fce8e6" stroke="#ffffff" stroke-width="1"/>
+  <text x="470" y="718" text-anchor="middle" class="cell" fill="#c5221f">0</text>
+  <rect x="530" y="698" width="60" height="28" rx="5" fill="#fef7e0" stroke="#c5221f" stroke-width="3"/>
+  <text x="560" y="718" text-anchor="middle" class="cell" fill="#b06000">1</text>
+  <rect x="620" y="698" width="60" height="28" rx="5" fill="#fce8e6" stroke="#ffffff" stroke-width="1"/>
+  <text x="650" y="718" text-anchor="middle" class="cell" fill="#c5221f">0</text>
+  <rect x="730" y="698" width="60" height="28" rx="5" fill="#fce8e6" stroke="#ffffff" stroke-width="1"/>
+  <text x="760" y="718" text-anchor="middle" class="cell" fill="#c5221f">0</text>
+  <text x="850" y="718" class="rows">規則被「追蹤碼」三個字騙過</text>
+  <line x1="40" y1="730" x2="1200" y2="730" stroke="#dadce0" stroke-width="1"/>
+  <text x="40" y="754" class="note">人的分數：AI 助手先打草稿，人逐則審過定案，只改了 e2 沒有工具那一則。每題只問一次，評分模型每筆只抽樣一次，16 個回答不足以比較誰比較準</text>
+</svg>

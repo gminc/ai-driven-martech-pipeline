@@ -1,0 +1,68 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1240 600" width="1240" height="600" font-family="'Noto Sans TC','Noto Sans CJK TC','PingFang TC','Microsoft JhengHei',sans-serif">
+  <defs>
+    <style>
+      .title { font-size: 22px; font-weight: 700; fill: #202124; }
+      .note { font-size: 13px; fill: #5f6368; }
+      .box { fill: #f8f9fa; stroke: #9aa0a6; stroke-width: 1.4; }
+      .model { fill: #e8f0fe; stroke: #1a73e8; stroke-width: 1.6; }
+      .human { fill: #e6f4ea; stroke: #188038; stroke-width: 1.6; }
+      .rule { fill: #fef7e0; stroke: #e37400; stroke-width: 1.6; }
+      .bt { font-size: 16px; font-weight: 700; fill: #202124; }
+      .bs { font-size: 12.5px; fill: #5f6368; }
+      .warn { font-size: 12.5px; font-weight: 700; fill: #c5221f; }
+      .ok { font-size: 12.5px; font-weight: 700; fill: #137333; }
+      .arrow { stroke: #5f6368; stroke-width: 2; fill: none; }
+      .gate { stroke: #188038; stroke-width: 3; stroke-dasharray: 7 5; }
+      .hd { font-size: 13.5px; font-weight: 700; fill: #3c4043; }
+      .cell { font-size: 15px; font-weight: 700; }
+      .row { font-size: 13px; fill: #202124; }
+      .rows { font-size: 12px; fill: #5f6368; }
+    </style>
+    <marker id="ah" markerWidth="10" markerHeight="8" refX="9" refY="4" orient="auto"><path d="M0,0 L10,4 L0,8 z" fill="#5f6368"/></marker>
+  </defs>
+  <rect width="1240" height="600" fill="#ffffff"/>
+  <text x="40" y="44" class="title">圖一：同一批 16 個回答，交給三種評分方式</text>
+  <text x="40" y="68" class="note">題目、標準答案、規則、評分標準先 commit，指紋跟著每一個回答與每一筆分數寫進表</text>
+  <rect x="40" y="110" width="230" height="150" rx="8" class="box"/>
+  <text x="155.0" y="136" text-anchor="middle" class="bt">8 個問題</text>
+  <text x="155.0" y="158" text-anchor="middle" class="bs">來源：Day 05 藏的訊號</text>
+  <text x="155.0" y="176" text-anchor="middle" class="bs">5 題工具查得到</text>
+  <text x="155.0" y="194" text-anchor="middle" class="bs">2 題工具查不到</text>
+  <text x="155.0" y="212" text-anchor="middle" class="bs">1 題根本沒有藏</text>
+  <rect x="330" y="110" width="250" height="150" rx="8" class="model"/>
+  <text x="455.0" y="136" text-anchor="middle" class="bt">助理（gemini-3.6-flash）</text>
+  <text x="455.0" y="158" text-anchor="middle" class="bs">有工具問一次</text>
+  <text x="455.0" y="176" text-anchor="middle" class="bs">沒有工具問一次</text>
+  <text x="455.0" y="194" text-anchor="middle" class="bs">Day 21 的問答流程原樣沿用</text>
+  <rect x="640" y="110" width="220" height="150" rx="8" class="box"/>
+  <text x="750.0" y="136" text-anchor="middle" class="bt">16 個回答</text>
+  <text x="750.0" y="158" text-anchor="middle" class="bs">eval_answers</text>
+  <text x="750.0" y="176" text-anchor="middle" class="bs">實際花費 NT$ 1.27</text>
+  <path d="M270,185 L326,185" class="arrow" marker-end="url(#ah)"/>
+  <path d="M580,185 L636,185" class="arrow" marker-end="url(#ah)"/>
+  <rect x="930" y="96" width="270" height="110" rx="8" class="rule"/>
+  <text x="1065.0" y="122" text-anchor="middle" class="bt">① 規則</text>
+  <text x="1065.0" y="144" text-anchor="middle" class="bs">規則運算式比對關鍵事實</text>
+  <text x="1065.0" y="162" text-anchor="middle" class="bs">不花錢，換個句型就可能漏</text>
+  <rect x="930" y="236" width="270" height="128" rx="8" class="human"/>
+  <text x="1065.0" y="262" text-anchor="middle" class="bt">② 人</text>
+  <text x="1065.0" y="284" text-anchor="middle" class="bs">打亂順序、只留編號</text>
+  <text x="1065.0" y="302" text-anchor="middle" class="bs">AI 助手打草稿，人逐則審過定案</text>
+  <text x="1065.0" y="320" text-anchor="middle" class="ok">分數先 commit</text>
+  <rect x="930" y="420" width="270" height="128" rx="8" class="model"/>
+  <text x="1065.0" y="446" text-anchor="middle" class="bt">③ 評分模型</text>
+  <text x="1065.0" y="468" text-anchor="middle" class="bs">Gen AI evaluation service</text>
+  <text x="1065.0" y="486" text-anchor="middle" class="bs">gemini-3.6-flash、gemini-3.5-flash-lite</text>
+  <text x="1065.0" y="504" text-anchor="middle" class="bs">估價上限 NT$ 2.77</text>
+  <path d="M860,160 L926,150" class="arrow" marker-end="url(#ah)"/>
+  <path d="M860,200 L926,290" class="arrow" marker-end="url(#ah)"/>
+  <path d="M750,260 L750,484 L926,484" class="arrow" marker-end="url(#ah)"/>
+  <line x1="790" y1="402" x2="1230" y2="402" class="gate"/>
+  <text x="1200" y="390" text-anchor="end" class="ok">人的分數 commit 之後，評分模型才可以開始</text>
+  <rect x="40" y="400" width="540" height="150" rx="8" class="box"/>
+  <text x="310.0" y="426" text-anchor="middle" class="bt">eval_scores：三種分數放同一張表</text>
+  <text x="310.0" y="448" text-anchor="middle" class="bs">分數都是 0、1、2，用同一份評分標準</text>
+  <text x="310.0" y="466" text-anchor="middle" class="bs">check.sql 12 項：順序對不對、指紋有沒有變、分數齊不齊</text>
+  <text x="310.0" y="484" text-anchor="middle" class="bs">report.sql：逐題對照、每一筆和人不同的分數與理由</text>
+  <text x="40" y="388" class="note">三種評分方式的分數都寫回這張表</text>
+</svg>
