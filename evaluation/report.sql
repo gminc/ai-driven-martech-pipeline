@@ -73,7 +73,7 @@ ORDER BY case_id, mode DESC;
 
 -- 6. 費用：問問題用實際的 Token 算（gemini-3.6-flash global 端點每百萬 Token 輸入 0.75、輸出 3.75 美元，匯率 32）
 --    評分模型那一段 evaluation service 不回報 Token，這裡列的是估價上限：輸入是送出前自己數的再多估三成，
---    輸出當成每次都寫滿上限，單價抄 global 端點的（指定地區可能略高），實際金額以帳單為準
+--    輸出當成每次都寫滿上限，單價是 global 端點的，實際金額以帳單為準
 SELECT 'answers' AS part, model AS model, COUNT(*) AS calls,
   SUM(prompt_tokens) AS prompt_tokens, SUM(IFNULL(output_tokens, 0) + IFNULL(thoughts_tokens, 0)) AS output_tokens,
   ROUND(SUM(prompt_tokens * 0.75 + (IFNULL(output_tokens, 0) + IFNULL(thoughts_tokens, 0)) * 3.75) / 1e6 * 32, 3) AS cost_twd,

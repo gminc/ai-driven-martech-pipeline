@@ -40,9 +40,10 @@ import tools as T  # noqa: E402
 
 DATASET = T.DATASET
 MODES = ("tools", "none")
-EVAL_LOCATION = os.environ.get("EVAL_LOCATION", "us-central1")   # evaluation service 的官方範例都用這個地區
+# 官方範例用 us-central1，但 2026-10-07 實測那裡找不到這兩個評分模型（回 404），端點和模型都改用 global 才通
+EVAL_LOCATION = os.environ.get("EVAL_LOCATION", "global")
 JUDGES = [j for j in os.environ.get("JUDGES", "gemini-3.6-flash,gemini-3.5-flash-lite").split(",") if j]
-# 每百萬 Token 的美元單價（輸入, 輸出），抄的是 global 端點的價格，指定地區的端點可能略高，換模型要一起改
+# 每百萬 Token 的美元單價（輸入, 輸出），global 端點的價格，換模型或換地區要一起改
 JUDGE_PRICE = {"gemini-3.6-flash": (0.75, 3.75), "gemini-3.5-flash-lite": (0.30, 2.50)}
 JUDGE_MAX_OUT = 768       # 評分模型每次的輸出上限（思考也算在裡面）。evaluation service 不回報用掉幾個 Token，估價一律用這個上限算
 INPUT_MARGIN = 1.3        # 服務自己會在評分說明外面再加輸出格式的要求，輸入 Token 多估三成
@@ -299,7 +300,8 @@ def judge_request(project, judge, row):
 
 
 def judge_url(project):
-    return f"https://{EVAL_LOCATION}-aiplatform.googleapis.com/v1beta1/projects/{project}/locations/{EVAL_LOCATION}:evaluateInstances"
+    host = "aiplatform.googleapis.com" if EVAL_LOCATION == "global" else f"{EVAL_LOCATION}-aiplatform.googleapis.com"
+    return f"https://{host}/v1beta1/projects/{project}/locations/{EVAL_LOCATION}:evaluateInstances"
 
 
 def judge_call(session, project, judge, row):
