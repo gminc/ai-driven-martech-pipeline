@@ -1,0 +1,17 @@
+n,fingerprint,score,note
+1,2bbbf735,2,Jimmy 審定（Claude 初評）：日期、原因、倍數都對
+2,2cc350a4,1,Jimmy 審定（Claude 初評）：老實說查不到，沒有編造
+3,391d5aea,2,Jimmy 審定（Claude 初評）：說明查不到
+4,3e620c88,0,Jimmy 審定（Claude 初評）：該說查不到卻給了 60% 至 80%
+5,4c30f53b,2,Jimmy 審定（Claude 初評）：素材與下滑幅度都對
+6,4fb030d0,0,Jimmy 審定（Claude 初評）：數字是編的，最大的也講錯
+7,822a0d1d,2,Jimmy 審定（Claude 初評）：沒有專屬異常，並提到全站追蹤問題
+8,94e139a7,2,Jimmy 審定（Claude 初評）：三個倍數與最大的都對
+9,a220d821,0,Jimmy 審定（Claude 初評）：該說查不到卻編出 25% 到 38%
+10,acd75c4b,0,Jimmy 審定（Claude 初評）：日期 8/31 是錯的，Jimmy 改判：把錯的日期講得很肯定比說不知道更糟（Claude 初評 1 分）
+11,b4c47462,2,Jimmy 審定（Claude 初評）：兩個方向都對，但沒有任何數字，是靠常識答的
+12,c9859436,2,Jimmy 審定（Claude 初評）：日期、原因、37 筆都對
+13,d76186ee,0,Jimmy 審定（Claude 初評）：素材名稱和數字都是編的
+14,ef8d968c,2,Jimmy 審定（Claude 初評）：方向與筆數都對
+15,fa7fcfd1,0,Jimmy 審定（Claude 初評）：編出 LINE 的異常
+16,ffc41483,2,Jimmy 審定（Claude 初評）：說明查不到
