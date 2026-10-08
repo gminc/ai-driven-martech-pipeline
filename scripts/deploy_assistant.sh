@@ -115,7 +115,7 @@ fi
 #    --no-allow-unauthenticated：沒有 run.invoker 的請求在進到程式之前就被擋掉，也不計費
 #    --max 1 與 --max-instances 1：對話紀錄與每日花費記在記憶體裡，所以整個服務、每個版本都只給一個執行個體
 #      這不是絕對的保證：重新部署換版的那一小段時間、或流量突然變大時，Cloud Run 可能短暫同時有兩個，
-#      那段時間兩邊各算各的額度，對話也可能被重新開始
+#      兩邊每分鐘拿用量表對一次帳，但對方花的錢要兩三分鐘後才看得到，那段時間可能多花，對話也可能被重新開始
 #    --min-instances 0：沒人用就縮到 0，不收閒置費用，代價是隔一陣子的第一句要等冷啟動
 #    --service-account：服務用 martech-assistant 的身分查資料與呼叫 Gemini，映像檔與環境變數裡都沒有金鑰
 # ------------------------------------------------------------------------------
@@ -182,12 +182,21 @@ fi
 echo "========================================================"
 echo "✅ 行銷助理已上線：${SERVICE_URL}"
 echo "   不帶身分的請求：HTTP ${CODE}（被 Cloud Run 擋下，沒有進到程式）"
-echo "   目前可以連的身分（含以前加過的，不該在名單上的請移除）："
-python3 -c 'import json,sys
+echo "   目前可以連的身分："
+EXPECTED="serviceAccount:${PIPELINE_SA}"
+for EMAIL in "${INVOKER_LIST[@]}"; do EXPECTED="${EXPECTED},user:${EMAIL}"; done
+EXPECTED="${EXPECTED}" SERVICE_NAME="${SERVICE_NAME}" REGION="${REGION}" PROJECT_ID="${PROJECT_ID}" python3 -c 'import json,os,sys
+expected = set(os.environ["EXPECTED"].lower().split(","))   # IAM 回傳的帳號一律小寫，兩邊都轉小寫再比
+extra = []
 for b in json.load(sys.stdin).get("bindings", []):
     if b.get("role") == "roles/run.invoker":
         for m in b.get("members", []):
-            print("     -", m)' <<< "${POLICY}"
+            print("     -", m + ("" if m.lower() in expected else "  ← 這次沒有指定，是以前加的"))
+            if m.lower() not in expected:
+                extra.append(m)
+for m in extra:
+    print("     這支腳本不會自動移除，不該再連的請執行：gcloud run services remove-iam-policy-binding", os.environ["SERVICE_NAME"],
+          "--project", os.environ["PROJECT_ID"], "--region", os.environ["REGION"], "--member=\"" + m + "\"", "--role=roles/run.invoker")' <<< "${POLICY}"
 echo "   在瀏覽器使用：gcloud run services proxy ${SERVICE_NAME} --region ${REGION} --port 8080"
 echo "                 然後開 http://localhost:8080（Cloud Shell 用右上角的網頁預覽，通訊埠 8080）"
 echo "   實際問幾句：  python3 agent/serve_try.py（會先印估價，輸入 yes 才問）"

@@ -22,8 +22,11 @@ Day 22 的多輪對話（chat.py）和 Day 23 的護欄（guard.py）原本是�
 
 每日上限保證到哪裡要講清楚：
 - 它是照單價表估的 Token 費用，不是帳單，實際以帳單為準
-- 額度記在這個執行個體的記憶體裡，啟動時從用量表讀回今天已經花的
-- 平常只有一個執行個體，但重新部署換版或流量突然變大時，Cloud Run 可能短暫同時有兩個，那段時間各算各的
+- 額度記在這個執行個體的記憶體裡，啟動時從用量表讀回今天已經花的，之後每隔一分鐘再對一次用量表，取比較大的那個數字
+- 平常只有一個執行個體，但重新部署換版或流量突然變大時，Cloud Run 可能短暫同時有兩個，兩邊靠用量表對帳
+  用量是一輪問完才寫進表裡，所以對方花的錢要兩三分鐘後才看得到：只有幾位同事在用的時候，多花的就是那兩三分鐘的量，
+  但流量滿載時兩三分鐘就足以花完一整份額度，最壞的情況仍然是兩邊各花一份
+- 對帳的查詢失敗時，那一句不呼叫模型
 
 對話紀錄放在記憶體裡，所以這個服務只能跑一個執行個體、一個 worker（部署腳本與 Dockerfile 都是這樣設定）
 執行個體沒人用會縮到 0，縮掉之後對話紀錄就不在了，使用者會被告知對話已經重新開始
@@ -66,6 +69,7 @@ INPUT_CAP = 6000           # 每次呼叫的輸入上限，對話紀錄也算在
 MAX_QUESTION = 500         # 一句話最多幾個字
 SESSION_TTL = 30 * 60      # 對話多久沒動就丟掉（秒）
 MAX_SESSIONS = 100         # 記憶體裡最多留幾場對話，超過就丟最久沒動的
+BUDGET_SYNC_SECONDS = 60   # 每隔幾秒拿用量表對一次今天已經花的（另一個執行個體花的也在表裡）
 DAILY_CAP_TWD = float(os.environ.get("DAILY_CAP_TWD", "3"))   # 這個服務一天最多花新台幣幾元（照單價表估）
 TAIPEI = datetime.timezone(datetime.timedelta(hours=8))
 # 資料只到 AD_END，把隔天當成今天，使用者說的「上週」才對得到有資料的日期（和 Day 22 相同）
@@ -174,6 +178,16 @@ class Budget:
             self.reserved = max(self.reserved - self.worst, 0.0)
             self.spent += actual
 
+    def sync(self, table_spent, table_day):
+        """拿用量表今天的合計來對：表裡的比較多（別的執行個體也在花）就用表裡的，只會往上調不會往下調
+
+        table_day 是查詢當下的台北日期。查詢剛好跨過午夜時，查回來的是昨天的合計，不能算進今天，這一次就不採用
+        """
+        with self._lock:
+            self._roll()
+            if table_day == self.day:
+                self.spent = max(self.spent, table_spent)
+
     def left(self):
         with self._lock:
             self._roll()
@@ -205,9 +219,11 @@ class Sessions:
 
 # ── 服務的狀態：第一個請求進來才準備，準備不起來就不提供對話 ───────────────
 class State:
-    def __init__(self, client, bq, project, terms, price_in, price_out, spent_today):
+    def __init__(self, client, bq, project, terms, price_in, price_out, spent_today, read_spent=None, clock=time.time):
         self.client, self.bq, self.project, self.terms = client, bq, project, terms
         self.price_in, self.price_out = price_in, price_out
+        # read_spent 是一個去用量表查「今天已經花多少」的函式，剛啟動時已經查過一次，所以從現在開始計時
+        self.read_spent, self._clock, self._synced_at, self._sync_lock = read_spent, clock, clock(), threading.Lock()
         worst = (INPUT_CAP * price_in + MAX_OUTPUT * price_out) / 1e6 * FX
         self.budget = Budget(DAILY_CAP_TWD, spent_today, worst)
         self.sessions = Sessions()
@@ -220,6 +236,21 @@ class State:
 
     def cost(self, prompt_tokens, output_tokens):
         return (prompt_tokens * self.price_in + output_tokens * self.price_out) / 1e6 * FX
+
+    def refresh_budget(self):
+        """距離上次對帳超過一分鐘就再查一次用量表。查不到回 False，呼叫端這一句就不呼叫模型"""
+        if self.read_spent is None:
+            return True
+        with self._sync_lock:
+            if self._clock() - self._synced_at < BUDGET_SYNC_SECONDS:
+                return True
+            try:
+                self.budget.sync(*self.read_spent())
+            except Exception as e:
+                event("ERROR", "budget_sync_failed", error=f"{type(e).__name__}: {str(e)[:300]}")
+                return False
+            self._synced_at = self._clock()
+            return True
 
 
 def build_state():
@@ -238,11 +269,17 @@ WHERE model = @model AND endpoint_type = @endpoint
     if len(price) != 1:
         raise RuntimeError(f"單價表裡 {MODEL} {ENDPOINT_TYPE} 今天適用的單價有 {len(price)} 列，應該剛好 1 列")
     price_in, price_out = float(price[0]["usd_in_per_m"]), float(price[0]["usd_out_per_m"])
-    used = list(bq.query(f"""
-SELECT IFNULL(SUM(prompt_tokens), 0) AS p, IFNULL(SUM(output_tokens), 0) AS o FROM {DATASET}.ops_llm_usage
+
+    def read_spent():
+        """回傳 (今天已經花的新台幣, 查詢當下的台北日期)"""
+        used = list(bq.query(f"""
+SELECT IFNULL(SUM(prompt_tokens), 0) AS p, IFNULL(SUM(output_tokens), 0) AS o, CURRENT_DATE('Asia/Taipei') AS d
+FROM {DATASET}.ops_llm_usage
 WHERE job = @job AND DATE(logged_at, 'Asia/Taipei') = CURRENT_DATE('Asia/Taipei')
-  AND DATE(logged_at) >= DATE_SUB(CURRENT_DATE(), INTERVAL 1 DAY)""", job_config=cfg).result())[0]
-    spent = (used["p"] * price_in + used["o"] * price_out) / 1e6 * FX
+  AND DATE(logged_at) >= DATE_SUB(CURRENT_DATE(), INTERVAL 1 DAY)""", job_config=cfg).result(timeout=15))[0]
+        return (used["p"] * price_in + used["o"] * price_out) / 1e6 * FX, used["d"]
+
+    spent, _day = read_spent()
     terms = [(r["term"], r["kind"]) for r in bq.query(
         f"SELECT term, kind FROM {DATASET}.ref_claim_terms UNION ALL SELECT term, kind FROM {DATASET}.ref_claim_terms_d23",
         job_config=bigquery.QueryJobConfig(maximum_bytes_billed=T.MAX_BYTES)).result()]
@@ -252,7 +289,7 @@ WHERE job = @job AND DATE(logged_at, 'Asia/Taipei') = CURRENT_DATE('Asia/Taipei'
                           http_options=types.HttpOptions(timeout=CALL_TIMEOUT_MS))
     event("INFO", "state_ready", spent_today_twd=round(spent, 4), daily_cap_twd=DAILY_CAP_TWD,
           price_in=price_in, price_out=price_out, terms=len(terms))
-    return State(client, bq, project, terms, price_in, price_out, spent)
+    return State(client, bq, project, terms, price_in, price_out, spent, read_spent)
 
 
 _STATE, _STATE_LOCK, _STATE_FAILED_AT = None, threading.Lock(), 0.0
@@ -325,6 +362,10 @@ def run_turn(st, sess, question, usage):
     row["input_hits"] = json.dumps(hits, ensure_ascii=False)
     if hits:
         return done(MSG["input_blocked"], "input_blocked")
+
+    if not st.refresh_budget():   # 對不了帳就不花錢
+        row["status"] = "error:budget_sync"
+        return done(MSG["unavailable"], "error")
 
     contents.append(types.Content(role="user", parts=[types.Part(text=question)]))
     answer = ""

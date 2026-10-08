@@ -116,8 +116,9 @@ def main():
     with open(path, "w", encoding="utf-8") as f:
         json.dump(out, f, ensure_ascii=False, indent=1)
     print(f"\n✅ 問完了，回答存在 {path}，接著看檢查與報表：")
-    print("   bq --headless --location=US query --nouse_legacy_sql < agent/serve_check.sql")
-    print("   bq --headless --location=US query --nouse_legacy_sql < agent/serve_report.sql")
+    dataset = os.environ.get("DATASET", "martech_dw")   # 資料集改過名字的話，兩支 SQL 裡的名稱要跟著換
+    for name in ("serve_check.sql", "serve_report.sql"):
+        print(f"   sed 's/martech_dw\\./{dataset}./g' agent/{name} | bq --headless --location=US query --nouse_legacy_sql")
 
 
 if __name__ == "__main__":

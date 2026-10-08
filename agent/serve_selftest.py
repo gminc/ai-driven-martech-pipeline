@@ -323,6 +323,35 @@ def main():
     day[0] = datetime.date(2026, 10, 11)
     b.settle(0.4)
     ok(abs(b.spent - 0.4) < 1e-9 and b.reserved == 0, "跨過午夜才結算的那一次算在新的一天")
+    # 和用量表對帳：另一個執行個體花的錢只在表裡，對完帳這邊的額度也要跟著變少
+    st, m = fresh_state()
+    t, table, asked = [0.0], [0.0], []
+    st2 = S.State(st.client, st.bq, "selftest-project", st.terms, 0.75, 3.75, 0.0,
+                  read_spent=lambda: asked.append(1) or (table[0], st2.budget.day), clock=lambda: t[0])
+    S.set_state(st2)
+    m.script = [("text", "一"), ("text", "二"), ("text", "不該被問到")]
+    ok(ask(c, "上週哪支廣告花最多錢？").get_json()["status"] == "passed" and not asked, "剛啟動的一分鐘內不重複查用量表")
+    t[0], table[0] = S.BUDGET_SYNC_SECONDS + 1, 2.9
+    d = ask(c, "上週哪支廣告花最多錢？").get_json()
+    ok(d["status"] == "daily_cap" and len(asked) == 1 and abs(st2.budget.spent - 2.9) < 1e-9 and m.calls == 1,
+       "超過一分鐘就對帳，表裡的比較多就用表裡的，額度不夠就不呼叫")
+    table[0] = 0.0
+    t[0] += S.BUDGET_SYNC_SECONDS + 1
+    ask(c, "上週哪支廣告花最多錢？")
+    ok(abs(st2.budget.spent - 2.9) < 1e-9, "對帳只會往上調，不會因為表裡的數字比較小就往下調")
+    day = [datetime.date(2026, 10, 10)]
+    b = S.Budget(3.0, 0.5, 0.25, today=lambda: day[0])
+    day[0] = datetime.date(2026, 10, 11)
+    b.sync(2.9, datetime.date(2026, 10, 10))
+    ok(b.spent == 0.0 and b.reserve() is True, "查詢剛好跨過午夜：查回來的是昨天的合計，不算進今天")
+    b.sync(1.0, datetime.date(2026, 10, 11))
+    ok(b.spent == 1.0, "日期對得上才採用")
+    st2.read_spent = lambda: (_ for _ in ()).throw(RuntimeError("bq down"))
+    t[0] += S.BUDGET_SYNC_SECONDS + 1
+    st2.budget.spent = 0.0
+    d = ask(c, "上週哪支廣告花最多錢？").get_json()
+    ok(d["status"] == "error" and d["answer"] == S.MSG["unavailable"] and m.calls == 1
+       and LOGS["turns"][-1]["status"] == "error:budget_sync", "對不了帳的那一句不呼叫模型")
     st, m = fresh_state()
     LOGS["fail_turns"] = True
     m.script = [("text", "這一句有答"), ("text", "不該被問到")]
