@@ -24,7 +24,7 @@ provider "google" {
 }
 
 # ==============================================================================
-# 1. 批次啟用專案核心必要 Google Cloud API 服務 (共 10 項)
+# 1. 批次啟用專案核心必要 Google Cloud API 服務 (共 13 項，後 3 項是 Day 26 到 28 加的)
 # ==============================================================================
 locals {
   services = [
@@ -37,7 +37,10 @@ locals {
     "cloudbuild.googleapis.com",         # Cloud Build API (容器映像檔建置)
     "monitoring.googleapis.com",         # Cloud Monitoring API (指標監控與警報)
     "billingbudgets.googleapis.com",     # Cloud Billing Budget API (預算防爆警報)
-    "iam.googleapis.com"                 # Identity and Access Management (IAM) API
+    "iam.googleapis.com",                # Identity and Access Management (IAM) API
+    "artifactregistry.googleapis.com",   # Artifact Registry API (Day 26：存放助理的容器映像檔)
+    "secretmanager.googleapis.com",      # Secret Manager API (Day 28：存放 Slack Webhook 網址)
+    "cloudscheduler.googleapis.com"      # Cloud Scheduler API (Day 27：每天早上定時啟動日報流程)
   ]
 
   pipeline_project_roles = [
@@ -223,5 +226,138 @@ resource "google_billing_budget" "budget_alert" {
     spend_basis       = "CURRENT_SPEND"
   }
 
+  # Day 25：有填 alert_email 才多寄一份到 Cloud Monitoring 的通知管道
+  # 原本寄給帳單管理員的那一份照舊（disable_default_iam_recipients 維持 false）
+  dynamic "all_updates_rule" {
+    for_each = var.alert_email != "" ? [1] : []
+    content {
+      monitoring_notification_channels = [google_monitoring_notification_channel.budget_email[0].id]
+      disable_default_iam_recipients   = false
+    }
+  }
+
   depends_on = [google_project_service.enabled_apis]
+}
+
+# Day 25：預算警報的收件信箱（Cloud Monitoring 通知管道，email 類型，一個預算最多連 5 個）
+# 這裡只建通知管道，沒有建警報政策，也沒有自訂指標
+resource "google_monitoring_notification_channel" "budget_email" {
+  count        = var.billing_account_id != "" && var.alert_email != "" ? 1 : 0
+  project      = var.project_id
+  display_name = "MarTech Budget Alert Email"
+  type         = "email"
+
+  labels = {
+    email_address = var.alert_email
+  }
+
+  depends_on = [google_project_service.enabled_apis]
+}
+
+# ==============================================================================
+# 7. Day 26：助理服務的容器映像檔存放區與專用服務帳號
+#    Cloud Run 服務本身由 Day 26 的部署指令建立（要先有映像檔），這裡只準備它需要的東西
+# ==============================================================================
+resource "google_artifact_registry_repository" "assistant" {
+  project       = var.project_id
+  location      = var.region
+  repository_id = "martech"
+  format        = "DOCKER"
+  description   = "行銷助理的容器映像檔"
+
+  # 每個映像檔只留最新 2 個版本，其餘由背景工作清掉（大約一天內生效，不是推上去當下就刪）
+  # 平常容量會維持在每月 0.5 GiB 免費額度附近，一天內重複部署很多次時會暫時超過
+  cleanup_policy_dry_run = false
+
+  cleanup_policies {
+    id     = "keep-latest-2"
+    action = "KEEP"
+    most_recent_versions {
+      keep_count = 2
+    }
+  }
+  cleanup_policies {
+    id     = "delete-the-rest"
+    action = "DELETE"
+    condition {
+      tag_state = "ANY"
+    }
+  }
+
+  depends_on = [google_project_service.enabled_apis]
+}
+
+resource "google_service_account" "assistant" {
+  account_id   = "martech-assistant"
+  display_name = "MarTech Assistant (Cloud Run)"
+  description  = "行銷助理在 Cloud Run 上執行時用的身分：可讀寫 martech_dw、呼叫 Gemini，碰不到專案裡其他資源"
+  project      = var.project_id
+
+  depends_on = [google_project_service.enabled_apis]
+}
+
+resource "google_project_iam_member" "assistant_project_roles" {
+  for_each = toset(local.pipeline_project_roles)
+  project  = var.project_id
+  role     = each.value
+  member   = "serviceAccount:${google_service_account.assistant.email}"
+}
+
+# 助理要把每一輪對話與 Token 用量寫回 martech_dw，所以是 dataEditor，範圍只到這個資料集
+# 取捨：dataEditor 也改得動資料集裡其他表，助理的查詢工具都是寫死的 SELECT、不執行模型寫的 SQL，
+# 正式環境建議改成資料集唯讀、只對紀錄用的那幾張表給寫入權限
+resource "google_bigquery_dataset_iam_member" "assistant_data_editor" {
+  project    = var.project_id
+  dataset_id = google_bigquery_dataset.martech_dw.dataset_id
+  role       = "roles/bigquery.dataEditor"
+  member     = "serviceAccount:${google_service_account.assistant.email}"
+}
+
+# ==============================================================================
+# 8. Day 27：排程專用服務帳號（Cloud Scheduler 用它啟動 Workflows）
+#    流程本身用第 5 節的 martech-pipeline-runner 執行
+# ==============================================================================
+resource "google_service_account" "scheduler" {
+  account_id   = "martech-scheduler"
+  display_name = "MarTech Scheduler"
+  description  = "Cloud Scheduler 啟動日報流程用的身分，只有啟動 Workflows 的權限"
+  project      = var.project_id
+
+  depends_on = [google_project_service.enabled_apis]
+}
+
+resource "google_project_iam_member" "scheduler_workflows_invoker" {
+  project = var.project_id
+  role    = "roles/workflows.invoker"
+  member  = "serviceAccount:${google_service_account.scheduler.email}"
+}
+
+# 流程執行時要寫紀錄
+resource "google_project_iam_member" "pipeline_runner_log_writer" {
+  project = var.project_id
+  role    = "roles/logging.logWriter"
+  member  = "serviceAccount:${google_service_account.pipeline_runner.email}"
+}
+
+# ==============================================================================
+# 9. Day 28：Slack Webhook 網址的存放處（只建空的密鑰，網址由你自己貼進去）
+#    網址不會出現在 Terraform 程式、tfvars 或 state 裡
+# ==============================================================================
+resource "google_secret_manager_secret" "slack_webhook" {
+  project   = var.project_id
+  secret_id = "slack-webhook-url"
+
+  replication {
+    auto {}
+  }
+
+  depends_on = [google_project_service.enabled_apis]
+}
+
+# 服務帳號裡只有執行流程的那一個讀得到這個密鑰（專案擁有者本來就讀得到）
+resource "google_secret_manager_secret_iam_member" "pipeline_runner_slack_accessor" {
+  project   = var.project_id
+  secret_id = google_secret_manager_secret.slack_webhook.secret_id
+  role      = "roles/secretmanager.secretAccessor"
+  member    = "serviceAccount:${google_service_account.pipeline_runner.email}"
 }

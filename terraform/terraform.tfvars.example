@@ -25,5 +25,8 @@ billing_account_id = ""
 budget_amount   = 300
 budget_currency = "TWD"
 
+# 預算警報額外寄送的信箱 (Day 25，選填，留空就只寄給帳單管理員)
+alert_email = ""
+
 # destroy 時是否連同資料一併刪除 (教學環境 true；正式環境請改為 false)
 allow_destroy_with_data = true

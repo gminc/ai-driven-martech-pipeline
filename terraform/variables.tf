@@ -51,6 +51,12 @@ variable "budget_currency" {
   default     = "TWD"
 }
 
+variable "alert_email" {
+  description = "預算警報額外寄送的信箱（Day 25，選填，留空就只寄給帳單管理員，和 Day 03 一樣）"
+  type        = string
+  default     = ""
+}
+
 variable "allow_destroy_with_data" {
   description = "terraform destroy 時是否連同儲存庫物件與資料表一併刪除（教學環境預設 true；正式環境請設為 false）"
   type        = bool

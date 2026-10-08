@@ -37,3 +37,23 @@ output "pipeline_runner_service_account" {
   description = "資料處理流程專用服務帳號 Email"
   value       = google_service_account.pipeline_runner.email
 }
+
+output "assistant_service_account" {
+  description = "Day 26：行銷助理在 Cloud Run 上執行時用的服務帳號"
+  value       = google_service_account.assistant.email
+}
+
+output "assistant_image_repository" {
+  description = "Day 26：助理容器映像檔的存放位置"
+  value       = "${var.region}-docker.pkg.dev/${var.project_id}/${google_artifact_registry_repository.assistant.repository_id}"
+}
+
+output "scheduler_service_account" {
+  description = "Day 27：Cloud Scheduler 啟動日報流程用的服務帳號"
+  value       = google_service_account.scheduler.email
+}
+
+output "slack_webhook_secret" {
+  description = "Day 28：Slack Webhook 網址存放的密鑰名稱（內容要自己貼）"
+  value       = google_secret_manager_secret.slack_webhook.secret_id
+}
