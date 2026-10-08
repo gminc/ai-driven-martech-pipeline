@@ -98,9 +98,20 @@ def main():
     if input("輸入 yes 開始呼叫模型：").strip() != "yes":
         print("已停在這裡，沒有呼叫模型")
         sys.exit(2)
-    sessions, out = {}, []
+    # 身分權杖大約一小時就過期，而且 gcloud 給的可能是快到期的舊權杖，在估價那一步停久一點就會過期
+    # 所以按下 yes 之後重新拿一次，中途收到 401 再拿一次重問，還是不行就停下來，不把「沒問到」當成「問完了」
+    token = sh("gcloud", "auth", "print-identity-token") or token
+    sessions, out, asked = {}, [], 0
     for label, question in PLAN:
-        code, text = call(url + "/chat", token, body={"question": question, "session_id": sessions.get(label, "")}, headers=chat)
+        body = {"question": question, "session_id": sessions.get(label, "")}
+        code, text = call(url + "/chat", token, body=body, headers=chat)
+        if code == 401:
+            token = sh("gcloud", "auth", "print-identity-token") or token
+            code, text = call(url + "/chat", token, body=body, headers=chat)
+        if code in (401, 403):
+            print(f"\n❌ [{label}] {question}\n   HTTP {code}：服務不認這個身分（權杖過期或帳號沒有 run.invoker），這一句沒有進到程式、沒有呼叫模型，後面不再問")
+            break
+        asked += 1
         try:
             d = json.loads(text)
         except ValueError:
@@ -115,7 +126,9 @@ def main():
     path = os.path.expanduser("~/day26_try.json")
     with open(path, "w", encoding="utf-8") as f:
         json.dump(out, f, ensure_ascii=False, indent=1)
-    print(f"\n✅ 問完了，回答存在 {path}，接著看檢查與報表：")
+    if asked < len(PLAN):
+        sys.exit(f"\n❌ {len(PLAN)} 句只問到 {asked} 句，已經拿到的回答存在 {path}，排除原因後再執行一次")
+    print(f"\n✅ {len(PLAN)} 句都問完了，回答存在 {path}，接著看檢查與報表：")
     dataset = os.environ.get("DATASET", "martech_dw")   # 資料集改過名字的話，兩支 SQL 裡的名稱要跟著換
     for name in ("serve_check.sql", "serve_report.sql"):
         print(f"   sed 's/martech_dw\\./{dataset}./g' agent/{name} | bq --headless --location=US query --nouse_legacy_sql")
