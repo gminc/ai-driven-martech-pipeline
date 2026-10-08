@@ -1,0 +1,27 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="robots" content="noindex">
+  <title>行銷資料助理</title>
+  <link rel="stylesheet" href="/static/chat.css">
+</head>
+<body>
+  <main>
+    <header>
+      <h1>行銷資料助理</h1>
+      <button id="reset" type="button">開新對話</button>
+    </header>
+    <p class="hint">可以問廣告花費、通路功勞、成效異常、哪種廣告圖比較會賣。顧客資料要單獨開一場對話問，而且只看得到遮蔽後的樣子。每一句問答都會留下紀錄。</p>
+    <ol id="log" aria-live="polite"></ol>
+    <form id="form" autocomplete="off">
+      <label class="sr" for="q">問題</label>
+      <textarea id="q" rows="2" maxlength="500" placeholder="例如：上週哪支廣告花最多錢？" required></textarea>
+      <button id="send" type="submit">送出</button>
+    </form>
+    <p id="status" class="status" role="status"></p>
+  </main>
+  <script src="/static/chat.js"></script>
+</body>
+</html>
