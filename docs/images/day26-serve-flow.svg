@@ -1,0 +1,99 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1240 580" width="1240" height="580" font-family="'Noto Sans TC','Noto Sans CJK TC','PingFang TC','Microsoft JhengHei',sans-serif">
+  <defs>
+    <style>
+      .title { font-size: 22px; font-weight: 700; fill: #202124; }
+      .note { font-size: 13px; fill: #5f6368; }
+      .box { fill: #f8f9fa; stroke: #9aa0a6; stroke-width: 1.4; }
+      .who { fill: #e8f0fe; stroke: #1a73e8; stroke-width: 1.6; }
+      .cap { fill: #fef7e0; stroke: #e37400; stroke-width: 1.6; }
+      .can { fill: #e6f4ea; stroke: #188038; stroke-width: 1.6; }
+      .bt { font-size: 16px; font-weight: 700; fill: #202124; }
+      .bs { font-size: 12.5px; fill: #5f6368; }
+      .lane { font-size: 15px; font-weight: 700; }
+      .arrow { stroke: #5f6368; stroke-width: 2; fill: none; }
+      .deny { stroke: #c5221f; stroke-width: 2; fill: none; stroke-dasharray: 6 5; }
+      .denyt { font-size: 12.5px; font-weight: 700; fill: #c5221f; }
+      .sep { stroke: #dadce0; stroke-width: 1.5; stroke-dasharray: 6 6; }
+    </style>
+    <marker id="ah" markerWidth="10" markerHeight="8" refX="9" refY="4" orient="auto"><path d="M0,0 L10,4 L0,8 z" fill="#5f6368"/></marker>
+    <marker id="ad" markerWidth="10" markerHeight="8" refX="9" refY="4" orient="auto"><path d="M0,0 L10,4 L0,8 z" fill="#c5221f"/></marker>
+  </defs>
+  <rect width="1240" height="580" fill="#ffffff"/>
+  <text x="40" y="44" class="title">圖一：三個問題，各由不同的一層回答</text>
+  <text x="40" y="68" class="note">每一層都寫在平台設定或程式裡，不靠模型自己的判斷，模型被騙也改不了</text>
+
+  <text x="310" y="118" class="lane" fill="#1a73e8">誰能連</text>
+  <text x="600" y="118" class="lane" fill="#e37400">最多花多少</text>
+  <text x="940" y="118" class="lane" fill="#188038">連進來的服務能碰什麼</text>
+
+  <rect x="40" y="136" width="200" height="132" rx="8" class="box"/>
+  <text x="140" y="168" text-anchor="middle" class="bt">名單上的同事</text>
+  <text x="140" y="192" text-anchor="middle" class="bs">瀏覽器加本機的 proxy</text>
+  <text x="140" y="212" text-anchor="middle" class="bs">或程式自己帶權杖</text>
+  <text x="140" y="240" text-anchor="middle" class="bs">每個請求都帶 Google 身分</text>
+
+  <rect x="40" y="300" width="200" height="84" rx="8" class="box"/>
+  <text x="140" y="332" text-anchor="middle" class="bt">其他任何人</text>
+  <text x="140" y="356" text-anchor="middle" class="bs">沒帶身分，或不在名單上</text>
+
+  <rect x="310" y="136" width="220" height="248" rx="8" class="who"/>
+  <text x="420" y="168" text-anchor="middle" class="bt">Cloud Run 的 IAM</text>
+  <text x="420" y="194" text-anchor="middle" class="bs">服務不允許未驗證的請求</text>
+  <text x="420" y="214" text-anchor="middle" class="bs">要有這個服務的</text>
+  <text x="420" y="234" text-anchor="middle" class="bs">roles/run.invoker</text>
+  <text x="420" y="270" text-anchor="middle" class="bs">身分是平台驗的</text>
+  <text x="420" y="290" text-anchor="middle" class="bs">程式裡沒有登入邏輯</text>
+  <text x="420" y="338" text-anchor="middle" class="denyt">沒過：HTTP 403</text>
+  <text x="420" y="358" text-anchor="middle" class="bs">沒有進到程式，也不計費</text>
+
+  <rect x="600" y="136" width="260" height="248" rx="8" class="cap"/>
+  <text x="730" y="168" text-anchor="middle" class="bt">martech-assistant 服務</text>
+  <text x="730" y="194" text-anchor="middle" class="bs">Day 22 多輪對話加 Day 23 護欄</text>
+  <text x="730" y="230" text-anchor="middle" class="bs">最少 0、最多 1 個執行個體</text>
+  <text x="730" y="250" text-anchor="middle" class="bs">每輪最多呼叫模型 4 次</text>
+  <text x="730" y="270" text-anchor="middle" class="bs">每場對話最多 8 輪</text>
+  <text x="730" y="290" text-anchor="middle" class="bs">每次輸入 6,000、輸出 1,024 個 Token</text>
+  <text x="730" y="326" text-anchor="middle" class="bs">一天估算花到新台幣 3 元</text>
+  <text x="730" y="346" text-anchor="middle" class="bs">就不再呼叫模型</text>
+
+  <rect x="940" y="136" width="260" height="112" rx="8" class="can"/>
+  <text x="1070" y="168" text-anchor="middle" class="bt">BigQuery martech_dw</text>
+  <text x="1070" y="192" text-anchor="middle" class="bs">六個寫死的查詢工具</text>
+  <text x="1070" y="212" text-anchor="middle" class="bs">模型只能填參數</text>
+  <text x="1070" y="232" text-anchor="middle" class="bs">顧客個資先遮蔽才交給模型</text>
+
+  <rect x="940" y="272" width="260" height="112" rx="8" class="can"/>
+  <text x="1070" y="304" text-anchor="middle" class="bt">Gemini</text>
+  <text x="1070" y="328" text-anchor="middle" class="bs">gemini-3.6-flash，global 端點</text>
+  <text x="1070" y="356" text-anchor="middle" class="bs">用服務帳號的身分呼叫</text>
+
+  <text x="900" y="266" text-anchor="middle" class="bs" fill="#188038">服務帳號</text>
+
+  <path d="M240,202 L308,202" class="arrow" marker-end="url(#ah)"/>
+  <path d="M240,342 L308,342" class="deny" marker-end="url(#ad)"/>
+  <path d="M530,222 L598,222" class="arrow" marker-end="url(#ah)"/>
+  <path d="M860,200 L938,192" class="arrow" marker-end="url(#ah)"/>
+  <path d="M860,320 L938,328" class="arrow" marker-end="url(#ah)"/>
+
+  <line x1="40" y1="414" x2="1200" y2="414" class="sep"/>
+  <text x="40" y="446" class="lane" fill="#5f6368">每一句都留下紀錄</text>
+
+  <rect x="310" y="462" width="290" height="92" rx="8" class="box"/>
+  <text x="455" y="494" text-anchor="middle" class="bt">serve_turns 問答紀錄</text>
+  <text x="455" y="518" text-anchor="middle" class="bs">誰問了什麼、程式擋了什麼、花了多少</text>
+  <text x="455" y="538" text-anchor="middle" class="bs">執行個體換掉時，對話從這裡接回來</text>
+
+  <rect x="660" y="462" width="250" height="92" rx="8" class="box"/>
+  <text x="785" y="494" text-anchor="middle" class="bt">ops_llm_usage 用量表</text>
+  <text x="785" y="518" text-anchor="middle" class="bs">每一次模型呼叫一列</text>
+  <text x="785" y="538" text-anchor="middle" class="bs">每日上限啟動時從這裡讀回</text>
+
+  <rect x="980" y="462" width="220" height="92" rx="8" class="box"/>
+  <text x="1090" y="494" text-anchor="middle" class="bt">Day 25 的儀表板</text>
+  <text x="1090" y="518" text-anchor="middle" class="bs">不用改設定</text>
+  <text x="1090" y="538" text-anchor="middle" class="bs">就看得到這個服務花多少</text>
+
+  <path d="M660,384 L520,460" class="arrow" marker-end="url(#ah)"/>
+  <path d="M760,384 L780,460" class="arrow" marker-end="url(#ah)"/>
+  <path d="M910,508 L978,508" class="arrow" marker-end="url(#ah)"/>
+</svg>
