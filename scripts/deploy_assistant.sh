@@ -141,8 +141,12 @@ gcloud run deploy "${SERVICE_NAME}" \
 #    martech-pipeline-runner 是 Day 27 排程用的身分，先綁好，不然明天排程來呼叫會收到 403
 # ------------------------------------------------------------------------------
 for EMAIL in "${INVOKER_LIST[@]}"; do
-  gcloud run services add-iam-policy-binding "${SERVICE_NAME}" --project "${PROJECT_ID}" --region "${REGION}" \
-    --member="user:${EMAIL}" --role="roles/run.invoker" --quiet >/dev/null
+  # run.invoker 只有「呼叫」這一項權限，gcloud run services proxy 啟動時還要讀服務的設定，那需要 run.viewer
+  # 兩個角色都只綁在這一個服務上，同事不會因此看得到專案裡其他東西
+  for ROLE in roles/run.invoker roles/run.viewer; do
+    gcloud run services add-iam-policy-binding "${SERVICE_NAME}" --project "${PROJECT_ID}" --region "${REGION}" \
+      --member="user:${EMAIL}" --role="${ROLE}" --quiet >/dev/null
+  done
   echo "🔑 ${EMAIL} 可以連了"
 done
 if gcloud iam service-accounts describe "${PIPELINE_SA}" --project "${PROJECT_ID}" >/dev/null 2>&1; then
@@ -197,9 +201,10 @@ for b in json.load(sys.stdin).get("bindings", []):
 for m in extra:
     print("     這支腳本不會自動移除，不該再連的請執行：gcloud run services remove-iam-policy-binding", os.environ["SERVICE_NAME"],
           "--project", os.environ["PROJECT_ID"], "--region", os.environ["REGION"], "--member=\"" + m + "\"", "--role=roles/run.invoker")' <<< "${POLICY}"
-echo "   在瀏覽器使用：gcloud run services proxy ${SERVICE_NAME} --region ${REGION} --port 8080"
+echo "   在瀏覽器使用：gcloud run services proxy ${SERVICE_NAME} --project ${PROJECT_ID} --region ${REGION} --port 8080"
 echo "                 然後開 http://localhost:8080（Cloud Shell 用右上角的網頁預覽，通訊埠 8080）"
 echo "   實際問幾句：  python3 agent/serve_try.py（會先印估價，輸入 yes 才問）"
 echo "   加一位同事：  gcloud run services add-iam-policy-binding ${SERVICE_NAME} --region ${REGION} --member=user:同事的帳號 --role=roles/run.invoker"
+echo "                 （同一行把角色換成 roles/run.viewer 再執行一次，同事才用得了 gcloud run services proxy）"
 echo "   不用了：      gcloud run services delete ${SERVICE_NAME} --region ${REGION}"
 echo "========================================================"
