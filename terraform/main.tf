@@ -227,7 +227,7 @@ resource "google_billing_budget" "budget_alert" {
   }
 
   # Day 25：有填 alert_email 才多寄一份到 Cloud Monitoring 的通知管道
-  # 原本寄給帳單管理員的那一份照舊（disable_default_iam_recipients 維持 false）
+  # 原本寄給帳單帳戶管理員與使用者的那一份照舊（disable_default_iam_recipients 維持 false）
   dynamic "all_updates_rule" {
     for_each = var.alert_email != "" ? [1] : []
     content {

@@ -1,0 +1,85 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1240 560" width="1240" height="560" font-family="'Noto Sans TC','Noto Sans CJK TC','PingFang TC','Microsoft JhengHei',sans-serif">
+  <defs>
+    <style>
+      .title { font-size: 22px; font-weight: 700; fill: #202124; }
+      .note { font-size: 13px; fill: #5f6368; }
+      .box { fill: #f8f9fa; stroke: #9aa0a6; stroke-width: 1.4; }
+      .see { fill: #e8f0fe; stroke: #1a73e8; stroke-width: 1.6; }
+      .alert { fill: #fef7e0; stroke: #e37400; stroke-width: 1.6; }
+      .bt { font-size: 16px; font-weight: 700; fill: #202124; }
+      .bs { font-size: 12.5px; fill: #5f6368; }
+      .lane { font-size: 15px; font-weight: 700; }
+      .arrow { stroke: #5f6368; stroke-width: 2; fill: none; }
+      .sep { stroke: #dadce0; stroke-width: 1.5; stroke-dasharray: 6 6; }
+    </style>
+    <marker id="ah" markerWidth="10" markerHeight="8" refX="9" refY="4" orient="auto"><path d="M0,0 L10,4 L0,8 z" fill="#5f6368"/></marker>
+  </defs>
+  <rect width="1240" height="560" fill="#ffffff"/>
+  <text x="40" y="44" class="title">圖一：一條線負責看，一條線負責高呼警報</text>
+  <text x="40" y="68" class="note">兩條線的資料來源不同，儀表板算的是自己記的用量，預算警報看的是實際帳單</text>
+
+  <text x="40" y="112" class="lane" fill="#1a73e8">看：錢花在哪一天、哪一篇、哪個模型</text>
+  <rect x="40" y="130" width="220" height="110" rx="8" class="box"/>
+  <text x="150" y="162" text-anchor="middle" class="bt">ops_llm_usage</text>
+  <text x="150" y="186" text-anchor="middle" class="bs">用量表，Day 16 起累積</text>
+  <text x="150" y="206" text-anchor="middle" class="bs">一列是一次模型呼叫</text>
+  <text x="150" y="226" text-anchor="middle" class="bs">只記 Token，不記錢</text>
+
+  <rect x="40" y="262" width="220" height="92" rx="8" class="box"/>
+  <text x="150" y="294" text-anchor="middle" class="bt">ref_llm_price</text>
+  <text x="150" y="318" text-anchor="middle" class="bs">單價表</text>
+  <text x="150" y="338" text-anchor="middle" class="bs">模型 × 端點 × 期間</text>
+
+  <rect x="350" y="160" width="240" height="150" rx="8" class="see"/>
+  <text x="470" y="192" text-anchor="middle" class="bt">v_llm_usage_calls</text>
+  <text x="470" y="216" text-anchor="middle" class="bs">一列是一次呼叫</text>
+  <text x="470" y="236" text-anchor="middle" class="bs">換成台北日期、對到單價</text>
+  <text x="470" y="256" text-anchor="middle" class="bs">算出輸入、輸出與合計費用</text>
+  <text x="470" y="284" text-anchor="middle" class="bs">對不到單價的費用留空值</text>
+
+  <rect x="680" y="160" width="240" height="150" rx="8" class="see"/>
+  <text x="800" y="192" text-anchor="middle" class="bt">v_llm_usage_daily</text>
+  <text x="800" y="216" text-anchor="middle" class="bs">一列是一天 × 哪一篇 × 程式</text>
+  <text x="800" y="236" text-anchor="middle" class="bs">× 模型 × 端點</text>
+  <text x="800" y="264" text-anchor="middle" class="bs">多一欄 unpriced_calls</text>
+  <text x="800" y="284" text-anchor="middle" class="bs">數沒算進合計的呼叫</text>
+
+  <rect x="1000" y="160" width="200" height="150" rx="8" class="see"/>
+  <text x="1100" y="192" text-anchor="middle" class="bt">Data Studio</text>
+  <text x="1100" y="216" text-anchor="middle" class="bs">儀表板</text>
+  <text x="1100" y="244" text-anchor="middle" class="bs">要有人打開來看</text>
+  <text x="1100" y="264" text-anchor="middle" class="bs">預設快取 12 小時</text>
+  <text x="1100" y="284" text-anchor="middle" class="bs">只開給指定帳號</text>
+
+  <path d="M260,185 L348,215" class="arrow" marker-end="url(#ah)"/>
+  <path d="M260,308 L348,262" class="arrow" marker-end="url(#ah)"/>
+  <path d="M590,235 L678,235" class="arrow" marker-end="url(#ah)"/>
+  <path d="M920,235 L998,235" class="arrow" marker-end="url(#ah)"/>
+
+  <line x1="40" y1="384" x2="1200" y2="384" class="sep"/>
+
+  <text x="40" y="420" class="lane" fill="#e37400">高呼警報：這個月整個專案花超過門檻了沒</text>
+  <rect x="40" y="438" width="220" height="92" rx="8" class="box"/>
+  <text x="150" y="470" text-anchor="middle" class="bt">Cloud Billing 帳單</text>
+  <text x="150" y="494" text-anchor="middle" class="bs">專案裡所有會收費的服務</text>
+  <text x="150" y="514" text-anchor="middle" class="bs">回報會晚一段時間</text>
+
+  <rect x="350" y="438" width="240" height="92" rx="8" class="alert"/>
+  <text x="470" y="470" text-anchor="middle" class="bt">預算警報（Day 03）</text>
+  <text x="470" y="494" text-anchor="middle" class="bs">每月新台幣 300 元</text>
+  <text x="470" y="514" text-anchor="middle" class="bs">50%、80%、100% 三個門檻</text>
+
+  <rect x="680" y="438" width="240" height="92" rx="8" class="alert"/>
+  <text x="800" y="470" text-anchor="middle" class="bt">Cloud Monitoring</text>
+  <text x="800" y="494" text-anchor="middle" class="bs">email 通知管道（今天新增）</text>
+  <text x="800" y="514" text-anchor="middle" class="bs">一個預算最多連 5 個</text>
+
+  <rect x="1000" y="438" width="200" height="92" rx="8" class="box"/>
+  <text x="1100" y="470" text-anchor="middle" class="bt">信箱</text>
+  <text x="1100" y="494" text-anchor="middle" class="bs">超過門檻自己寄來</text>
+  <text x="1100" y="514" text-anchor="middle" class="bs">只通知，不會停機</text>
+
+  <path d="M260,484 L348,484" class="arrow" marker-end="url(#ah)"/>
+  <path d="M590,484 L678,484" class="arrow" marker-end="url(#ah)"/>
+  <path d="M920,484 L998,484" class="arrow" marker-end="url(#ah)"/>
+</svg>

@@ -52,7 +52,7 @@ variable "budget_currency" {
 }
 
 variable "alert_email" {
-  description = "預算警報額外寄送的信箱（Day 25，選填，留空就只寄給帳單管理員，和 Day 03 一樣）"
+  description = "預算警報額外寄送的信箱（Day 25，選填，留空就只寄給帳單帳戶的管理員與使用者，和 Day 03 一樣）"
   type        = string
   default     = ""
 }
