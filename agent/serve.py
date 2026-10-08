@@ -28,8 +28,11 @@ Day 22 的多輪對話（chat.py）和 Day 23 的護欄（guard.py）原本是�
   但流量滿載時兩三分鐘就足以花完一整份額度，最壞的情況仍然是兩邊各花一份
 - 對帳的查詢失敗時，那一句不呼叫模型
 
-對話紀錄放在記憶體裡，所以這個服務只能跑一個執行個體、一個 worker（部署腳本與 Dockerfile 都是這樣設定）
-執行個體沒人用會縮到 0，縮掉之後對話紀錄就不在了，使用者會被告知對話已經重新開始
+對話紀錄放在記憶體裡當暫存，所以這個服務只跑一個執行個體、一個 worker（部署腳本與 Dockerfile 都是這樣設定）
+但記憶體靠不住：實測 Cloud Run 在一句話答完 4 秒後就把閒置的執行個體收掉，下一句是新的執行個體接的
+所以記憶體裡找不到這場對話時，會從問答紀錄表 serve_turns 把它接回來（問過什麼、答過什麼、用過哪些工具），
+接回來的對話沒有當時的工具結果，模型需要的話會重查，顧客資料獨佔的判斷照樣算數
+紀錄表裡也找不到（超過 30 分鐘沒動、不是同一個人）才是一場新的對話
 
 這個檔案不花錢的檢查：python3 agent/serve_selftest.py
 """
@@ -69,6 +72,7 @@ INPUT_CAP = 6000           # 每次呼叫的輸入上限，對話紀錄也算在
 MAX_QUESTION = 500         # 一句話最多幾個字
 SESSION_TTL = 30 * 60      # 對話多久沒動就丟掉（秒）
 MAX_SESSIONS = 100         # 記憶體裡最多留幾場對話，超過就丟最久沒動的
+LOOKUP_MAX, LOOKUP_WINDOW = 20, 600   # 每個人每 600 秒最多去紀錄表找 20 次對話
 BUDGET_SYNC_SECONDS = 60   # 每隔幾秒拿用量表對一次今天已經花的（另一個執行個體花的也在表裡）
 DAILY_CAP_TWD = float(os.environ.get("DAILY_CAP_TWD", "3"))   # 這個服務一天最多花新台幣幾元（照單價表估）
 TAIPEI = datetime.timezone(datetime.timedelta(hours=8))
@@ -197,30 +201,64 @@ class Budget:
 # ── 對話紀錄（放在記憶體） ─────────────────────────────────────────────────
 class Sessions:
     def __init__(self, clock=time.time):
-        self._d, self._lock, self._clock = {}, threading.Lock(), clock
+        self._d, self._lock, self._clock, self._lookups = {}, threading.Lock(), clock, {}
 
-    def get(self, session_id, caller):
-        """回傳 (對話, 是不是新開的)。編號不存在、過期、或不是同一個人開的，都給一場新的"""
+    def _may_load(self, caller):
+        """去紀錄表找對話是一次 BigQuery 查詢，不呼叫模型所以不在每日額度裡，這裡限制每個人十分鐘最多查幾次"""
+        t = self._clock()
+        recent = [x for x in self._lookups.get(caller, []) if t - x < LOOKUP_WINDOW]
+        ok = len(recent) < LOOKUP_MAX
+        self._lookups[caller] = recent + [t] if ok else recent
+        for k in [k for k, v in self._lookups.items() if not v or t - v[-1] > LOOKUP_WINDOW]:
+            del self._lookups[k]
+        return ok
+
+    def _find(self, session_id, caller):
+        t = self._clock()
+        for k in [k for k, s in self._d.items() if t - s["last_at"] > SESSION_TTL]:
+            del self._d[k]
+        s = self._d.get(session_id or "")
+        if s is not None and s["caller"] == caller:
+            s["last_at"] = t
+            return s
+        return None
+
+    def get(self, session_id, caller, load=None):
+        """回傳 (對話, 怎麼來的)：existing 記憶體裡本來就有、restored 從問答紀錄表接回來的、new 新開的
+
+        load 是去紀錄表找這場對話的函式（找不到回 None），只有帶了編號而記憶體裡沒有的時候才會用到
+        編號不存在、過期、或不是同一個人開的，都給一場新的
+        """
         with self._lock:
-            t = self._clock()
-            for k in [k for k, s in self._d.items() if t - s["last_at"] > SESSION_TTL]:
-                del self._d[k]
-            s = self._d.get(session_id or "")
-            if s is not None and s["caller"] == caller:
-                s["last_at"] = t
-                return s, False
+            s = self._find(session_id, caller)
+            if s is not None:
+                return s, "existing"
+            may_load = bool(load and session_id) and self._may_load(caller)
+        saved = load(session_id, caller) if may_load else None   # 查詢比較慢，不拿著鎖等
+        with self._lock:
+            s = self._find(session_id, caller)   # 查詢的這段時間，同一場對話的另一個請求可能已經把它接回來了
+            if s is not None:
+                return s, "existing"
             while len(self._d) >= MAX_SESSIONS:
-                del self._d[min(self._d, key=lambda k: self._d[k]["last_at"])]
+                # 正在處理中的對話（鎖被拿著）不丟，不然同一個編號再進來會變成兩份各走各的
+                idle = [k for k in self._d if not self._d[k]["lock"].locked()]
+                if not idle:
+                    break
+                del self._d[min(idle, key=lambda k: self._d[k]["last_at"])]
             s = {"id": uuid.uuid4().hex, "caller": caller, "contents": [], "used": set(), "known_pii": [],
-                 "turns": 0, "last_at": t, "lock": threading.Lock()}
+                 "turns": 0, "last_at": self._clock(), "lock": threading.Lock()}
+            if saved:
+                s.update(id=session_id, contents=saved["contents"], used=saved["used"], turns=saved["turns"])
             self._d[s["id"]] = s
-            return s, True
+            return s, ("restored" if saved else "new")
 
 
 # ── 服務的狀態：第一個請求進來才準備，準備不起來就不提供對話 ───────────────
 class State:
-    def __init__(self, client, bq, project, terms, price_in, price_out, spent_today, read_spent=None, clock=time.time):
+    def __init__(self, client, bq, project, terms, price_in, price_out, spent_today, read_spent=None, clock=time.time,
+                 load_session=None):
         self.client, self.bq, self.project, self.terms = client, bq, project, terms
+        self.load_session = load_session   # 去問答紀錄表把一場對話接回來的函式，測試時可以不給
         self.price_in, self.price_out = price_in, price_out
         # read_spent 是一個去用量表查「今天已經花多少」的函式，剛啟動時已經查過一次，所以從現在開始計時
         self.read_spent, self._clock, self._synced_at, self._sync_lock = read_spent, clock, clock(), threading.Lock()
@@ -285,11 +323,56 @@ WHERE job = @job AND DATE(logged_at, 'Asia/Taipei') = CURRENT_DATE('Asia/Taipei'
         job_config=bigquery.QueryJobConfig(maximum_bytes_billed=T.MAX_BYTES)).result()]
     if len(terms) < 42:
         raise RuntimeError(f"宣稱用語只有 {len(terms)} 個（預期 Day 18 的 38 個加 Day 23 的 4 個）")
+
+    def load_session(session_id, caller):
+        """執行個體換過之後，從問答紀錄表把一場對話接回來。找不到、過期或查詢失敗都回 None（當成新的對話）
+
+        只接回文字：通過檢查的那幾輪的問題與模型的回答，以及整場成功執行過哪些工具（顧客資料獨佔要用）
+        當時的工具結果與查到的原始個資不在紀錄表裡，所以接不回來，模型需要資料會重查
+        """
+        if not caller:
+            return None   # 認不出是誰就不接，對話是誰的只認紀錄表裡的帳號
+        try:
+            rows = list(bq.query(f"""
+SELECT turn, question, raw_answer, tools_called, kept_in_history,
+  TIMESTAMP_DIFF(CURRENT_TIMESTAMP(), created_at, SECOND) AS age_s
+FROM {DATASET}.serve_turns
+WHERE session_id = @sid AND caller = @caller AND created_at >= TIMESTAMP_SUB(CURRENT_TIMESTAMP(), INTERVAL 1 DAY)
+ORDER BY turn, created_at""", job_config=bigquery.QueryJobConfig(maximum_bytes_billed=T.MAX_BYTES, query_parameters=[
+                bigquery.ScalarQueryParameter("sid", "STRING", session_id),
+                bigquery.ScalarQueryParameter("caller", "STRING", caller)])).result(timeout=15))
+        except Exception as e:
+            event("ERROR", "session_load_failed", session_id=session_id, error=f"{type(e).__name__}: {str(e)[:300]}")
+            return None
+        return rebuild_session(rows)
+
     client = genai.Client(vertexai=True, project=project, location=LOCATION,
                           http_options=types.HttpOptions(timeout=CALL_TIMEOUT_MS))
     event("INFO", "state_ready", spent_today_twd=round(spent, 4), daily_cap_twd=DAILY_CAP_TWD,
           price_in=price_in, price_out=price_out, terms=len(terms))
-    return State(client, bq, project, terms, price_in, price_out, spent, read_spent)
+    return State(client, bq, project, terms, price_in, price_out, spent, read_spent, load_session=load_session)
+
+
+def rebuild_session(rows):
+    """rows 是 serve_turns 裡同一場對話、同一個人的每一輪（照輪次排好），回傳 {contents, used, turns} 或 None"""
+    try:
+        rows = [dict(r) for r in rows]
+        if not rows or min(int(r["age_s"]) for r in rows) > SESSION_TTL:   # 最近的一輪也超過 30 分鐘，這場對話算過期
+            return None
+        contents, used = [], set()
+        for r in rows:
+            used |= {str(c["name"]) for c in json.loads(r["tools_called"] or "[]") if not c.get("error")}
+            if r["kept_in_history"] is True and r["question"] and r["raw_answer"]:
+                # 接回來之前再過一次輸入與輸出檢查：當時通過的現在也會通過，通不過代表紀錄表被動過，整場不接
+                found = G.check_output(r["raw_answer"], [], (), CANARIES)
+                if G.find_injection(r["question"]) or found["canary"] or found["pii"]:
+                    return None
+                contents.append(types.Content(role="user", parts=[types.Part(text=str(r["question"]))]))
+                contents.append(types.Content(role="model", parts=[types.Part(text=str(r["raw_answer"]))]))
+        # 同一個輪次有兩列（兩個執行個體短暫並存時可能發生）就用列數算，輪數只會多算不會少算
+        return {"contents": contents, "used": used, "turns": max(max(int(r["turn"]) for r in rows), len(rows))}
+    except Exception:
+        return None   # 紀錄讀不懂就不接，當成新的對話，不拿猜的結果去放寬顧客資料獨佔
 
 
 _STATE, _STATE_LOCK, _STATE_FAILED_AT = None, threading.Lock(), 0.0
@@ -326,9 +409,11 @@ def count_input(st, contents):
         return None
 
 
-def run_turn(st, sess, question, usage):
+def run_turn(st, sess, question, usage, called=None):
     """問一輪，回傳 serve_turns 的一列，每一次模型呼叫的用量加進 usage（中途出錯，已經花掉的也還在裡面）
 
+    called 是這一輪執行過的工具，同樣由呼叫端給清單：中途出錯時呼叫端還拿得到，紀錄表才不會漏記用過的工具
+    （執行個體換掉之後，顧客資料獨佔是靠紀錄表裡的這一欄接回來的）
     sess["contents"] 是整場對話的紀錄，這一輪完整通過才會把新的內容留在裡面，其他情況一律還原
     sess["used"] 與 sess["known_pii"] 只加不減：工具只要執行過，不管這一輪最後有沒有留在紀錄裡都算數
     """
@@ -338,7 +423,8 @@ def run_turn(st, sess, question, usage):
            "raw_answer": "", "final_answer": "", "input_hits": "[]", "scrubbed": "[]", "isolation_refused": "[]",
            "action": "", "tools_called": "[]", "model_calls": 0, "prompt_tokens": 0, "output_tokens": 0,
            "cost_twd": 0.0, "status": "", "kept_in_history": False}
-    called, scrubbed, refused, stop = [], [], [], ""
+    called = [] if called is None else called
+    scrubbed, refused, stop = [], [], ""
 
     def spend(step, p_tok, o_tok, status=""):
         cost = st.cost(p_tok, o_tok)
@@ -520,7 +606,7 @@ def headers(resp):
 
 
 def caller_email():
-    """只拿來寫紀錄，不拿來判斷權限（權限是 Cloud Run 在前面用 IAM 判斷的）
+    """用在兩個地方：寫紀錄，以及認一場對話是誰的（別人拿著編號接不到）。能不能連不是看它，那是 Cloud Run 用 IAM 判斷的
 
     Cloud Run 驗過身分權杖之後會把它留在標頭裡，這裡只解開中間那一段讀 email，沒有再驗一次簽章
     兩個標頭都有的時候 Cloud Run 只驗 X-Serverless-Authorization，所以先讀它，另一個可能是呼叫的人自己填的
@@ -576,20 +662,20 @@ def chat():
     st = get_state()
     if st is None:
         return jsonify(answer=MSG["unavailable"], status="unavailable"), 503
-    sess, fresh = st.sessions.get(session_id, caller_email())
+    sess, how = st.sessions.get(session_id, caller_email(), st.load_session)
     with sess["lock"]:   # 同一場對話一次只處理一句
         if sess["turns"] >= MAX_TURNS:
             return jsonify(session_id=sess["id"], answer=MSG["max_turns"], status="max_turns", turns_left=0,
-                           restarted=False)
-        keep, usage = len(sess["contents"]), []
+                           restarted=False, restored=how == "restored")
+        keep, usage, called = len(sess["contents"]), [], []
         try:
-            row = run_turn(st, sess, question, usage)
+            row = run_turn(st, sess, question, usage, called)
         except Exception as e:   # 沒料到的錯：這一輪不留在對話紀錄裡，已經花掉的用量照樣寫
             del sess["contents"][keep:]
             event("ERROR", "turn_failed", session_id=sess["id"], turn=sess["turns"], error=f"{type(e).__name__}: {str(e)[:300]}")
             row = {"session_id": sess["id"], "turn": sess["turns"], "caller": sess["caller"], "question": question,
                    "raw_answer": "", "final_answer": MSG["error"], "input_hits": "[]", "scrubbed": "[]",
-                   "isolation_refused": "[]", "action": "error", "tools_called": "[]",
+                   "isolation_refused": "[]", "action": "error", "tools_called": json.dumps(called, ensure_ascii=False),
                    "model_calls": sum(1 for r in usage if not r["status"].startswith("error")),
                    "prompt_tokens": sum(r["prompt_tokens"] for r in usage), "output_tokens": sum(r["output_tokens"] for r in usage),
                    "cost_twd": sum(st.cost(r["prompt_tokens"], r["output_tokens"]) for r in usage),
@@ -599,4 +685,5 @@ def chat():
           model_calls=row["model_calls"], cost_twd=round(row["cost_twd"], 4), budget_left_twd=round(st.budget.left(), 4))
     return jsonify(session_id=sess["id"], answer=row["final_answer"], status=row["action"],
                    turn=row["turn"], turns_left=MAX_TURNS - sess["turns"],
-                   restarted=bool(fresh and session_id))   # 帶了編號卻拿到新的對話，代表原本那場已經不在了
+                   restarted=bool(how == "new" and session_id),   # 帶了編號卻拿到新的對話，代表原本那場已經不在了
+                   restored=how == "restored")                    # 執行個體換過，這場對話是從問答紀錄表接回來的

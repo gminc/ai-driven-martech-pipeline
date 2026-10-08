@@ -56,7 +56,8 @@
                            function () { return { code: r.status, data: { error: "助理沒有回答（HTTP " + r.status + "），可能是沒有權限或等太久，請找資料管理者" } }; });
     }).then(function (r) {
       var d = r.data || {};
-      if (d.restarted) { add("note", "原本那場對話已經不在了（太久沒動或服務重新啟動），這一句從新的對話開始"); }
+      if (d.restarted) { add("note", "原本那場對話接不回來（超過 30 分鐘沒動，或紀錄暫時讀不到），這一句從新的對話開始"); }
+      if (d.restored) { add("note", "服務剛換了一台，這場對話是從紀錄接回來的，前面查到的明細需要的話會重查"); }
       if (d.session_id) { sessionId = d.session_id; }
       add("bot", d.answer || d.error || "沒有拿到回答（" + r.code + "）");
       status.textContent = typeof d.turns_left === "number" ? "這場對話還可以問 " + d.turns_left + " 句" : "";
