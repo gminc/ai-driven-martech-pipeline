@@ -2,7 +2,7 @@
 
 Day 16 起每一次拿得到用量的模型呼叫都寫進 `martech_dw.ops_llm_usage`，這裡用一張單價表和兩個 view 把它換算成費用，給 Data Studio（原 Looker Studio）當儀表板的資料來源，全程不呼叫模型。
 
-文章：[Day 25｜每天被 AI 扣了多少 Token？打開儀表板一目了然](../docs/articles/day25-token-cost-dashboard.md)
+文章：[Day 25｜每天用了多少 Token？打開儀表板一目了然](../docs/articles/day25-token-cost-dashboard.md)
 
 ## 檔案
 
