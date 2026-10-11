@@ -1,11 +1,16 @@
 #!/usr/bin/env bash
-# Day 27：手動啟動一次日報流程，再跑檢查與報表
+# Day 27、28：手動啟動一次日報流程，再跑檢查與報表
 # 用法（在儲存庫根目錄，先 bash scripts/deploy_daily_report.sh）：
-#   bash workflows/run.sh --free      不花錢：三題都改打不存在的路徑，三題都要是 http_404 才算過（代表身分通過、寫入與失敗的處理都正常）
-#   bash workflows/run.sh             今天還沒有完整的日報就問三題（先印估價，輸入 yes 才問），已經有就直接跳過
-#   bash workflows/run.sh --force     今天已經有日報也重新問一次（再花一次錢）
-#   bash workflows/run.sh --break 2   第 2 題故意失敗、其他兩題照問（會花兩題的錢），看缺一題的日報長什麼樣子
-#   bash workflows/run.sh --report    不啟動流程，只跑檢查與報表
+#   bash workflows/run.sh --free        不花錢、不送 Slack：三題都改打不存在的路徑，三題都要是 http_404 才算過
+#   bash workflows/run.sh --slack-test  不花錢、會送一則標明【測試】的訊息到 Slack：確認密鑰讀得到、訊息送得出去
+#   bash workflows/run.sh               今天還沒有完整的日報就問三題並送到 Slack（先印估價，輸入 yes 才問），已經有就直接跳過
+#   bash workflows/run.sh --force       今天已經有日報也重新問一次並重送（再花一次錢）
+#   bash workflows/run.sh --break 2     第 2 題故意失敗、其他兩題照問（會花兩題的錢），Slack 會收到「日報沒有寫完」
+#   bash workflows/run.sh --report      不啟動流程，只跑檢查與報表
+# 可以加在後面的選項：
+#   --as-of 2026-08-27   把這一天當成今天去看有沒有成效異常（重播過去的日子），異常警報不呼叫模型
+#   --renotify           已經通知過的異常也再送一次
+#   --no-slack           這一次完全不送 Slack
 # 流程與查詢本身都在免費額度內，費用來自助理呼叫模型，上限由助理服務自己的每日上限管
 set -euo pipefail
 
@@ -18,17 +23,25 @@ QUESTIONS=3
 # 和 agent/serve.py 相同的上限與單價，只用來印估價
 MAX_STEPS=4; INPUT_CAP=6000; MAX_OUTPUT=1024; PRICE_IN=0.75; PRICE_OUT=3.75; FX=32
 
-MODE="normal"; BREAK=""; FREE_BAD=0
-case "${1:-}" in
-  "") ;;
-  --free) MODE="free" ;;
-  --force) MODE="force" ;;
-  --report) MODE="report" ;;
-  --break)
-    MODE="break"; BREAK="${2:-}"
-    [[ "${BREAK}" =~ ^[1-3]$ ]] || { echo "❌ --break 後面要接 1、2 或 3"; exit 1; } ;;
-  *) echo "❌ 不認得的參數「$1」，用法見這個檔案開頭"; exit 1 ;;
-esac
+MODE="normal"; BREAK=""; FREE_BAD=0; AS_OF=""; RENOTIFY="false"; NOTIFY="true"
+while [[ $# -gt 0 ]]; do
+  case "$1" in
+    --free) MODE="free"; NOTIFY="false" ;;
+    --slack-test) MODE="slacktest" ;;
+    --force) MODE="force" ;;
+    --report) MODE="report" ;;
+    --break)
+      MODE="break"; BREAK="${2:-}"; shift || true
+      [[ "${BREAK}" =~ ^[1-3]$ ]] || { echo "❌ --break 後面要接 1、2 或 3"; exit 1; } ;;
+    --as-of)
+      AS_OF="${2:-}"; shift || true
+      [[ "${AS_OF}" =~ ^[0-9]{4}-[0-9]{2}-[0-9]{2}$ ]] || { echo "❌ --as-of 後面要接日期，例如 2026-08-27"; exit 1; } ;;
+    --renotify) RENOTIFY="true" ;;
+    --no-slack) NOTIFY="false" ;;
+    *) echo "❌ 不認得的參數「$1」，用法見這個檔案開頭"; exit 1 ;;
+  esac
+  shift || true
+done
 
 ACTIVE="$(gcloud auth list --filter=status:ACTIVE --format='value(account)' 2>/dev/null || true)"
 if [[ -z "${ACTIVE}" ]]; then
@@ -40,10 +53,12 @@ if [[ -z "${PROJECT}" || "${PROJECT}" == "(unset)" ]]; then
   echo "❌ 尚未設定專案，請先 gcloud config set project <專案 ID>"
   exit 1
 fi
-bq --headless show --format=none "${PROJECT}:${DATASET}.daily_reports" >/dev/null 2>&1 || {
-  echo "❌ 找不到 ${DATASET}.daily_reports，請先 bash scripts/deploy_daily_report.sh"
-  exit 1
-}
+for T in daily_reports ops_notifications; do
+  bq --headless show --format=none "${PROJECT}:${DATASET}.${T}" >/dev/null 2>&1 || {
+    echo "❌ 找不到 ${DATASET}.${T}，請先 bash scripts/deploy_daily_report.sh（Day 28 多了通知紀錄表，Day 27 部署過也要再跑一次）"
+    exit 1
+  }
+done
 
 TMP="$(mktemp -d)"
 trap 'rm -rf "${TMP}"' EXIT
@@ -72,18 +87,20 @@ if [[ "${MODE}" != "report" ]]; then
   TODAY="$(TZ=Asia/Taipei date +%F)"
   DONE="$(scalar "SELECT COUNT(*) FROM (SELECT execution_id FROM martech_dw.daily_reports WHERE report_date = DATE '${TODAY}' AND status = 'ok' GROUP BY execution_id HAVING COUNT(DISTINCT section_no) = ${QUESTIONS})")"
   ASK=${QUESTIONS}
+  FORCE="false"; TEST_BREAK="[]"
   case "${MODE}" in
-    free)   DATA='{"force": true, "test_break": [1, 2, 3]}'; ASK=0 ;;
-    force)  DATA='{"force": true}' ;;
-    break)  DATA="{\"force\": true, \"test_break\": [${BREAK}]}"; ASK=$((QUESTIONS - 1)) ;;
-    normal)
-      DATA='{}'
-      if [[ "${DONE}" != "0" ]]; then ASK=0; fi ;;
+    free|slacktest) FORCE="true"; TEST_BREAK="[1, 2, 3]"; ASK=0 ;;
+    force)  FORCE="true" ;;
+    break)  FORCE="true"; TEST_BREAK="[${BREAK}]"; ASK=$((QUESTIONS - 1)) ;;
+    normal) if [[ "${DONE}" != "0" ]]; then ASK=0; fi ;;
   esac
+  DATA="{\"force\": ${FORCE}, \"test_break\": ${TEST_BREAK}, \"notify\": ${NOTIFY}, \"as_of\": \"${AS_OF}\", \"renotify\": ${RENOTIFY}}"
 
   if [[ "${ASK}" == "0" ]]; then
     if [[ "${MODE}" == "free" ]]; then
-      echo "🆓 不花錢的測試：三題都改打不存在的路徑，助理不會呼叫模型，這次執行預期以失敗結束"
+      echo "🆓 不花錢的測試：三題都改打不存在的路徑，助理不會呼叫模型，也不送 Slack，這次執行預期以失敗結束"
+    elif [[ "${MODE}" == "slacktest" ]]; then
+      echo "🆓 Slack 測試：不呼叫模型，會送一則標明【測試】的「日報沒有寫完」到 Slack，這次執行預期以失敗結束"
     else
       echo "🆓 ${TODAY} 已經有一份三題都答完的日報，流程會直接跳過、不發問（要重問請用 --force）"
     fi
@@ -117,6 +134,16 @@ PYEST
     fi
   fi
 
+  if [[ "${NOTIFY}" == "true" ]]; then
+    echo "📣 這一次會送訊息到 Slack（日報或沒有寫完的通知，以及還沒通知過的成效異常），不想送請加 --no-slack"
+    if [[ "${MODE}" == "slacktest" ]]; then
+      read -r -p "輸入 yes 送出測試訊息：" ANSWER
+      if [[ "${ANSWER}" != "yes" ]]; then
+        echo "已停在這裡，沒有啟動流程"
+        exit 2
+      fi
+    fi
+  fi
   echo "🚀 啟動流程（參數 ${DATA}），等它跑完⋯"
   # 流程以失敗結束時 gcloud 可能回傳非 0，所以不讓 set -e 在這裡停下來，結果自己讀
   gcloud workflows run "${WORKFLOW}" --project "${PROJECT}" --location "${REGION}" --data "${DATA}" --format=json \
@@ -138,7 +165,7 @@ if e.get("result"):
 if e.get("error"):
     print("   錯誤：" + str(e["error"].get("payload", e["error"]))[:600])
 PYEXEC
-  if [[ "${MODE}" == "free" ]]; then
+  if [[ "${MODE}" == "free" || "${MODE}" == "slacktest" ]]; then
     # 身分正確時三題都是 http_404（通過 Cloud Run 的身分檢查、進到程式、路徑不存在）
     # 403 是流程的服務帳號沒有 run.invoker，401 是權杖的對象不對，這兩種隔天排程真的跑也會三題全失敗
     EXEC_ID="$(cat "${TMP}/exec.json.id" 2>/dev/null || true)"
@@ -152,6 +179,15 @@ PYEXEC
       FREE_BAD=1
     else
       echo "✅ ${QUESTIONS} 題都是 http_404：流程的身分通過了助理的檢查，失敗有被記進日報表"
+    fi
+    if [[ "${MODE}" == "slacktest" ]]; then
+      SENT="$(scalar "SELECT COUNT(*) FROM martech_dw.ops_notifications WHERE execution_id = '${EXEC_ID}' AND kind = 'report_incomplete' AND status = 'sent'")"
+      if [[ "${SENT}" != "1" ]]; then
+        echo "❌ 測試訊息沒有送出去，請看下面報表第 5 段的 detail（http_403、http_404 多半是網址失效，error 開頭的多半是讀不到密鑰）"
+        FREE_BAD=1
+      else
+        echo "✅ 測試訊息已經送到 Slack，請到頻道確認看得到"
+      fi
     fi
   fi
 fi
@@ -174,7 +210,7 @@ PYCHECK
 BAD="$(cat "${TMP}/check.csv.bad")"
 
 echo "📊 報表（report.sql）"
-for N in 1 2 3 4; do
+for N in 1 2 3 4 5; do
   sed -n "/^-- 第 ${N} 段/,/;/p" report.sql > "${TMP}/part.sql"
   head -n 1 "${TMP}/part.sql" | sed 's/^-- //'
   run_sql "${TMP}/part.sql" --format=pretty --max_rows=200
@@ -184,7 +220,7 @@ if [[ "${BAD}" != "0" ]]; then
   exit 1
 fi
 if [[ "${FREE_BAD}" != "0" ]]; then
-  echo "❌ 不花錢的測試沒有通過，先不要啟用排程"
+  echo "❌ 測試沒有通過，先不要啟用排程"
   exit 1
 fi
 # 真的要寫日報的那兩種跑法，流程沒有以成功結束就不能印完成（--free 與 --break 本來就預期失敗）

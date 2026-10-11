@@ -52,3 +52,15 @@ SELECT
 FROM martech_dw.daily_reports d
 JOIN martech_dw.serve_turns t ON t.session_id = d.session_id
 WHERE d.session_id != '';
+
+-- 第 5 段：送到 Slack 的通知（Day 28，一列＝一次通知，訊息只印前 60 個字）
+SELECT
+  FORMAT_TIMESTAMP('%m-%d %H:%M:%S', sent_at, 'Asia/Taipei') AS sent_taipei,
+  SUBSTR(execution_id, 1, 8) AS execution,
+  kind,
+  status,
+  detail,
+  dedupe_key,
+  SUBSTR(REPLACE(message, '\n', ' '), 1, 60) AS message
+FROM martech_dw.ops_notifications
+ORDER BY sent_at;

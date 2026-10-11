@@ -1,6 +1,6 @@
-# Day 27：行銷日報流程（Cloud Workflows＋Cloud Scheduler）
+# Day 27、28：行銷日報流程與 Slack 通知（Cloud Workflows＋Cloud Scheduler＋Secret Manager）
 
-每天早上由 Cloud Scheduler 啟動一個 Workflows 流程，流程依序向 Day 26 的助理服務問三個固定問題，把回答寫進 `martech_dw.daily_reports`，用 `martech_dw.v_daily_report` 讀出當天的日報。
+每天早上由 Cloud Scheduler 啟動一個 Workflows 流程，流程依序向 Day 26 的助理服務問三個固定問題，把回答寫進 `martech_dw.daily_reports`，用 `martech_dw.v_daily_report` 讀出當天的日報。Day 28 起同一個流程會把日報、沒有寫完的通知和成效異常送到 Slack，做法見最後一節。
 
 文章：[Day 27｜早上一進辦公室，AI 行銷日報已經自動寫好了](../docs/articles/day27-daily-report-workflows.md)
 
@@ -10,9 +10,9 @@
 | --- | --- | --- |
 | `daily_report.yaml` | 流程本體：檢查今天有沒有日報、問三題、每題寫一列、決定這次執行算成功還是失敗 | 流程本身不會，助理呼叫模型會 |
 | `setup.sql` | 建日報表與 view | 不會 |
-| `run.sh` | 手動啟動一次流程，再跑檢查與報表 | `--free`、`--report` 不會，今天已經有完整的日報時不帶參數也不會，其他會先印估價 |
-| `check.sql` | 14 項檢查，一列一項，只看昨天與今天 | 不會 |
-| `report.sql` | 四段報表：最新的日報、每次執行、每題的花費、合計 | 不會 |
+| `run.sh` | 手動啟動一次流程，再跑檢查與報表 | `--free`、`--slack-test`、`--report` 不會，今天已經有完整的日報時不帶參數也不會，其他會先印估價 |
+| `check.sql` | 21 項檢查，一列一項，只看昨天與今天（第 19、21 項看全部） | 不會 |
+| `report.sql` | 五段報表：最新的日報、每次執行、每題的花費、合計、送到 Slack 的通知 | 不會 |
 | `../scripts/deploy_daily_report.sh` | 部署流程、建立排程（預設先暫停） | 不會 |
 
 ## 三個身分
@@ -31,9 +31,12 @@
 | --- | --- | --- |
 | `trigger` | 啟動的來源，只能是 `scheduler` 或 `manual`，是啟動的人自己填的標記，不是驗證過的身分 | `manual` |
 | `force` | `true` 表示今天已經有完整的日報也重新問一次 | `false` |
-| `test_break` | 清單，裡面的題號改打不存在的路徑，用來不花錢地測試失敗的處理 | `[]` |
+| `test_break` | 清單，裡面的題號改打不存在的路徑，用來不花錢地測試失敗的處理，有帶的時候 Slack 訊息會標明【測試】 | `[]` |
+| `notify` | `false` 表示這一次不送 Slack | `true` |
+| `as_of` | 把哪一天當成今天去看有沒有成效異常，格式 `YYYY-MM-DD`，只影響異常警報，不影響日報 | 資料裡最新的一天 |
+| `renotify` | `true` 表示已經通知過的異常也再送一次 | `false` |
 
-助理的網址與資料集名稱不是參數，部署時用環境變數寫進流程（`ASSISTANT_URL`、`DATASET`）。流程會替這個網址簽一張 `martech-pipeline-runner` 的身分權杖，網址如果能由啟動的人指定，只有啟動權限的身分就能把權杖送到別的地方。
+助理的網址、資料集名稱、Slack 密鑰的名稱與版本都不是參數，部署時用環境變數寫進流程（`ASSISTANT_URL`、`DATASET`、`SLACK_SECRET`、`SLACK_SECRET_VERSION`）。流程會替這個網址簽一張 `martech-pipeline-runner` 的身分權杖，網址如果能由啟動的人指定，只有啟動權限的身分就能把權杖送到別的地方。
 
 ## 流程怎麼判斷一題算不算答完
 
@@ -84,3 +87,61 @@
 - 有啟動權限的身分可以帶 `force` 反覆啟動流程，每次最多問三題，花費被助理的每日上限擋住，但當天同事就用不到助理
 - `martech-scheduler` 的 `roles/workflows.invoker` 綁在專案層級，專案裡其他流程它也啟動得了，正式環境建議只綁在這一個流程上
 - `check.sql` 只看昨天與今天的列
+
+## Day 28：把日報與成效異常送到 Slack
+
+### 送什麼、什麼時候送
+
+| 通知 | 什麼時候送 | 同一件事送幾次 | 會不會呼叫模型 |
+| --- | --- | --- | --- |
+| 成效異常（`anomaly`） | `as_of` 那一天落在 Day 09 某一筆異常的期間裡 | 每一筆異常只送一次，帶 `renotify` 才重送 | 不會，判讀是 Day 09 算好的 |
+| 日報（`daily_report`） | 三題都答完 | 每天一次，帶 `force` 重問才重送 | 日報本身會，送出去這一步不會 |
+| 日報沒有寫完（`report_incomplete`） | 三題沒有全部答完 | 每一次沒寫完的執行都送 | 不會 |
+| 流程中途出錯（`flow_error`） | 流程丟出沒料到的錯 | 每一次都送 | 不會 |
+
+每一次通知都在 `martech_dw.ops_notifications` 留一列，送成功是 `sent`，沒送出去是 `failed`。同一件事只通知一次靠的就是這張表，送之前先查同一個 `dedupe_key` 有沒有送成功過。
+
+### Slack 的網址放在哪裡
+
+Slack 的 Incoming Webhook 網址本身就是密鑰，拿到的人可以往那個頻道發訊息，所以：
+
+- 網址只放在 Secret Manager 的密鑰 `slack-webhook-url`（Terraform 建的是空的密鑰，內容要自己放）
+- 流程定義、環境變數、BigQuery 的表、紀錄裡都沒有網址，環境變數放的是密鑰的名稱與版本
+- 流程每次要送訊息才向 Secret Manager 拿，網址只活在送訊息那個子流程的變數裡
+- 只有 `martech-pipeline-runner` 這個服務帳號讀得到這個密鑰（專案擁有者本來就讀得到）
+- 不要打開流程的 call logging，打開之後送 Slack 那一步的請求網址會被寫進 Cloud Logging
+- 送失敗時只記錯誤的種類（例如 `http_404`），不記錯誤的原文
+
+放網址的做法（不要把網址直接打在指令列上，會留在指令紀錄裡）：
+
+```bash
+read -r -s -p 'Webhook 網址：' HOOK && printf '%s' "$HOOK" | gcloud secrets versions add slack-webhook-url --data-file=- && unset HOOK
+```
+
+換網址就是再加一個版本，流程預設讀 `latest`，不用重新部署，舊的版本記得停用。
+
+### 訊息的內容怎麼處理
+
+- 送出去之前把 `&`、`<`、`>` 換成 `&amp;`、`&lt;`、`&gt;`，Slack 的連結與提及整個頻道都靠 `< >`，助理的回答是模型寫的，不能假設裡面沒有這些字
+- 日報的三題是助理的回答原文，Day 26 的服務在送出前已經封過一次出口，這裡再換一次是因為兩邊各自負責自己的出口
+- 異常警報的文字在 `v_anomaly_alerts` 這個 view 裡組好，流程只挑出該送的列
+
+### 重播過去的日子
+
+合成資料停在 2026-09-16，要看警報長什麼樣子，用 `as_of` 把過去某一天當成今天：
+
+```bash
+bash workflows/run.sh --as-of 2026-08-27   # 全站追蹤碼失效那一天
+bash workflows/run.sh --as-of 2026-08-12   # meta-trn-prospecting 點擊成本變貴的那一週
+```
+
+`as_of` 只影響「看哪一天有沒有異常」，日報還是助理照它自己的今天寫的。
+
+### Day 28 新增的已知限制
+
+- 排程一天跑一次，所以「第一時間」最慢是隔天早上，要更快得把排程調密，而每跑一次日報就是一次模型的費用
+- 異常是 Day 09 的批次算好的，流程不會自己重算，資料更新之後要先重跑 `bash diagnosis/run.sh`
+- 通知紀錄寫入失敗時，下一次會以為沒通知過而再送一次
+- 兩次執行幾乎同時啟動的話，同一筆異常可能各送一次
+- 流程自己壞到連通知都送不出去的情況（例如密鑰被刪、Slack 的網址失效）只會在執行清單上看到失敗，正式環境建議另外用 Cloud Monitoring 對失敗的執行設警報
+- 送到 Slack 的內容離開了 Google Cloud，日報裡有廣告花費與訂單數字，頻道要開給誰看要先想好，這三題不會碰到顧客個資

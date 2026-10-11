@@ -1,5 +1,5 @@
--- Day 27：日報流程跑過之後的檢查，一列＝一項，ok 欄位是 OK 或 DIFF
--- 看的是日報表 daily_reports 與 Day 26 的問答紀錄 serve_turns，不經過流程自己的判斷
+-- Day 27、28：日報流程跑過之後的檢查，一列＝一項，ok 欄位是 OK 或 DIFF
+-- 看的是日報表 daily_reports、Day 26 的問答紀錄 serve_turns 與 Day 28 的通知紀錄 ops_notifications，不經過流程自己的判斷
 -- 只看昨天與今天（台北時間）的列：表是只加不刪的，以前某一次中途停掉的執行不該讓之後每一次檢查都不通過
 -- 查詢在每月 1 TiB 免費額度內
 
@@ -17,6 +17,10 @@ asked AS (   -- 有對話編號的列，代表助理真的處理過這一題
   SELECT d.*, t.caller, t.action, t.turn, t.model_calls
   FROM rows_all d LEFT JOIN martech_dw.serve_turns t ON t.session_id = d.session_id
   WHERE d.session_id != ''
+),
+notes AS (
+  SELECT * FROM martech_dw.ops_notifications
+  WHERE report_date >= DATE_SUB(CURRENT_DATE('Asia/Taipei'), INTERVAL 1 DAY)
 ),
 complete_runs AS (   -- 同一天「三題都答完」的執行有幾次，沒有帶 force 的話最多一次
   SELECT report_date, COUNT(*) AS n FROM per_run WHERE n_ok = 3 GROUP BY report_date
@@ -56,6 +60,24 @@ checks AS (
   -- 14 只是提醒：同一天有兩次以上完整的日報，代表有人帶 force 重跑（多花一次錢），不是錯
   UNION ALL SELECT '14 (info) days with more than one complete report (only happens with force)', '0',
     CAST((SELECT COUNT(*) FROM complete_runs WHERE n > 1) AS STRING)
+  UNION ALL SELECT '15 notifications with a status other than sent / failed', '0',
+    CAST((SELECT COUNT(*) FROM notes WHERE status NOT IN ('sent', 'failed')) AS STRING)
+  UNION ALL SELECT '16 notifications with a kind other than anomaly / daily_report / report_incomplete / flow_error', '0',
+    CAST((SELECT COUNT(*) FROM notes WHERE kind NOT IN ('anomaly', 'daily_report', 'report_incomplete', 'flow_error')) AS STRING)
+  UNION ALL SELECT '17 notifications that were not delivered', '0',
+    CAST((SELECT COUNT(*) FROM notes WHERE status = 'failed') AS STRING)
+  UNION ALL SELECT '18 anomaly notifications whose anomaly is not in diag_summary', '0',
+    CAST((SELECT COUNT(*) FROM notes n WHERE kind = 'anomaly'
+          AND REPLACE(dedupe_key, 'anomaly:', '') NOT IN (SELECT anomaly_id FROM martech_dw.diag_summary)) AS STRING)
+  -- 19 是底線：Slack 的網址不可以出現在任何一張表裡，這裡查通知紀錄與日報表
+  UNION ALL SELECT '19 rows that contain a Slack webhook address', '0',
+    CAST((SELECT COUNT(*) FROM martech_dw.ops_notifications WHERE REGEXP_CONTAINS(CONCAT(IFNULL(message, ''), ' ', IFNULL(detail, '')), r'hooks\.slack\.com'))
+       + (SELECT COUNT(*) FROM martech_dw.daily_reports WHERE REGEXP_CONTAINS(CONCAT(IFNULL(answer, ''), ' ', IFNULL(detail, '')), r'hooks\.slack\.com')) AS STRING)
+  UNION ALL SELECT '20 (info) daily reports sent to Slack more than once on the same day (only happens with force or renotify)', '0',
+    CAST((SELECT COUNT(*) FROM (SELECT dedupe_key FROM notes WHERE kind = 'daily_report' AND status = 'sent' GROUP BY dedupe_key HAVING COUNT(*) > 1)) AS STRING)
+  -- 21 只是提醒：同一筆異常送成功超過一次，代表有人帶 renotify 重送，不是錯
+  UNION ALL SELECT '21 (info) anomalies notified more than once (only happens with renotify)', '0',
+    CAST((SELECT COUNT(*) FROM (SELECT dedupe_key FROM martech_dw.ops_notifications WHERE kind = 'anomaly' AND status = 'sent' GROUP BY dedupe_key HAVING COUNT(*) > 1)) AS STRING)
 )
 SELECT check_name, expected, actual, IF(expected = actual, 'OK', 'DIFF') AS ok
 FROM checks

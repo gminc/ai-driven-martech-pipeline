@@ -54,3 +54,51 @@ SELECT
   r.created_at
 FROM one_row r
 JOIN best b USING (report_date, execution_id);
+
+-- ── Day 28：通知紀錄與異常警報的文字 ─────────────────────────────────────────────
+-- 一列＝一次要送 Slack 的通知，送成功、沒送出去都留一列，只加不刪
+-- 同一件事只通知一次靠的就是這張表：送之前先查 dedupe_key 有沒有 status = 'sent' 的列
+-- message 是送出去之前的原文（還沒換掉 & < >），Slack 的網址不在這張表裡
+CREATE TABLE IF NOT EXISTS martech_dw.ops_notifications (
+  sent_at TIMESTAMP,
+  report_date DATE,
+  execution_id STRING,
+  kind STRING,
+  dedupe_key STRING,
+  status STRING,
+  detail STRING,
+  message STRING
+)
+PARTITION BY report_date
+OPTIONS (description = 'Day 28 Slack 通知紀錄：kind 是 anomaly、daily_report、report_incomplete 或 flow_error，status 是 sent 或 failed，只加不刪');
+
+-- 異常警報的文字在這裡組好，流程只負責挑出該送的列再送出去
+-- 異常是 Day 09 的 diag_summary，判讀取 gemini-3.6-flash 那一輪（和助理的查異常工具用同一輪）
+-- data_through 是廣告資料最新的一天，流程沒有帶 as_of 的時候就拿它當今天
+CREATE OR REPLACE VIEW martech_dw.v_anomaly_alerts AS
+SELECT
+  s.anomaly_id,
+  s.level,
+  s.entity,
+  s.period_start,
+  s.period_end,
+  (SELECT MAX(date) FROM martech_dw.fct_ad_daily) AS data_through,
+  d.cause,
+  d.confidence,
+  CONCAT(
+    '*成效異常*：',
+    CASE s.level
+      WHEN 'site_day' THEN CONCAT('全站 ', CAST(s.period_start AS STRING))
+      WHEN 'adgroup_week' THEN CONCAT('廣告群組 ', s.entity, '，', CAST(s.period_start AS STRING), ' 到 ', CAST(s.period_end AS STRING), ' 這一週')
+      WHEN 'creative_week' THEN CONCAT('廣告素材 ', s.entity, '，', CAST(s.period_start AS STRING), ' 到 ', CAST(s.period_end AS STRING), ' 這一週')
+      ELSE CONCAT(s.level, ' ', s.entity, ' ', CAST(s.period_start AS STRING))
+    END,
+    '\n判讀：', IFNULL(d.cause, '還沒有判讀'),
+    IF(d.confidence IS NULL, '', CONCAT('（信心 ', FORMAT('%.2f', d.confidence), '）')),
+    IF(IFNULL(d.evidence, '') = '', '', CONCAT('\n依據：', d.evidence)),
+    IF(IFNULL(d.next_check, '') = '', '', CONCAT('\n建議先查：', d.next_check)),
+    '\n判讀是 Day 09 請 Gemini 做的，數字在 martech_dw.diag_summary'
+  ) AS message
+FROM martech_dw.diag_summary s
+LEFT JOIN martech_dw.mart_diagnosis d
+  ON d.anomaly_id = s.anomaly_id AND d.model = 'gemini-3.6-flash';

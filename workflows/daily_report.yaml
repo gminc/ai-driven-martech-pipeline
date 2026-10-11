@@ -1,7 +1,10 @@
 # ==============================================================================
-# 2026 iThome 鐵人賽 Day 27 - 行銷日報流程（Cloud Workflows）
+# 2026 iThome 鐵人賽 Day 27、28 - 行銷日報流程（Cloud Workflows）
 #
-# 做的事：依序向 Day 26 的助理服務問三個固定問題，每問完一題就把結果寫進 martech_dw.daily_reports
+# 做的事：
+#   1. 看資料裡有沒有還沒通知過的成效異常，有就送一則警報到 Slack（Day 28）
+#   2. 依序向 Day 26 的助理服務問三個固定問題，每問完一題就把結果寫進 martech_dw.daily_reports（Day 27）
+#   3. 把日報送到 Slack，三題沒有全部答完則改送一則「日報沒有寫完」（Day 28）
 # 誰啟動：Cloud Scheduler（服務帳號 martech-scheduler，只有啟動流程的權限）或有權限的人手動啟動
 # 用誰的身分做事：流程綁定的服務帳號 martech-pipeline-runner（部署時指定）
 #
@@ -9,16 +12,80 @@
 #   trigger     啟動的來源，只是啟動的人自己填的標記，排程填 "scheduler"，沒填記成 "manual"
 #   force       true 表示今天已經有完整的日報也重新問一次（會再花一次錢），預設 false
 #   test_break  清單，例如 [2] 表示第 2 題改打一個不存在的路徑，用來不花錢地測試「這一題失敗了」的處理
+#   notify      false 表示這一次不送 Slack（測試用），預設 true
+#   as_of       把哪一天當成今天去看有沒有異常，格式 YYYY-MM-DD，用來重播過去的日子，沒帶就用資料裡最新的一天
+#   renotify    true 表示已經通知過的異常與日報也再送一次，預設 false
 #
-# 助理的網址與資料集名稱在部署時用環境變數寫死（ASSISTANT_URL、DATASET），不從參數讀：
-#   流程會替網址簽一張 martech-pipeline-runner 的身分權杖，網址如果能由啟動的人指定，
-#   只有啟動權限的人就能把這張權杖送到任何地方
+# 寫死在部署設定裡、不從參數讀的東西（環境變數）：
+#   ASSISTANT_URL  助理的網址：流程會替它簽一張 martech-pipeline-runner 的身分權杖，
+#                  網址如果能由啟動的人指定，只有啟動權限的人就能把這張權杖送到任何地方
+#   DATASET        資料集名稱
+#   SLACK_SECRET、SLACK_SECRET_VERSION  Slack Webhook 網址放在 Secret Manager 的哪個密鑰、哪個版本
+# Slack 的網址本身不在這個檔案、不在環境變數、也不寫進任何紀錄，每次要送訊息才向 Secret Manager 拿
 #
-# 重試的原則：只有確定「助理還沒開始花錢」的錯誤才重試，其他的錯記下來、換下一題
+# 重試的原則：
+#   問助理：只有確定「助理還沒開始花錢」的錯誤才重試，其他的錯記下來、換下一題
+#   送 Slack：重送不花錢，最壞只是多一則訊息，所以 429 與 5xx 都重試
 # 這個檔案本身不收費，步驟數在 Workflows 每月免費額度內，費用來自助理呼叫模型（一題約新台幣 0.15 到 0.3 元，三題約 0.5 到 0.9 元）
 # ==============================================================================
 
 main:
+  params: [input]
+  steps:
+    # 真正的工作在 run_report，這裡只多做一件事：流程中途出了沒料到的錯，先送一則訊息到 Slack 再讓執行失敗
+    - run:
+        try:
+          call: run_report
+          args:
+            input: ${input}
+          result: summary
+        except:
+          as: crash
+          steps:
+            - crash_where:
+                assign:
+                  - crash_kind: unknown
+                  - crash_exec: ${sys.get_env("GOOGLE_CLOUD_WORKFLOW_EXECUTION_ID")}
+                  - crash_day: ${text.substring(time.format(sys.now(), "Asia/Taipei"), 0, 10)}
+            - crash_tag:
+                switch:
+                  - condition: ${get_type(crash) == "map" and "code" in crash}
+                    steps:
+                      - crash_code:
+                          assign:
+                            - crash_kind: ${"http_" + string(crash.code)}
+                  - condition: ${get_type(crash) == "map" and "tags" in crash and len(crash.tags) > 0}
+                    steps:
+                      - crash_tags:
+                          assign:
+                            - crash_kind: ${"error_" + crash.tags[0]}
+            # 訊息裡只放錯誤的種類與執行編號，不放錯誤的原文（原文裡可能有不該外流的內容）
+            - crash_notify:
+                call: notify
+                args:
+                  project: ${sys.get_env("GOOGLE_CLOUD_PROJECT_ID")}
+                  dataset: ${sys.get_env("DATASET")}
+                  report_date: ${crash_day}
+                  execution_id: ${crash_exec}
+                  kind: flow_error
+                  dedupe_key: ${"flow_error:" + crash_exec}
+                  message: ${"*行銷日報流程中途出錯*（" + crash_day + "）：" + crash_kind + "，執行編號 " + crash_exec + "，請到 Workflows 的執行清單查看"}
+                  renotify: true
+                  enabled: ${not (get_type(input) == "map" and map.get(input, "notify") == false)}
+                result: crash_sent
+            - crash_raise:
+                raise: ${crash}
+
+    # 三題沒有全部答完、或該送的 Slack 訊息沒送出去，就讓這次執行以失敗結束，執行清單上才看得出來
+    # 排程那一邊只知道「流程有被啟動」，日報完不完整要看這裡
+    - finish:
+        switch:
+          - condition: ${summary.result in ["partial", "failed"] or summary.notify_failed > 0}
+            raise: ${summary}
+    - done:
+        return: ${summary}
+
+run_report:
   params: [input]
   steps:
     # 啟動時沒帶參數的話 input 是 null，另外放進 opts 再讀
@@ -44,6 +111,13 @@ main:
           - trigger: ${default(map.get(opts, "trigger"), "manual")}
           - force: ${default(map.get(opts, "force"), false)}
           - test_break: ${default(map.get(opts, "test_break"), [])}
+          - notify_on: ${default(map.get(opts, "notify"), true)}
+          - as_of: ${default(map.get(opts, "as_of"), "")}
+          - renotify: ${default(map.get(opts, "renotify"), false)}
+          - notify_failed: 0
+          - alerts_sent: 0
+          - nl: "\n"
+          - asked: []
           # 日報的日期用台北時間，和助理每日上限的換日時間一致
           - report_date: ${text.substring(time.format(sys.now(), "Asia/Taipei"), 0, 10)}
           - ok_count: 0
@@ -68,6 +142,10 @@ main:
             raise: 'trigger 只能是 "scheduler" 或 "manual"'
           - condition: ${get_type(force) != "boolean" or get_type(test_break) != "list"}
             raise: 'force 要是 true 或 false，test_break 要是清單，例如 [2]'
+          - condition: ${get_type(notify_on) != "boolean" or get_type(renotify) != "boolean" or get_type(as_of) != "string"}
+            raise: 'notify 與 renotify 要是 true 或 false，as_of 要是字串'
+          - condition: ${as_of != "" and not text.match_regex(as_of, "^[0-9]{4}-[0-9]{2}-[0-9]{2}$")}
+            raise: 'as_of 的格式是 YYYY-MM-DD，例如 "2026-08-27"'
 
     # 題號放成字串（例如 ["2"]）會對不到任何一題，結果是三題照問照花錢，所以先擋下來
     - check_break_items:
@@ -90,6 +168,26 @@ main:
             trigger: ${trigger}
             force: ${force}
             test_break: ${test_break}
+            notify: ${notify_on}
+            as_of: ${as_of}
+            renotify: ${renotify}
+
+    # ── Day 28：先看有沒有還沒通知過的成效異常，這一步不呼叫模型 ──────────────────
+    - alerts:
+        call: anomaly_alerts
+        args:
+          project: ${project}
+          dataset: ${dataset}
+          report_date: ${report_date}
+          execution_id: ${execution_id}
+          as_of: ${as_of}
+          renotify: ${renotify}
+          enabled: ${notify_on}
+        result: alert_result
+    - count_alerts:
+        assign:
+          - alerts_sent: ${alert_result.sent}
+          - notify_failed: ${notify_failed + alert_result.failed}
 
     # ── 今天已經有一份三題都答完的日報就不再問，重跑不花錢也不會多出一份 ──────────
     - find_existing:
@@ -132,11 +230,15 @@ main:
                       event: daily_report_skipped
                       report_date: ${report_date}
                       reason: already_complete
+              # 日報今天已經送過了，不再送一次，異常警報上面已經處理
               - return_skip:
                   return:
                     report_date: ${report_date}
+                    execution_id: ${execution_id}
                     result: skipped_existing
                     asked: 0
+                    alerts_sent: ${alerts_sent}
+                    notify_failed: ${notify_failed}
 
     # ── 一題一題問，問完一題就寫一列，流程中途停掉時前面問到的還在 ───────────────
     - ask_all:
@@ -271,6 +373,16 @@ main:
                   detail: ${detail}
                   session_id: ${session_id}
 
+            - remember:
+                assign:
+                  - one: {}
+                  - one.num: ${q.num}
+                  - one.title: ${q.title}
+                  - one.status: ${row_status}
+                  - one.detail: ${detail}
+                  - one.answer: ${answer}
+                  - asked: ${list.concat(asked, one)}
+
     - summarize:
         assign:
           - summary:
@@ -281,6 +393,9 @@ main:
               failed: ${failed_count}
               skipped: ${skipped_count}
               result: partial
+              alerts_sent: ${alerts_sent}
+              notify_failed: 0
+              report_notice: none
     - name_result:
         switch:
           - condition: ${ok_count == len(questions)}
@@ -302,13 +417,70 @@ main:
             event: daily_report_end
             summary: ${summary}
 
-    # 三題沒有全部答完就讓這次執行以失敗結束，執行清單上才看得出來
-    # 排程那一邊只知道「流程有被啟動」，日報完不完整要看這裡
-    - finish:
+    # ── Day 28：把結果送到 Slack，三題都答完送日報，否則送「沒有寫完」 ──────────────
+    - message_head:
         switch:
-          - condition: ${summary.result != "complete"}
-            raise: ${summary}
-    - done:
+          - condition: ${summary.result == "complete"}
+            steps:
+              - head_complete:
+                  assign:
+                    - notice_kind: daily_report
+                    - notice_key: ${"daily_report:" + report_date}
+                    - message: ${"*行銷日報 " + report_date + "*"}
+          - condition: true
+            steps:
+              - head_incomplete:
+                  assign:
+                    - notice_kind: report_incomplete
+                    - notice_key: ${"report_incomplete:" + execution_id}
+                    - message: ${"*行銷日報 " + report_date + " 沒有寫完*：" + string(len(questions)) + " 題答完 " + string(ok_count) + " 題"}
+    # 測試用的參數有帶的時候在最前面標明，收到的人才不會當真
+    - mark_test:
+        switch:
+          - condition: ${len(test_break) > 0}
+            steps:
+              - add_test_label:
+                  assign:
+                    - message: ${"【測試】" + message}
+    - message_body:
+        for:
+          value: s
+          in: ${asked}
+          steps:
+            - add_section:
+                switch:
+                  - condition: ${s.status == "ok"}
+                    steps:
+                      - add_answer:
+                          assign:
+                            - message: ${message + nl + nl + "*" + string(s.num) + " " + s.title + "*" + nl + s.answer}
+                  - condition: true
+                    steps:
+                      - add_missing:
+                          assign:
+                            - message: ${message + nl + nl + "*" + string(s.num) + " " + s.title + "*" + nl + "（這一題沒有答案：" + s.detail + "）"}
+    - message_tail:
+        assign:
+          - message: ${message + nl + nl + "執行編號 " + execution_id}
+    - send_report:
+        call: notify
+        args:
+          project: ${project}
+          dataset: ${dataset}
+          report_date: ${report_date}
+          execution_id: ${execution_id}
+          kind: ${notice_kind}
+          dedupe_key: ${notice_key}
+          message: ${message}
+          renotify: ${renotify or force}
+          enabled: ${notify_on}
+        result: notice
+    - record_notice:
+        assign:
+          - summary.report_notice: ${notice}
+          - notify_failed: ${notify_failed + if(notice == "failed", 1, 0)}
+          - summary.notify_failed: ${notify_failed}
+    - give_back:
         return: ${summary}
 
 # ── 只有確定助理還沒開始處理的錯誤才重試 ───────────────────────────────────────
@@ -405,3 +577,249 @@ save_row:
             raise: ${"日報表的寫入沒有在時限內完成：第 " + string(q.num) + " 題"}
     - saved:
         return: true
+
+
+# ── Day 28：看 as_of 那一天有沒有落在某一筆異常的期間裡，有而且還沒通知過就送警報 ──────
+# 異常與判讀都是 Day 09 算好的（diag_summary、mart_diagnosis），訊息的文字在 v_anomaly_alerts 這個 view 裡組好
+# 所以這一步只查表、不呼叫模型，不花錢
+anomaly_alerts:
+  params: [project, dataset, report_date, execution_id, as_of, renotify, enabled]
+  steps:
+    - prepare:
+        assign:
+          - sent: 0
+          - failed: 0
+          - view: ${"`" + project + "." + dataset + ".v_anomaly_alerts`"}
+    - find:
+        call: googleapis.bigquery.v2.jobs.query
+        args:
+          projectId: ${project}
+          body:
+            query: ${"SELECT anomaly_id, message FROM " + view + " WHERE IF(@as_of = '', data_through, SAFE.PARSE_DATE('%Y-%m-%d', @as_of)) BETWEEN period_start AND period_end ORDER BY period_start, anomaly_id"}
+            useLegacySql: false
+            location: US
+            timeoutMs: 60000
+            parameterMode: NAMED
+            queryParameters:
+              - name: as_of
+                parameterType:
+                  type: STRING
+                parameterValue:
+                  value: ${as_of}
+        result: found
+    - must_finish:
+        switch:
+          - condition: ${not found.jobComplete}
+            raise: "查成效異常的查詢沒有在時限內完成"
+    # 沒有符合的列時，回傳的結果裡根本沒有 rows 這個欄位
+    - none_found:
+        switch:
+          - condition: ${not ("rows" in found)}
+            return:
+              sent: 0
+              failed: 0
+    - each:
+        for:
+          value: r
+          in: ${found.rows}
+          steps:
+            - send_alert:
+                call: notify
+                args:
+                  project: ${project}
+                  dataset: ${dataset}
+                  report_date: ${report_date}
+                  execution_id: ${execution_id}
+                  kind: anomaly
+                  dedupe_key: ${"anomaly:" + r.f[0].v}
+                  message: ${r.f[1].v}
+                  renotify: ${renotify}
+                  enabled: ${enabled}
+                result: outcome
+            - tally:
+                assign:
+                  - sent: ${sent + if(outcome == "sent", 1, 0)}
+                  - failed: ${failed + if(outcome == "failed", 1, 0)}
+    - result:
+        return:
+          sent: ${sent}
+          failed: ${failed}
+
+# ── Day 28：送一則訊息到 Slack，並在 ops_notifications 留一列 ───────────────────────────
+# 回傳 sent（送出）、duplicate（這件事通知過了，不再送）、disabled（這一次不送）、failed（沒送出去）
+# 這個子流程不會丟出錯誤：通知失敗不應該讓已經寫好的日報跟著不見，失敗只回報給呼叫的人
+notify:
+  params: [project, dataset, report_date, execution_id, kind, dedupe_key, message, renotify, enabled]
+  steps:
+    - prepare:
+        assign:
+          - log_table: ${"`" + project + "." + dataset + ".ops_notifications`"}
+          - outcome: failed
+          - detail: error_unknown
+          - safe: ""
+    - skip_when_off:
+        switch:
+          - condition: ${not enabled}
+            return: disabled
+    - work:
+        try:
+          steps:
+            # 同一件事只通知一次：異常用異常的編號，日報用日期，查通知紀錄裡有沒有送成功過
+            - seen:
+                call: googleapis.bigquery.v2.jobs.query
+                args:
+                  projectId: ${project}
+                  body:
+                    query: ${"SELECT COUNT(*) FROM " + log_table + " WHERE dedupe_key = @k AND status = 'sent'"}
+                    useLegacySql: false
+                    location: US
+                    timeoutMs: 60000
+                    parameterMode: NAMED
+                    queryParameters:
+                      - name: k
+                        parameterType:
+                          type: STRING
+                        parameterValue:
+                          value: ${dedupe_key}
+                result: before
+            - already:
+                switch:
+                  - condition: ${before.jobComplete and int(before.rows[0].f[0].v) > 0 and not renotify}
+                    return: duplicate
+            # Slack 的訊息格式裡 & < > 有特殊意義（連結、提及整個頻道都靠 < >），內容一律先換掉再送
+            # 助理的回答是模型寫的，不能假設裡面沒有這些字
+            - escape:
+                assign:
+                  - safe: ${text.replace_all(text.replace_all(text.replace_all(message, "&", "&amp;"), "<", "&lt;"), ">", "&gt;")}
+            # 網址只活在這個子流程的變數裡，用完就沒了，不回傳、不寫紀錄
+            - hook:
+                call: googleapis.secretmanager.v1.projects.secrets.versions.accessString
+                args:
+                  secret_id: ${sys.get_env("SLACK_SECRET")}
+                  version: ${sys.get_env("SLACK_SECRET_VERSION")}
+                  project_id: ${project}
+                result: hook_url
+            - post:
+                try:
+                  call: http.post
+                  args:
+                    url: ${hook_url}
+                    body:
+                      text: ${safe}
+                    timeout: 20
+                  result: posted
+                retry:
+                  predicate: ${retry_slack}
+                  max_retries: 2
+                  backoff:
+                    initial_delay: 5
+                    max_delay: 20
+                    multiplier: 2
+            - ok:
+                assign:
+                  - outcome: sent
+                  - detail: ${"http_" + string(posted.code)}
+        except:
+          as: e
+          steps:
+            # 只記錯誤的種類，不記錯誤的原文：送 Slack 失敗時原文裡可能帶著網址
+            - why:
+                switch:
+                  - condition: ${get_type(e) == "map" and "code" in e}
+                    steps:
+                      - why_code:
+                          assign:
+                            - detail: ${"http_" + string(e.code)}
+                  - condition: ${get_type(e) == "map" and "tags" in e and len(e.tags) > 0}
+                    steps:
+                      - why_tag:
+                          assign:
+                            - detail: ${"error_" + e.tags[0]}
+    - keep:
+        try:
+          call: googleapis.bigquery.v2.jobs.query
+          args:
+            projectId: ${project}
+            body:
+              query: ${"INSERT INTO " + log_table + " (sent_at, report_date, execution_id, kind, dedupe_key, status, detail, message) VALUES (CURRENT_TIMESTAMP(), @d, @e, @kind, @k, @s, @detail, @m)"}
+              useLegacySql: false
+              location: US
+              timeoutMs: 60000
+              parameterMode: NAMED
+              queryParameters:
+                - name: d
+                  parameterType:
+                    type: DATE
+                  parameterValue:
+                    value: ${report_date}
+                - name: e
+                  parameterType:
+                    type: STRING
+                  parameterValue:
+                    value: ${execution_id}
+                - name: kind
+                  parameterType:
+                    type: STRING
+                  parameterValue:
+                    value: ${kind}
+                - name: k
+                  parameterType:
+                    type: STRING
+                  parameterValue:
+                    value: ${dedupe_key}
+                - name: s
+                  parameterType:
+                    type: STRING
+                  parameterValue:
+                    value: ${outcome}
+                - name: detail
+                  parameterType:
+                    type: STRING
+                  parameterValue:
+                    value: ${detail}
+                - name: m
+                  parameterType:
+                    type: STRING
+                  parameterValue:
+                    value: ${message}
+          result: kept
+        except:
+          as: e2
+          steps:
+            # 訊息已經送出去但紀錄沒寫成，下一次會以為沒通知過而再送一次，寧可多送也不要漏
+            - keep_failed:
+                call: sys.log
+                args:
+                  severity: ERROR
+                  json:
+                    event: notification_log_failed
+                    kind: ${kind}
+                    dedupe_key: ${dedupe_key}
+                    outcome: ${outcome}
+    - tell:
+        call: sys.log
+        args:
+          severity: ${if(outcome == "sent", "INFO", "ERROR")}
+          json:
+            event: notification
+            kind: ${kind}
+            dedupe_key: ${dedupe_key}
+            outcome: ${outcome}
+            detail: ${detail}
+    - give:
+        return: ${outcome}
+
+# Slack 那一邊暫時忙不過來（429）或出錯（5xx）、或連線沒有建立，就再送一次
+retry_slack:
+  params: [e]
+  steps:
+    - maybe:
+        switch:
+          - condition: ${get_type(e) != "map"}
+            return: false
+          - condition: ${"code" in e and e.code in [429, 500, 502, 503, 504]}
+            return: true
+          - condition: ${"tags" in e and "ConnectionFailedError" in e.tags}
+            return: true
+    - otherwise:
+        return: false

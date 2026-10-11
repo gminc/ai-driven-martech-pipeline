@@ -1,6 +1,7 @@
 #!/usr/bin/env bash
 # ==============================================================================
-# 2026 iThome 鐵人賽 Day 27 - 部署行銷日報流程（Cloud Workflows）與每天早上的排程（Cloud Scheduler）
+# 2026 iThome 鐵人賽 Day 27、28 - 部署行銷日報流程（Cloud Workflows）與每天早上的排程（Cloud Scheduler）
+# Day 28 起流程會把日報與成效異常送到 Slack，網址從 Secret Manager 讀，這支腳本不會讀也不會印出那個網址
 #
 # 用法（在 Cloud Shell 專案根目錄）：
 #   bash scripts/deploy_daily_report.sh                 # 部署流程，第一次建排程時先暫停（不會自己花錢），排程已經存在就維持它原本的狀態
@@ -11,7 +12,8 @@
 # 這支腳本本身不啟動流程、不呼叫模型，Workflows 與 Cloud Scheduler 都在免費額度內
 # 流程每跑一次會向助理問三題，約新台幣 0.5 到 0.9 元，要實際跑請用 bash workflows/run.sh（會先印估價）
 # 需要：Day 25 之後的 Terraform 已經套用（服務帳號 martech-scheduler、Workflows 與 Cloud Scheduler 的 API），
-#       Day 26 的助理服務已經部署（bash scripts/deploy_assistant.sh）
+#       Day 26 的助理服務已經部署（bash scripts/deploy_assistant.sh），Day 09 的異常診斷跑過（bash diagnosis/run.sh），
+#       Slack 的 Webhook 網址已經放進 Secret Manager 的密鑰 slack-webhook-url（做法見 workflows/README.md）
 # 重跑是安全的：流程會換成新的版本，排程已經存在就更新設定，沒有指定的話不會改動它的時間、時區，以及是啟用還是暫停
 # ==============================================================================
 
@@ -29,6 +31,8 @@ DATASET="${DATASET:-martech_dw}"
 SCHEDULE="${SCHEDULE:-}"
 TIME_ZONE="${TIME_ZONE:-}"
 SCHEDULE_STATE="${SCHEDULE_STATE:-}"
+SLACK_SECRET="${SLACK_SECRET:-slack-webhook-url}"
+SLACK_SECRET_VERSION="${SLACK_SECRET_VERSION:-latest}"
 
 PROJECT_ID="$(gcloud config get-value project 2>/dev/null || true)"
 if [[ -z "${PROJECT_ID}" || "${PROJECT_ID}" == "(unset)" ]]; then
@@ -53,6 +57,11 @@ if [[ -n "${SCHEDULE}" && ! "${SCHEDULE}" =~ ^[0-9*/,-]+( [0-9*/,-]+){4}$ ]]; th
   exit 1
 fi
 
+if [[ ! "${SLACK_SECRET}" =~ ^[A-Za-z0-9_-]+$ || ! "${SLACK_SECRET_VERSION}" =~ ^(latest|[0-9]+)$ ]]; then
+  echo "❌ SLACK_SECRET 只能是英數字、底線與連字號，SLACK_SECRET_VERSION 只能是 latest 或版本號碼"
+  exit 1
+fi
+
 PIPELINE_SA="martech-pipeline-runner@${PROJECT_ID}.iam.gserviceaccount.com"
 SCHEDULER_SA="martech-scheduler@${PROJECT_ID}.iam.gserviceaccount.com"
 echo "🔍 專案：${PROJECT_ID}｜區域：${REGION}｜流程：${WORKFLOW}"
@@ -67,17 +76,37 @@ for SA in "${PIPELINE_SA}" "${SCHEDULER_SA}"; do
   }
 done
 # workflowexecutions 是「啟動流程」用的 API，Terraform 沒有單獨列它，所以沒啟用時直接給指令
-for API in workflows.googleapis.com workflowexecutions.googleapis.com cloudscheduler.googleapis.com; do
+for API in workflows.googleapis.com workflowexecutions.googleapis.com cloudscheduler.googleapis.com secretmanager.googleapis.com; do
   if [[ -z "$(gcloud services list --enabled --project "${PROJECT_ID}" --filter="config.name=${API}" --format='value(config.name)' 2>/dev/null)" ]]; then
     echo "❌ ${API} 還沒啟用，請先執行（啟用 API 不收費）："
     echo "   gcloud services enable ${API} --project ${PROJECT_ID}"
     exit 1
   fi
 done
-bq --headless show --format=none "${PROJECT_ID}:${DATASET}.serve_turns" >/dev/null 2>&1 || {
-  echo "❌ 找不到 ${DATASET}.serve_turns，請先完成 Day 26（bash scripts/deploy_assistant.sh）"
+for T in "serve_turns:Day 26（bash scripts/deploy_assistant.sh）" "diag_summary:Day 09（bash diagnosis/run.sh）" \
+         "mart_diagnosis:Day 09（bash diagnosis/run.sh）" "fct_ad_daily:Day 07（bash warehouse/build.sh）"; do
+  bq --headless show --format=none "${PROJECT_ID}:${DATASET}.${T%%:*}" >/dev/null 2>&1 || {
+    echo "❌ 找不到 ${DATASET}.${T%%:*}，請先完成 ${T#*:}"
+    exit 1
+  }
+done
+# Slack 的網址：只確認密鑰在、有啟用中的版本、流程的服務帳號讀得到，不讀它的內容
+ENABLED_VERSIONS="$(gcloud secrets versions list "${SLACK_SECRET}" --project "${PROJECT_ID}" --filter='state=ENABLED' --format='value(name)' 2>/dev/null || true)"
+if [[ -z "${ENABLED_VERSIONS}" ]]; then
+  echo "❌ 密鑰 ${SLACK_SECRET} 不存在或沒有啟用中的版本，請先把 Slack 的 Webhook 網址放進去（網址不要貼在指令列上，會留在指令紀錄裡）："
+  echo "   read -r -s -p 'Webhook 網址：' HOOK && printf '%s' \"\$HOOK\" | gcloud secrets versions add ${SLACK_SECRET} --project ${PROJECT_ID} --data-file=- && unset HOOK"
   exit 1
-}
+fi
+SECRET_POLICY="$(gcloud secrets get-iam-policy "${SLACK_SECRET}" --project "${PROJECT_ID}" --format=json 2>/dev/null || echo '{}')"
+if ! PIPELINE_SA="${PIPELINE_SA}" python3 -c 'import json,os,sys
+want = "serviceaccount:" + os.environ["PIPELINE_SA"].lower()
+ok = any(b.get("role") == "roles/secretmanager.secretAccessor" and want in [m.lower() for m in b.get("members", [])]
+         for b in json.load(sys.stdin).get("bindings", []))
+sys.exit(0 if ok else 1)' <<< "${SECRET_POLICY}"; then
+  echo "❌ ${PIPELINE_SA} 讀不到密鑰 ${SLACK_SECRET}，請先套用 Terraform，或執行："
+  echo "   gcloud secrets add-iam-policy-binding ${SLACK_SECRET} --project ${PROJECT_ID} --member=serviceAccount:${PIPELINE_SA} --role=roles/secretmanager.secretAccessor"
+  exit 1
+fi
 # 助理的網址取 a.run.app 那一個（和 Day 26 的部署腳本相同），結尾不帶斜線，流程的身分權杖就是簽給這個網址
 SERVICE_URL="$(gcloud run services describe "${SERVICE_NAME}" --project "${PROJECT_ID}" --region "${REGION}" --format=json 2>/dev/null \
   | python3 -c 'import json,sys
@@ -123,8 +152,10 @@ fi
 # ------------------------------------------------------------------------------
 # 3. 部署流程
 #    --service-account：流程用 martech-pipeline-runner 的身分呼叫助理與寫 BigQuery，流程定義裡沒有任何金鑰
-#    --set-env-vars：助理的網址與資料集在這裡寫死，啟動流程的人不能用參數改掉（原因寫在 daily_report.yaml 開頭）
-#    沒有開 call logging：開了會把每一步的請求與回應寫進 Cloud Logging，助理的回答原文也會跟著進去
+#    --set-env-vars：助理的網址、資料集、Slack 密鑰的名稱與版本在這裡寫死，啟動流程的人不能用參數改掉（原因寫在 daily_report.yaml 開頭）
+#      放進環境變數的是密鑰的「名稱」，網址本身只在 Secret Manager 裡
+#    沒有開 call logging，而且不要開：開了會把每一步的請求與回應寫進 Cloud Logging，
+#      助理的回答原文會跟著進去，送 Slack 那一步的請求網址也會，那個網址就是密鑰
 # ------------------------------------------------------------------------------
 echo "── 部署流程 ${WORKFLOW} ──"
 gcloud workflows deploy "${WORKFLOW}" \
@@ -132,8 +163,9 @@ gcloud workflows deploy "${WORKFLOW}" \
   --location "${REGION}" \
   --source "${FLOW_DIR}/daily_report.yaml" \
   --service-account "${PIPELINE_SA}" \
-  --set-env-vars "ASSISTANT_URL=${SERVICE_URL},DATASET=${DATASET}" \
-  --description "Day 27 行銷日報：向助理問三題並寫進 ${DATASET}.daily_reports" \
+  --set-env-vars "ASSISTANT_URL=${SERVICE_URL},DATASET=${DATASET},SLACK_SECRET=${SLACK_SECRET},SLACK_SECRET_VERSION=${SLACK_SECRET_VERSION}" \
+  --call-log-level log-none \
+  --description "Day 27、28 行銷日報：向助理問三題寫進 ${DATASET}.daily_reports，並把日報與成效異常送到 Slack" \
   --quiet >/dev/null
 
 # ------------------------------------------------------------------------------
@@ -196,8 +228,11 @@ echo "========================================================"
 echo "✅ 日報流程已部署：${WORKFLOW}（${REGION}），用 ${PIPELINE_SA} 的身分執行"
 echo "   助理的網址（部署時寫死）：${SERVICE_URL}"
 echo "   排程：${JOB}｜${SCHEDULE}（${TIME_ZONE}）｜目前狀態 ${STATE}｜用 ${SCHEDULER_SA} 的身分啟動"
-echo "   不花錢的測試：bash workflows/run.sh --free      （三題都改打不存在的路徑，看失敗有沒有被記下來）"
-echo "   實際跑一次：  bash workflows/run.sh             （會先印估價，輸入 yes 才問，約新台幣 0.5 到 0.9 元）"
+echo "   Slack 的網址：  Secret Manager 密鑰 ${SLACK_SECRET}（版本 ${SLACK_SECRET_VERSION}），這支腳本沒有讀它的內容"
+echo "   不花錢的測試：bash workflows/run.sh --free      （三題都改打不存在的路徑，看失敗有沒有被記下來，不送 Slack）"
+echo "   Slack 測試：  bash workflows/run.sh --slack-test（不呼叫模型，送一則標明【測試】的訊息到 Slack）"
+echo "   重播異常：    bash workflows/run.sh --as-of 2026-08-27（把那一天當成今天，看警報送不送得出來）"
+echo "   實際跑一次：  bash workflows/run.sh             （會先印估價，輸入 yes 才問，約新台幣 0.5 到 0.9 元，日報會送到 Slack）"
 echo "   看日報：      bash workflows/run.sh --report"
 echo "   啟用排程：    gcloud scheduler jobs resume ${JOB} --project ${PROJECT_ID} --location ${REGION}"
 echo "   暫停排程：    gcloud scheduler jobs pause ${JOB} --project ${PROJECT_ID} --location ${REGION}"
