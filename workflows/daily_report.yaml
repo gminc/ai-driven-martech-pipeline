@@ -21,7 +21,8 @@
 main:
   params: [input]
   steps:
-    # 啟動時沒帶參數的話 input 是 null，另外放進 opts 再讀（流程的參數本身不能重新指定）
+    # 啟動時沒帶參數的話 input 是 null，另外放進 opts 再讀
+    # 參數原本取名 args 並且直接重新指定，部署時被拒絕（cannot assign to a reserved variable 'args'）
     - default_opts:
         assign:
           - opts: {}
