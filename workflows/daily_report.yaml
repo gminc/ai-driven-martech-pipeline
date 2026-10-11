@@ -19,15 +19,19 @@
 # ==============================================================================
 
 main:
-  params: [args]
+  params: [input]
   steps:
-    - normalize_args:
+    # 啟動時沒帶參數的話 input 是 null，另外放進 opts 再讀（流程的參數本身不能重新指定）
+    - default_opts:
+        assign:
+          - opts: {}
+    - read_input:
         switch:
-          - condition: ${args == null}
+          - condition: ${input != null}
             steps:
-              - use_empty_args:
+              - use_input:
                   assign:
-                    - args: {}
+                    - opts: ${input}
 
     - init:
         assign:
@@ -36,9 +40,9 @@ main:
           - assistant_url: ${sys.get_env("ASSISTANT_URL")}
           - dataset: ${sys.get_env("DATASET")}
           - table: ${"`" + project + "." + dataset + ".daily_reports`"}
-          - trigger: ${default(map.get(args, "trigger"), "manual")}
-          - force: ${default(map.get(args, "force"), false)}
-          - test_break: ${default(map.get(args, "test_break"), [])}
+          - trigger: ${default(map.get(opts, "trigger"), "manual")}
+          - force: ${default(map.get(opts, "force"), false)}
+          - test_break: ${default(map.get(opts, "test_break"), [])}
           # 日報的日期用台北時間，和助理每日上限的換日時間一致
           - report_date: ${text.substring(time.format(sys.now(), "Asia/Taipei"), 0, 10)}
           - ok_count: 0
