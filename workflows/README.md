@@ -1,0 +1,82 @@
+# Day 27：行銷日報流程（Cloud Workflows＋Cloud Scheduler）
+
+每天早上由 Cloud Scheduler 啟動一個 Workflows 流程，流程依序向 Day 26 的助理服務問三個固定問題，把回答寫進 `martech_dw.daily_reports`，用 `martech_dw.v_daily_report` 讀出當天的日報。
+
+文章：[Day 27｜早上一進辦公室，AI 行銷日報已經自動寫好了](../docs/articles/day27-daily-report-workflows.md)
+
+## 檔案
+
+| 檔案 | 做什麼 | 會不會花錢 |
+| --- | --- | --- |
+| `daily_report.yaml` | 流程本體：檢查今天有沒有日報、問三題、每題寫一列、決定這次執行算成功還是失敗 | 流程本身不會，助理呼叫模型會 |
+| `setup.sql` | 建日報表與 view | 不會 |
+| `run.sh` | 手動啟動一次流程，再跑檢查與報表 | `--free`、`--report` 不會，其他會先印估價 |
+| `check.sql` | 14 項檢查，一列一項 | 不會 |
+| `report.sql` | 四段報表：最新的日報、每次執行、每題的花費、合計 | 不會 |
+| `../scripts/deploy_daily_report.sh` | 部署流程、建立排程（預設先暫停） | 不會 |
+
+## 三個身分
+
+| 服務帳號 | 用在哪裡 | 權限 |
+| --- | --- | --- |
+| `martech-scheduler` | Cloud Scheduler 用它啟動流程 | 只有 `roles/workflows.invoker` |
+| `martech-pipeline-runner` | 流程用它呼叫助理、寫日報表、寫紀錄 | 助理服務的 `roles/run.invoker`、`martech_dw` 的 `bigquery.dataEditor`、`bigquery.jobUser`、`logging.logWriter` |
+| `martech-assistant` | 助理服務用它查資料與呼叫 Gemini（Day 26） | 見 `agent/README.md` |
+
+排程的身分只能「啟動」，查不到資料也呼叫不了助理，流程的身分呼叫得了助理但不能自己啟動排程，三者分開的用意是任何一個外流時能做的事都有限。
+
+## 流程的啟動參數
+
+| 參數 | 說明 | 預設 |
+| --- | --- | --- |
+| `trigger` | 啟動的來源，只能是 `scheduler` 或 `manual`，是啟動的人自己填的標記，不是驗證過的身分 | `manual` |
+| `force` | `true` 表示今天已經有完整的日報也重新問一次 | `false` |
+| `test_break` | 清單，裡面的題號改打不存在的路徑，用來不花錢地測試失敗的處理 | `[]` |
+
+助理的網址與資料集名稱不是參數，部署時用環境變數寫進流程（`ASSISTANT_URL`、`DATASET`）。流程會替這個網址簽一張 `martech-pipeline-runner` 的身分權杖，網址如果能由啟動的人指定，只有啟動權限的身分就能把權杖送到別的地方。
+
+## 流程怎麼判斷一題算不算答完
+
+助理不管有沒有答出來都回 HTTP 200，結果在回應的 `status` 欄位，流程只把下面四種當成答完，而且回答不能是空的：
+
+- `passed`
+- `claims_flagged`（回答後面被附上宣稱用語的提醒）
+- `exits_sealed`
+- `claims_flagged,exits_sealed`
+
+其他情況都記成 `failed`，`detail` 欄位留下原因：
+
+| detail | 意思 | 流程怎麼做 |
+| --- | --- | --- |
+| `daily_cap` | 助理今天的額度用完 | 這一題記 `failed`，後面的題目不再問、記成 `skipped` |
+| `input_blocked`、`output_blocked`、`safety_blocked` | 被助理的護欄擋下 | 記 `failed`，換下一題 |
+| `incomplete`、`error`、`input_cap`、`max_turns` | 助理沒有答完 | 記 `failed`，換下一題 |
+| `http_403`、`http_404` 這類 | 助理回了錯誤的 HTTP 狀態 | 記 `failed`，換下一題 |
+| `error_TimeoutError`、`error_ConnectionError` 這類 | 逾時或連線中斷 | 記 `failed`，換下一題，不重試 |
+
+三題沒有全部答完，這次執行會在寫完日報表之後以失敗結束（`raise`），Workflows 的執行清單上是紅色的。Cloud Scheduler 那一邊只知道流程有沒有被啟動，不知道日報完不完整。
+
+## 重試的原則
+
+只有確定助理還沒開始處理的錯誤才重試，最多 2 次，間隔 10 秒、20 秒：
+
+- HTTP 429：Cloud Run 的執行個體都在忙，請求沒有進到程式
+- HTTP 503：服務還沒準備好，或助理自己回報現在不能用（還沒呼叫模型）
+- `ConnectionFailedError`：連線沒有建立
+
+逾時與連線中斷不重試，助理可能已經呼叫過模型，再問一次就是再花一次錢。這樣取捨的代價是偶發的逾時會讓那一題空著，要等人用 `--force` 重跑。
+
+## 同一天跑兩次
+
+流程一開始會查今天（台北時間）有沒有任何一次執行三題都答完，有就直接結束、不發問，回傳 `skipped_existing`。帶 `force` 才會重問。日報表只加不刪，`v_daily_report` 每天只取答完最多題的那一次執行，一樣多就取最新的。
+
+## 已知的限制
+
+- 合成資料停在 2026-09-16，助理把 2026-09-17 當成今天，所以每天的日報內容相同，接上每天更新的資料後內容才會變
+- 助理的回答限制在四句話以內，日報是三題各自的回答，不是一篇完整的分析
+- 日報和同事的提問共用助理的每日上限（預設新台幣 3 元），額度先被用完的話日報會缺題
+- 日報的模型呼叫在共用用量表裡 `day` 是 `Day 26`、`job` 是 `agent/serve.py`（助理服務的標籤是固定的），要分出日報請用 `serve_turns.caller` 是 `martech-pipeline-runner` 的列，`report.sql` 第 3 段就是這樣對的
+- 檢查今天有沒有日報和開始發問之間沒有鎖，兩次執行幾乎同時啟動的話會各問一次
+- 寫日報表失敗時這次執行會直接以錯誤結束，那一題的回答不在日報表裡，但還在助理自己的 `serve_turns`
+- `trigger_source` 是啟動的人自己填的，手動啟動時填 `scheduler` 也會被接受
+- 流程的執行紀錄（每一步的輸入輸出）在 Workflows 的執行詳情裡看得到，有 `workflows.executions.get` 權限的人都讀得到日報的回答

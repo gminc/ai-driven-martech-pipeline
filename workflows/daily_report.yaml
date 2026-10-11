@@ -1,0 +1,404 @@
+# ==============================================================================
+# 2026 iThome 鐵人賽 Day 27 - 行銷日報流程（Cloud Workflows）
+#
+# 做的事：依序向 Day 26 的助理服務問三個固定問題，每問完一題就把結果寫進 martech_dw.daily_reports
+# 誰啟動：Cloud Scheduler（服務帳號 martech-scheduler，只有啟動流程的權限）或有權限的人手動啟動
+# 用誰的身分做事：流程綁定的服務帳號 martech-pipeline-runner（部署時指定）
+#
+# 啟動時可以帶的參數（都可以不帶）：
+#   trigger     啟動的來源，只是啟動的人自己填的標記，排程填 "scheduler"，沒填記成 "manual"
+#   force       true 表示今天已經有完整的日報也重新問一次（會再花一次錢），預設 false
+#   test_break  清單，例如 [2] 表示第 2 題改打一個不存在的路徑，用來不花錢地測試「這一題失敗了」的處理
+#
+# 助理的網址與資料集名稱在部署時用環境變數寫死（ASSISTANT_URL、DATASET），不從參數讀：
+#   流程會替網址簽一張 martech-pipeline-runner 的身分權杖，網址如果能由啟動的人指定，
+#   只有啟動權限的人就能把這張權杖送到任何地方
+#
+# 重試的原則：只有確定「助理還沒開始花錢」的錯誤才重試，其他的錯記下來、換下一題
+# 這個檔案本身不收費，步驟數在 Workflows 每月免費額度內，費用來自助理呼叫模型（一題約新台幣 0.15 到 0.3 元）
+# ==============================================================================
+
+main:
+  params: [args]
+  steps:
+    - normalize_args:
+        switch:
+          - condition: ${args == null}
+            steps:
+              - use_empty_args:
+                  assign:
+                    - args: {}
+
+    - init:
+        assign:
+          - project: ${sys.get_env("GOOGLE_CLOUD_PROJECT_ID")}
+          - execution_id: ${sys.get_env("GOOGLE_CLOUD_WORKFLOW_EXECUTION_ID")}
+          - assistant_url: ${sys.get_env("ASSISTANT_URL")}
+          - dataset: ${sys.get_env("DATASET")}
+          - table: ${"`" + project + "." + dataset + ".daily_reports`"}
+          - trigger: ${default(map.get(args, "trigger"), "manual")}
+          - force: ${default(map.get(args, "force"), false)}
+          - test_break: ${default(map.get(args, "test_break"), [])}
+          # 日報的日期用台北時間，和助理每日上限的換日時間一致
+          - report_date: ${text.substring(time.format(sys.now(), "Asia/Taipei"), 0, 10)}
+          - ok_count: 0
+          - failed_count: 0
+          - skipped_count: 0
+          - stop_reason: ""
+          # 助理的回答限制在四句話以內，所以一份日報拆成三題，每一題各開一場對話
+          - questions:
+              - num: 1
+                title: 上週花費
+                text: 上週的廣告費總共是多少？花最多錢的是哪一支廣告？
+              - num: 2
+                title: 通路功勞
+                text: 上週的訂單功勞哪個通路分到最多？前三名各是多少？
+              - num: 3
+                title: 成效異常
+                text: 廣告成效有沒有出現過異常？最需要注意的是哪一筆，原因是什麼？
+
+    - check_args:
+        switch:
+          - condition: ${not (trigger in ["scheduler", "manual"])}
+            raise: 'trigger 只能是 "scheduler" 或 "manual"'
+          - condition: ${get_type(force) != "boolean" or get_type(test_break) != "list"}
+            raise: 'force 要是 true 或 false，test_break 要是清單，例如 [2]'
+
+    - log_start:
+        call: sys.log
+        args:
+          severity: INFO
+          json:
+            event: daily_report_start
+            report_date: ${report_date}
+            trigger: ${trigger}
+            force: ${force}
+            test_break: ${test_break}
+
+    # ── 今天已經有一份三題都答完的日報就不再問，重跑不花錢也不會多出一份 ──────────
+    - find_existing:
+        call: googleapis.bigquery.v2.jobs.query
+        args:
+          projectId: ${project}
+          body:
+            query: ${"SELECT COUNT(*) FROM (SELECT execution_id FROM " + table + " WHERE report_date = @report_date AND status = 'ok' GROUP BY execution_id HAVING COUNT(DISTINCT section_no) = @sections)"}
+            useLegacySql: false
+            location: US
+            timeoutMs: 60000
+            parameterMode: NAMED
+            queryParameters:
+              - name: report_date
+                parameterType:
+                  type: DATE
+                parameterValue:
+                  value: ${report_date}
+              - name: sections
+                parameterType:
+                  type: INT64
+                parameterValue:
+                  value: ${string(len(questions))}
+        result: existing
+
+    - existing_must_finish:
+        switch:
+          - condition: ${not existing.jobComplete}
+            raise: "查今天有沒有日報的查詢沒有在時限內完成，沒有發問"
+
+    - skip_if_done:
+        switch:
+          - condition: ${int(existing.rows[0].f[0].v) > 0 and not force}
+            steps:
+              - log_skip:
+                  call: sys.log
+                  args:
+                    severity: INFO
+                    json:
+                      event: daily_report_skipped
+                      report_date: ${report_date}
+                      reason: already_complete
+              - return_skip:
+                  return:
+                    report_date: ${report_date}
+                    result: skipped_existing
+                    asked: 0
+
+    # ── 一題一題問，問完一題就寫一列，流程中途停掉時前面問到的還在 ───────────────
+    - ask_all:
+        for:
+          value: q
+          in: ${questions}
+          steps:
+            - reset:
+                assign:
+                  - row_status: failed
+                  - detail: error_unknown
+                  - answer: ""
+                  - session_id: ""
+                  - path: /chat
+
+            - maybe_skip:
+                switch:
+                  # 助理今天的額度用完了，後面的題目問了也是同一句話，直接記成沒問
+                  - condition: ${stop_reason != ""}
+                    steps:
+                      - mark_skipped:
+                          assign:
+                            - row_status: skipped
+                            - detail: ${stop_reason}
+                            - skipped_count: ${skipped_count + 1}
+                      - save_skipped:
+                          call: save_row
+                          args:
+                            project: ${project}
+                            table: ${table}
+                            report_date: ${report_date}
+                            execution_id: ${execution_id}
+                            trigger: ${trigger}
+                            q: ${q}
+                            answer: ""
+                            row_status: ${row_status}
+                            detail: ${detail}
+                            session_id: ""
+                      - next_question:
+                          next: continue
+
+            - maybe_break:
+                switch:
+                  - condition: ${q.num in test_break}
+                    steps:
+                      - use_missing_path:
+                          assign:
+                            - path: /not-a-real-path
+
+            - ask:
+                try:
+                  call: http.post
+                  args:
+                    url: ${assistant_url + path}
+                    # 助理只收帶這個標頭的 JSON 請求（Day 26 的來源檢查）
+                    headers:
+                      X-Martech-Chat: "1"
+                      Content-Type: application/json
+                    body:
+                      question: ${q.text}
+                    # 身分權杖由流程的服務帳號產生，對象固定是服務的網址（不含路徑）
+                    auth:
+                      type: OIDC
+                      audience: ${assistant_url}
+                    timeout: 150
+                  result: resp
+                retry:
+                  predicate: ${retry_if_not_started}
+                  max_retries: 2
+                  backoff:
+                    initial_delay: 10
+                    max_delay: 40
+                    multiplier: 2
+                except:
+                  as: e
+                  steps:
+                    - describe_error:
+                        switch:
+                          - condition: ${get_type(e) == "map" and "code" in e}
+                            steps:
+                              - http_error:
+                                  assign:
+                                    - detail: ${"http_" + string(e.code)}
+                          - condition: ${get_type(e) == "map" and "tags" in e and len(e.tags) > 0}
+                            steps:
+                              - tagged_error:
+                                  assign:
+                                    - detail: ${"error_" + e.tags[0]}
+                    - count_failed_call:
+                        assign:
+                          - failed_count: ${failed_count + 1}
+                    - save_failed_call:
+                        call: save_row
+                        args:
+                          project: ${project}
+                          table: ${table}
+                          report_date: ${report_date}
+                          execution_id: ${execution_id}
+                          trigger: ${trigger}
+                          q: ${q}
+                          answer: ""
+                          row_status: failed
+                          detail: ${detail}
+                          session_id: ""
+                    - after_failed_call:
+                        next: continue
+
+            # 助理不管有沒有答出來都回 HTTP 200，真正的結果在 status 欄位，要自己看
+            - read_answer:
+                assign:
+                  - detail: ${default(map.get(resp.body, "status"), "no_status")}
+                  - answer: ${default(map.get(resp.body, "answer"), "")}
+                  - session_id: ${default(map.get(resp.body, "session_id"), "")}
+
+            - judge:
+                switch:
+                  - condition: ${detail in ["passed", "claims_flagged", "exits_sealed", "claims_flagged,exits_sealed"] and answer != ""}
+                    steps:
+                      - mark_ok:
+                          assign:
+                            - row_status: ok
+                            - ok_count: ${ok_count + 1}
+                  - condition: ${detail == "daily_cap"}
+                    steps:
+                      - mark_cap:
+                          assign:
+                            - row_status: failed
+                            - failed_count: ${failed_count + 1}
+                            - stop_reason: daily_cap
+                  - condition: true
+                    steps:
+                      - mark_failed:
+                          assign:
+                            - row_status: failed
+                            - failed_count: ${failed_count + 1}
+
+            - save_answer:
+                call: save_row
+                args:
+                  project: ${project}
+                  table: ${table}
+                  report_date: ${report_date}
+                  execution_id: ${execution_id}
+                  trigger: ${trigger}
+                  q: ${q}
+                  answer: ${answer}
+                  row_status: ${row_status}
+                  detail: ${detail}
+                  session_id: ${session_id}
+
+    - summarize:
+        assign:
+          - summary:
+              report_date: ${report_date}
+              execution_id: ${execution_id}
+              trigger: ${trigger}
+              ok: ${ok_count}
+              failed: ${failed_count}
+              skipped: ${skipped_count}
+              result: partial
+    - name_result:
+        switch:
+          - condition: ${ok_count == len(questions)}
+            steps:
+              - is_complete:
+                  assign:
+                    - summary.result: complete
+          - condition: ${ok_count == 0}
+            steps:
+              - is_failed:
+                  assign:
+                    - summary.result: failed
+
+    - log_end:
+        call: sys.log
+        args:
+          severity: ${if(summary.result == "complete", "INFO", "ERROR")}
+          json:
+            event: daily_report_end
+            summary: ${summary}
+
+    # 三題沒有全部答完就讓這次執行以失敗結束，執行清單上才看得出來
+    # 排程那一邊只知道「流程有被啟動」，日報完不完整要看這裡
+    - finish:
+        switch:
+          - condition: ${summary.result != "complete"}
+            raise: ${summary}
+    - done:
+        return: ${summary}
+
+# ── 只有確定助理還沒開始處理的錯誤才重試 ───────────────────────────────────────
+#   429：Cloud Run 的執行個體都在忙，請求沒有進到程式
+#   503：服務還沒準備好，或程式自己回報現在不能用，都還沒呼叫模型
+#   ConnectionFailedError：連線根本沒有建立
+# 逾時（TimeoutError）與連線中斷（ConnectionError）不重試：助理可能已經呼叫過模型，再問一次就是再花一次錢
+retry_if_not_started:
+  params: [e]
+  steps:
+    - only_before_work:
+        switch:
+          - condition: ${get_type(e) != "map"}
+            return: false
+          - condition: ${"code" in e and (e.code == 429 or e.code == 503)}
+            return: true
+          - condition: ${"tags" in e and "ConnectionFailedError" in e.tags}
+            return: true
+    - otherwise:
+        return: false
+
+# ── 寫一列到日報表：值全部用查詢參數帶，不拼進 SQL 字串 ────────────────────────
+save_row:
+  params: [project, table, report_date, execution_id, trigger, q, answer, row_status, detail, session_id]
+  steps:
+    - insert:
+        call: googleapis.bigquery.v2.jobs.query
+        args:
+          projectId: ${project}
+          body:
+            query: ${"INSERT INTO " + table + " (report_date, execution_id, trigger_source, section_no, section_title, question, answer, status, detail, session_id, created_at) VALUES (@report_date, @execution_id, @trigger_source, @section_no, @section_title, @question, @answer, @status, @detail, @session_id, CURRENT_TIMESTAMP())"}
+            useLegacySql: false
+            location: US
+            timeoutMs: 60000
+            parameterMode: NAMED
+            queryParameters:
+              - name: report_date
+                parameterType:
+                  type: DATE
+                parameterValue:
+                  value: ${report_date}
+              - name: execution_id
+                parameterType:
+                  type: STRING
+                parameterValue:
+                  value: ${execution_id}
+              - name: trigger_source
+                parameterType:
+                  type: STRING
+                parameterValue:
+                  value: ${trigger}
+              - name: section_no
+                parameterType:
+                  type: INT64
+                parameterValue:
+                  value: ${string(q.num)}
+              - name: section_title
+                parameterType:
+                  type: STRING
+                parameterValue:
+                  value: ${q.title}
+              - name: question
+                parameterType:
+                  type: STRING
+                parameterValue:
+                  value: ${q.text}
+              - name: answer
+                parameterType:
+                  type: STRING
+                parameterValue:
+                  value: ${answer}
+              - name: status
+                parameterType:
+                  type: STRING
+                parameterValue:
+                  value: ${row_status}
+              - name: detail
+                parameterType:
+                  type: STRING
+                parameterValue:
+                  value: ${detail}
+              - name: session_id
+                parameterType:
+                  type: STRING
+                parameterValue:
+                  value: ${session_id}
+        result: job
+    - must_finish:
+        switch:
+          - condition: ${not job.jobComplete}
+            raise: ${"日報表的寫入沒有在時限內完成：第 " + string(q.num) + " 題"}
+    - saved:
+        return: true
