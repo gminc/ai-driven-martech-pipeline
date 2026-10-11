@@ -73,5 +73,5 @@
 
   <rect x="40" y="496" width="1160" height="76" rx="8" class="box"/>
   <text x="62" y="526" class="bt">三個身分各自做得到的事</text>
-  <text x="62" y="552" class="bs">martech-scheduler 只能啟動流程，查不到資料也連不到助理　｜　martech-pipeline-runner 連得到助理、寫得進日報表　｜　martech-assistant 查資料與呼叫 Gemini</text>
+  <text x="62" y="552" class="bs">martech-scheduler 只能啟動專案裡的流程，查不到資料也連不到助理　｜　martech-pipeline-runner 連得到助理、寫得進日報表　｜　martech-assistant 查資料與呼叫 Gemini</text>
 </svg>

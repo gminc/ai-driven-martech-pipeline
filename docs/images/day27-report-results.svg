@@ -17,6 +17,7 @@
       .row { stroke: #e8eaed; stroke-width: 1; }
       .sec { font-size: 15px; font-weight: 700; fill: #e37400; }
       .ans { font-size: 13.5px; fill: #202124; }
+      .bt2 { font-size: 18px; font-weight: 700; fill: #202124; }
       .hl { fill: #fef7e0; stroke: #e37400; stroke-width: 1.6; }
     </style>
   </defs>
@@ -79,14 +80,14 @@
   <text x="1030" y="326" class="mono">0.33</text>
   <text x="1110" y="326" class="badt">失敗</text>
   <line x1="40" y1="348" x2="1200" y2="348" class="row"/>
-  <text x="60" y="374" class="note">合計呼叫模型 11 次、新台幣 0.86 元，16:34 那一次查到今天已經有日報就結束，助理一次都沒有被呼叫</text>
+  <text x="60" y="374" class="note">合計呼叫模型 11 次、新台幣 0.86 元（兩筆未四捨五入相加是 0.8551），16:34 那一次查到今天已經有日報就結束，助理一次都沒有被呼叫</text>
 
   <rect x="40" y="400" width="1160" height="332" rx="10" class="card"/>
-  <text x="62" y="434" class="title" font-size="18">2026-10-11 的行銷日報（16:32 排程那一次，三題的回答原文）</text>
+  <text x="62" y="434" class="bt2">2026-10-11 的行銷日報（16:32 排程那一次，三題的回答原文）</text>
   <text x="62" y="456" class="note">資料停在 2026-09-16，助理把隔天當成今天，所以上週是 9/7 到 9/13</text>
 
   <text x="62" y="494" class="sec">1　上週花費</text>
-  <text x="62" y="518" class="ans">上週（2026/09/07 至 2026/09/13）全站廣告費用總計為 123,957 元。其中花最多錢的廣告素材是 cr-meta-trn-p1，累計花費 12,938 元。</text>
+  <text x="62" y="518" class="ans">上週（2026/09/07 至 2026/09/13）全站廣告費用總計為 123,957 元。其中花最多錢的廣告素材是 `cr-meta-trn-p1`，累計花費 12,938 元。</text>
 
   <text x="62" y="558" class="sec">2　通路功勞</text>
   <text x="62" y="582" class="ans">上週（2026/09/07 至 2026/09/13）分到最多訂單功勞的通路是 newsletter / email。採用時間衰減模型計算，前三名分別為：</text>
