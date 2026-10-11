@@ -6,13 +6,13 @@
 #   bash scripts/deploy_daily_report.sh                 # 部署流程，第一次建排程時先暫停（不會自己花錢），排程已經存在就維持它原本的狀態
 #   SCHEDULE_STATE=on bash scripts/deploy_daily_report.sh       # 排程啟用，之後每天早上自己跑
 #   SCHEDULE_STATE=paused bash scripts/deploy_daily_report.sh   # 排程暫停
-#   SCHEDULE="0 9 * * 1-5" bash scripts/deploy_daily_report.sh   # 改排程時間（預設每天 08:30，時區見 TIME_ZONE）
+#   SCHEDULE="0 9 * * 1-5" bash scripts/deploy_daily_report.sh   # 改排程時間（第一次建立預設每天 08:30、時區 Asia/Taipei，可用 TIME_ZONE 改）
 #
 # 這支腳本本身不啟動流程、不呼叫模型，Workflows 與 Cloud Scheduler 都在免費額度內
 # 流程每跑一次會向助理問三題，約新台幣 0.5 到 0.9 元，要實際跑請用 bash workflows/run.sh（會先印估價）
 # 需要：Day 25 之後的 Terraform 已經套用（服務帳號 martech-scheduler、Workflows 與 Cloud Scheduler 的 API），
 #       Day 26 的助理服務已經部署（bash scripts/deploy_assistant.sh）
-# 重跑是安全的：流程會換成新的版本，排程已經存在就更新設定，沒有指定 SCHEDULE_STATE 時不會改動它是啟用還是暫停
+# 重跑是安全的：流程會換成新的版本，排程已經存在就更新設定，沒有指定的話不會改動它的時間、時區，以及是啟用還是暫停
 # ==============================================================================
 
 set -euo pipefail
@@ -26,8 +26,8 @@ JOB="martech-daily-report-morning"
 SERVICE_NAME="martech-assistant"
 REGION="${REGION:-us-central1}"
 DATASET="${DATASET:-martech_dw}"
-SCHEDULE="${SCHEDULE:-30 8 * * *}"
-TIME_ZONE="${TIME_ZONE:-Asia/Taipei}"
+SCHEDULE="${SCHEDULE:-}"
+TIME_ZONE="${TIME_ZONE:-}"
 SCHEDULE_STATE="${SCHEDULE_STATE:-}"
 
 PROJECT_ID="$(gcloud config get-value project 2>/dev/null || true)"
@@ -48,14 +48,14 @@ if [[ -n "${SCHEDULE_STATE}" && "${SCHEDULE_STATE}" != "paused" && "${SCHEDULE_S
   echo "❌ SCHEDULE_STATE 只能是 paused 或 on（不寫就維持現況），拿到「${SCHEDULE_STATE}」"
   exit 1
 fi
-if [[ ! "${SCHEDULE}" =~ ^[0-9*/,-]+( [0-9*/,-]+){4}$ ]]; then
+if [[ -n "${SCHEDULE}" && ! "${SCHEDULE}" =~ ^[0-9*/,-]+( [0-9*/,-]+){4}$ ]]; then
   echo "❌ SCHEDULE 要是五個欄位的 cron 寫法而且只用數字，例如 \"30 8 * * *\" 或 \"0 9 * * 1-5\"，拿到「${SCHEDULE}」"
   exit 1
 fi
 
 PIPELINE_SA="martech-pipeline-runner@${PROJECT_ID}.iam.gserviceaccount.com"
 SCHEDULER_SA="martech-scheduler@${PROJECT_ID}.iam.gserviceaccount.com"
-echo "🔍 專案：${PROJECT_ID}｜區域：${REGION}｜流程：${WORKFLOW}｜排程：${SCHEDULE}（${TIME_ZONE}）"
+echo "🔍 專案：${PROJECT_ID}｜區域：${REGION}｜流程：${WORKFLOW}"
 
 # ------------------------------------------------------------------------------
 # 1. 事前檢查：缺什麼就停，不會做到一半
@@ -151,11 +151,18 @@ if [[ -n "${CURRENT}" ]]; then
 else
   VERB="create"
 fi
-# 沒有指定就維持現況：已經啟用的排程不會因為重新部署被悄悄暫停，第一次建立則先暫停
+# 沒有指定就維持現況：改過的排程時間與時區不會因為重新部署被悄悄改回預設值
+if [[ -n "${CURRENT}" ]]; then
+  [[ -n "${SCHEDULE}" ]] || SCHEDULE="$(gcloud scheduler jobs describe "${JOB}" --project "${PROJECT_ID}" --location "${REGION}" --format='value(schedule)' 2>/dev/null || true)"
+  [[ -n "${TIME_ZONE}" ]] || TIME_ZONE="$(gcloud scheduler jobs describe "${JOB}" --project "${PROJECT_ID}" --location "${REGION}" --format='value(timeZone)' 2>/dev/null || true)"
+fi
+SCHEDULE="${SCHEDULE:-30 8 * * *}"
+TIME_ZONE="${TIME_ZONE:-Asia/Taipei}"
+# 啟用或暫停也一樣：已經啟用的排程不會因為重新部署被悄悄暫停，第一次建立則先暫停
 if [[ -z "${SCHEDULE_STATE}" ]]; then
   if [[ "${CURRENT}" == "ENABLED" ]]; then SCHEDULE_STATE="on"; else SCHEDULE_STATE="paused"; fi
 fi
-echo "── 排程 ${JOB}（${VERB}，${SCHEDULE_STATE}） ──"
+echo "── 排程 ${JOB}（${VERB}，${SCHEDULE}，${TIME_ZONE}，${SCHEDULE_STATE}） ──"
 gcloud scheduler jobs "${VERB}" http "${JOB}" \
   --project "${PROJECT_ID}" \
   --location "${REGION}" \

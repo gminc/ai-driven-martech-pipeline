@@ -131,6 +131,7 @@ except Exception:
     sys.exit(1)
 name = e.get("name", "").rsplit("/", 1)[-1]
 open(sys.argv[1] + ".id", "w").write(name)
+open(sys.argv[1] + ".state", "w").write(str(e.get("state", "")))
 print(f"   執行編號 {name}｜狀態 {e.get('state')}｜{e.get('startTime', '')[:19]} → {e.get('endTime', '')[:19]}（UTC）")
 if e.get("result"):
     print("   結果：" + e["result"])
@@ -184,6 +185,11 @@ if [[ "${BAD}" != "0" ]]; then
 fi
 if [[ "${FREE_BAD}" != "0" ]]; then
   echo "❌ 不花錢的測試沒有通過，先不要啟用排程"
+  exit 1
+fi
+# 真的要寫日報的那兩種跑法，流程沒有以成功結束就不能印完成（--free 與 --break 本來就預期失敗）
+if [[ "${MODE}" == "normal" || "${MODE}" == "force" ]] && [[ "$(cat "${TMP}/exec.json.state" 2>/dev/null || true)" != "SUCCEEDED" ]]; then
+  echo "❌ 這次執行沒有以成功結束，日報可能缺題，請看上面報表第 2 段的 detail"
   exit 1
 fi
 echo "✅ 完成，日報在 ${PROJECT}.${DATASET}.v_daily_report"

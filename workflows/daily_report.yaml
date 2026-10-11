@@ -22,7 +22,7 @@ main:
   params: [input]
   steps:
     # 啟動時沒帶參數的話 input 是 null，另外放進 opts 再讀
-    # 參數原本取名 args 並且直接重新指定，部署時被拒絕（cannot assign to a reserved variable 'args'）
+    # 原本直接把參數重新指定成 {}，部署時被拒絕（cannot assign to a reserved variable 'args'），流程的參數只能讀
     - default_opts:
         assign:
           - opts: {}
@@ -238,6 +238,13 @@ main:
                           assign:
                             - row_status: ok
                             - ok_count: ${ok_count + 1}
+                  # 助理說答完了但回答是空的：不能算答完，原因另外標出來，不然日報表會出現「失敗、原因是 passed」
+                  - condition: ${detail in ["passed", "claims_flagged", "exits_sealed", "claims_flagged,exits_sealed"]}
+                    steps:
+                      - mark_empty:
+                          assign:
+                            - detail: empty_answer
+                            - failed_count: ${failed_count + 1}
                   - condition: ${detail == "daily_cap"}
                     steps:
                       - mark_cap:
