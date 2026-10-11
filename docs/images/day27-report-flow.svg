@@ -1,0 +1,77 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1240 600" width="1240" height="600" font-family="'Noto Sans TC','Noto Sans CJK TC','PingFang TC','Microsoft JhengHei',sans-serif">
+  <defs>
+    <style>
+      .title { font-size: 22px; font-weight: 700; fill: #202124; }
+      .note { font-size: 13px; fill: #5f6368; }
+      .box { fill: #f8f9fa; stroke: #9aa0a6; stroke-width: 1.4; }
+      .who { fill: #e8f0fe; stroke: #1a73e8; stroke-width: 1.6; }
+      .cap { fill: #fef7e0; stroke: #e37400; stroke-width: 1.6; }
+      .can { fill: #e6f4ea; stroke: #188038; stroke-width: 1.6; }
+      .bt { font-size: 16px; font-weight: 700; fill: #202124; }
+      .bs { font-size: 12.5px; fill: #5f6368; }
+      .lane { font-size: 15px; font-weight: 700; }
+      .sa { font-size: 12.5px; font-weight: 700; }
+      .arrow { stroke: #5f6368; stroke-width: 2; fill: none; }
+      .lbl { font-size: 12px; fill: #5f6368; }
+      .sep { stroke: #dadce0; stroke-width: 1.5; stroke-dasharray: 6 6; }
+    </style>
+    <marker id="ah" markerWidth="10" markerHeight="8" refX="9" refY="4" orient="auto"><path d="M0,0 L10,4 L0,8 z" fill="#5f6368"/></marker>
+  </defs>
+  <rect width="1240" height="600" fill="#ffffff"/>
+  <text x="40" y="44" class="title">圖一：排程只負責準時啟動，順序和失敗怎麼辦寫在流程裡</text>
+  <text x="40" y="68" class="note">三段各用不同的服務帳號，前一段只拿得到「叫下一段做事」的權限</text>
+
+  <text x="40" y="118" class="lane" fill="#1a73e8">幾點跑</text>
+  <text x="330" y="118" class="lane" fill="#e37400">照什麼順序、失敗怎麼辦</text>
+  <text x="760" y="118" class="lane" fill="#188038">查資料、寫回答</text>
+
+  <rect x="40" y="136" width="230" height="230" rx="8" class="who"/>
+  <text x="155" y="168" text-anchor="middle" class="bt">Cloud Scheduler</text>
+  <text x="155" y="194" text-anchor="middle" class="bs">每天 08:30</text>
+  <text x="155" y="214" text-anchor="middle" class="bs">時區 Asia/Taipei</text>
+  <text x="155" y="250" text-anchor="middle" class="bs">只做一件事：</text>
+  <text x="155" y="270" text-anchor="middle" class="bs">請 Workflows 建立一次執行</text>
+  <text x="155" y="306" text-anchor="middle" class="bs">它不知道日報有沒有寫完</text>
+  <text x="155" y="344" text-anchor="middle" class="sa" fill="#1a73e8">身分：martech-scheduler</text>
+
+  <rect x="330" y="136" width="360" height="330" rx="8" class="cap"/>
+  <text x="510" y="168" text-anchor="middle" class="bt">Workflows 流程 martech-daily-report</text>
+  <text x="352" y="200" class="bs">1　今天已經有完整的日報就結束，不發問</text>
+  <text x="352" y="226" class="bs">2　第 1 題：上週花費　→ 問助理 → 寫一列</text>
+  <text x="352" y="252" class="bs">3　第 2 題：通路功勞　→ 問助理 → 寫一列</text>
+  <text x="352" y="278" class="bs">4　第 3 題：成效異常　→ 問助理 → 寫一列</text>
+  <text x="352" y="304" class="bs">5　三題沒有全部答完，這次執行以失敗結束</text>
+  <line x1="352" y1="322" x2="668" y2="322" class="sep"/>
+  <text x="352" y="348" class="bs">確定助理還沒開始處理的錯才重試（最多 2 次）</text>
+  <text x="352" y="370" class="bs">逾時、連線中斷不重試，可能已經花過錢</text>
+  <text x="352" y="392" class="bs">助理今天的額度用完，後面的題目不再問</text>
+  <text x="352" y="414" class="bs">助理的網址在部署時寫死，啟動的人改不了</text>
+  <text x="510" y="446" text-anchor="middle" class="sa" fill="#e37400">身分：martech-pipeline-runner</text>
+
+  <rect x="760" y="136" width="440" height="150" rx="8" class="can"/>
+  <text x="980" y="168" text-anchor="middle" class="bt">Day 26 的助理服務（Cloud Run）</text>
+  <text x="980" y="194" text-anchor="middle" class="bs">IAM 先檢查流程的身分權杖，沒有 run.invoker 就是 403</text>
+  <text x="980" y="214" text-anchor="middle" class="bs">護欄、每日花費上限、問答紀錄都和同事提問時一樣</text>
+  <text x="980" y="234" text-anchor="middle" class="bs">查 BigQuery、呼叫 Gemini，回答限制在四句話以內</text>
+  <text x="980" y="266" text-anchor="middle" class="sa" fill="#188038">身分：martech-assistant</text>
+
+  <rect x="760" y="316" width="440" height="150" rx="8" class="box"/>
+  <text x="980" y="348" text-anchor="middle" class="bt">BigQuery 日報表 daily_reports</text>
+  <text x="980" y="374" text-anchor="middle" class="bs">一列＝某一次執行的某一題，只加不刪</text>
+  <text x="980" y="394" text-anchor="middle" class="bs">狀態是 ok、failed 或 skipped，失敗的原因也留著</text>
+  <text x="980" y="414" text-anchor="middle" class="bs">v_daily_report 每天只取答完最多題的那一次執行</text>
+  <text x="980" y="446" text-anchor="middle" class="bs">明天（Day 28）從這裡把日報送到 Slack</text>
+
+  <path d="M270,250 L326,250" class="arrow" marker-end="url(#ah)"/>
+  <text x="298" y="240" text-anchor="middle" class="lbl">啟動</text>
+  <path d="M690,210 L756,210" class="arrow" marker-end="url(#ah)"/>
+  <text x="723" y="200" text-anchor="middle" class="lbl">發問</text>
+  <path d="M756,246 L694,246" class="arrow" marker-end="url(#ah)"/>
+  <text x="723" y="264" text-anchor="middle" class="lbl">回答</text>
+  <path d="M690,390 L756,390" class="arrow" marker-end="url(#ah)"/>
+  <text x="723" y="380" text-anchor="middle" class="lbl">寫入</text>
+
+  <rect x="40" y="496" width="1160" height="76" rx="8" class="box"/>
+  <text x="62" y="526" class="bt">三個身分各自做得到的事</text>
+  <text x="62" y="552" class="bs">martech-scheduler 只能啟動流程，查不到資料也連不到助理　｜　martech-pipeline-runner 連得到助理、寫得進日報表　｜　martech-assistant 查資料與呼叫 Gemini</text>
+</svg>
