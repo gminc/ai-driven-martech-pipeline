@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # Day 27：手動啟動一次日報流程，再跑檢查與報表
 # 用法（在儲存庫根目錄，先 bash scripts/deploy_daily_report.sh）：
-#   bash workflows/run.sh --free      不花錢：三題都改打不存在的路徑，確認身分、寫入與失敗的處理
+#   bash workflows/run.sh --free      不花錢：三題都改打不存在的路徑，三題都要是 http_404 才算過（代表身分通過、寫入與失敗的處理都正常）
 #   bash workflows/run.sh             今天還沒有完整的日報就問三題（先印估價，輸入 yes 才問），已經有就直接跳過
 #   bash workflows/run.sh --force     今天已經有日報也重新問一次（再花一次錢）
 #   bash workflows/run.sh --break 2   第 2 題故意失敗、其他兩題照問（會花兩題的錢），看缺一題的日報長什麼樣子
@@ -18,7 +18,7 @@ QUESTIONS=3
 # 和 agent/serve.py 相同的上限與單價，只用來印估價
 MAX_STEPS=4; INPUT_CAP=6000; MAX_OUTPUT=1024; PRICE_IN=0.75; PRICE_OUT=3.75; FX=32
 
-MODE="normal"; BREAK=""
+MODE="normal"; BREAK=""; FREE_BAD=0
 case "${1:-}" in
   "") ;;
   --free) MODE="free" ;;
@@ -130,12 +130,29 @@ except Exception:
     print(open(sys.argv[2]).read()[-800:])
     sys.exit(1)
 name = e.get("name", "").rsplit("/", 1)[-1]
+open(sys.argv[1] + ".id", "w").write(name)
 print(f"   執行編號 {name}｜狀態 {e.get('state')}｜{e.get('startTime', '')[:19]} → {e.get('endTime', '')[:19]}（UTC）")
 if e.get("result"):
     print("   結果：" + e["result"])
 if e.get("error"):
     print("   錯誤：" + str(e["error"].get("payload", e["error"]))[:600])
 PYEXEC
+  if [[ "${MODE}" == "free" ]]; then
+    # 身分正確時三題都是 http_404（通過 Cloud Run 的身分檢查、進到程式、路徑不存在）
+    # 403 是流程的服務帳號沒有 run.invoker，401 是權杖的對象不對，這兩種隔天排程真的跑也會三題全失敗
+    EXEC_ID="$(cat "${TMP}/exec.json.id" 2>/dev/null || true)"
+    if [[ ! "${EXEC_ID}" =~ ^[A-Za-z0-9-]+$ ]]; then
+      echo "❌ 讀不到這次執行的編號，沒辦法確認測試結果"
+      exit 1
+    fi
+    GOOD="$(scalar "SELECT COUNT(*) FROM martech_dw.daily_reports WHERE execution_id = '${EXEC_ID}' AND status = 'failed' AND detail = 'http_404'")"
+    if [[ "${GOOD}" != "${QUESTIONS}" ]]; then
+      echo "❌ 預期 ${QUESTIONS} 題都是 http_404，實際只有 ${GOOD} 題，請看下面報表第 2 段的 detail（http_403 是少了 run.invoker，http_401 是權杖的對象不對）"
+      FREE_BAD=1
+    else
+      echo "✅ ${QUESTIONS} 題都是 http_404：流程的身分通過了助理的檢查，失敗有被記進日報表"
+    fi
+  fi
 fi
 
 echo "🧾 檢查（check.sql）"
@@ -163,6 +180,10 @@ for N in 1 2 3 4; do
 done
 if [[ "${BAD}" != "0" ]]; then
   echo "❌ 有 ${BAD} 項檢查不通過，照上面的項目排除後再跑一次"
+  exit 1
+fi
+if [[ "${FREE_BAD}" != "0" ]]; then
+  echo "❌ 不花錢的測試沒有通過，先不要啟用排程"
   exit 1
 fi
 echo "✅ 完成，日報在 ${PROJECT}.${DATASET}.v_daily_report"

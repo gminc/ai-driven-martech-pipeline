@@ -26,6 +26,7 @@ OPTIONS (description = 'Day 27 行銷日報：一列＝某一次執行的某一�
 CREATE OR REPLACE VIEW martech_dw.v_daily_report AS
 WITH one_row AS (
   SELECT * FROM martech_dw.daily_reports
+  WHERE TRUE
   QUALIFY ROW_NUMBER() OVER (PARTITION BY execution_id, section_no ORDER BY created_at) = 1
 ),
 runs AS (
@@ -35,6 +36,7 @@ runs AS (
 ),
 best AS (
   SELECT * FROM runs
+  WHERE TRUE
   QUALIFY ROW_NUMBER() OVER (PARTITION BY report_date ORDER BY ok_sections DESC, finished_at DESC) = 1
 )
 SELECT

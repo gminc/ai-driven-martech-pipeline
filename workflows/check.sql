@@ -1,9 +1,13 @@
 -- Day 27：日報流程跑過之後的檢查，一列＝一項，ok 欄位是 OK 或 DIFF
 -- 看的是日報表 daily_reports 與 Day 26 的問答紀錄 serve_turns，不經過流程自己的判斷
+-- 只看昨天與今天（台北時間）的列：表是只加不刪的，以前某一次中途停掉的執行不該讓之後每一次檢查都不通過
 -- 查詢在每月 1 TiB 免費額度內
 
 WITH
-rows_all AS (SELECT * FROM martech_dw.daily_reports),
+rows_all AS (
+  SELECT * FROM martech_dw.daily_reports
+  WHERE report_date >= DATE_SUB(CURRENT_DATE('Asia/Taipei'), INTERVAL 1 DAY)
+),
 per_run AS (
   SELECT report_date, execution_id, COUNT(*) AS n_rows, COUNT(DISTINCT section_no) AS n_sections,
     COUNTIF(status = 'ok') AS n_ok
@@ -42,7 +46,7 @@ checks AS (
   UNION ALL SELECT '10 conversations used by more than one report row', '0',
     CAST((SELECT COUNT(*) FROM (SELECT session_id FROM asked GROUP BY session_id HAVING COUNT(*) > 1)) AS STRING)
   UNION ALL SELECT '11 days with more than one row per section in v_daily_report', '0',
-    CAST((SELECT COUNT(*) FROM (SELECT report_date, section_no FROM martech_dw.v_daily_report GROUP BY 1, 2 HAVING COUNT(*) > 1)) AS STRING)
+    CAST((SELECT COUNT(*) FROM (SELECT report_date, section_no FROM martech_dw.v_daily_report WHERE report_date >= DATE_SUB(CURRENT_DATE('Asia/Taipei'), INTERVAL 1 DAY) GROUP BY 1, 2 HAVING COUNT(*) > 1)) AS STRING)
   UNION ALL SELECT '12 days where v_daily_report does not show the execution with the most answered questions', '0',
     CAST((SELECT COUNT(*) FROM (SELECT report_date, MAX(n_ok) AS best FROM per_run GROUP BY 1) p
           JOIN (SELECT report_date, ANY_VALUE(ok_sections) AS shown FROM martech_dw.v_daily_report GROUP BY 1) v USING (report_date)

@@ -15,7 +15,7 @@
 #   只有啟動權限的人就能把這張權杖送到任何地方
 #
 # 重試的原則：只有確定「助理還沒開始花錢」的錯誤才重試，其他的錯記下來、換下一題
-# 這個檔案本身不收費，步驟數在 Workflows 每月免費額度內，費用來自助理呼叫模型（一題約新台幣 0.15 到 0.3 元）
+# 這個檔案本身不收費，步驟數在 Workflows 每月免費額度內，費用來自助理呼叫模型（一題約新台幣 0.15 到 0.3 元，三題約 0.5 到 0.9 元）
 # ==============================================================================
 
 main:
@@ -63,6 +63,17 @@ main:
             raise: 'trigger 只能是 "scheduler" 或 "manual"'
           - condition: ${get_type(force) != "boolean" or get_type(test_break) != "list"}
             raise: 'force 要是 true 或 false，test_break 要是清單，例如 [2]'
+
+    # 題號放成字串（例如 ["2"]）會對不到任何一題，結果是三題照問照花錢，所以先擋下來
+    - check_break_items:
+        for:
+          value: b
+          in: ${test_break}
+          steps:
+            - must_be_int:
+                switch:
+                  - condition: ${get_type(b) != "integer"}
+                    raise: "test_break 裡面只能放題號（整數），例如 [2]"
 
     - log_start:
         call: sys.log
@@ -135,32 +146,9 @@ main:
                   - answer: ""
                   - session_id: ""
                   - path: /chat
-
-            - maybe_skip:
-                switch:
-                  # 助理今天的額度用完了，後面的題目問了也是同一句話，直接記成沒問
-                  - condition: ${stop_reason != ""}
-                    steps:
-                      - mark_skipped:
-                          assign:
-                            - row_status: skipped
-                            - detail: ${stop_reason}
-                            - skipped_count: ${skipped_count + 1}
-                      - save_skipped:
-                          call: save_row
-                          args:
-                            project: ${project}
-                            table: ${table}
-                            report_date: ${report_date}
-                            execution_id: ${execution_id}
-                            trigger: ${trigger}
-                            q: ${q}
-                            answer: ""
-                            row_status: ${row_status}
-                            detail: ${detail}
-                            session_id: ""
-                      - next_question:
-                          next: continue
+                  - got: false
+                  # 助理今天的額度用完之後，後面的題目問了也是同一句話，不再問
+                  - do_ask: ${stop_reason == ""}
 
             - maybe_break:
                 switch:
@@ -170,73 +158,75 @@ main:
                           assign:
                             - path: /not-a-real-path
 
-            - ask:
-                try:
-                  call: http.post
-                  args:
-                    url: ${assistant_url + path}
-                    # 助理只收帶這個標頭的 JSON 請求（Day 26 的來源檢查）
-                    headers:
-                      X-Martech-Chat: "1"
-                      Content-Type: application/json
-                    body:
-                      question: ${q.text}
-                    # 身分權杖由流程的服務帳號產生，對象固定是服務的網址（不含路徑）
-                    auth:
-                      type: OIDC
-                      audience: ${assistant_url}
-                    timeout: 150
-                  result: resp
-                retry:
-                  predicate: ${retry_if_not_started}
-                  max_retries: 2
-                  backoff:
-                    initial_delay: 10
-                    max_delay: 40
-                    multiplier: 2
-                except:
-                  as: e
-                  steps:
-                    - describe_error:
-                        switch:
-                          - condition: ${get_type(e) == "map" and "code" in e}
+            - maybe_ask:
+                switch:
+                  - condition: ${do_ask}
+                    steps:
+                      - ask:
+                          try:
                             steps:
-                              - http_error:
+                              - call_assistant:
+                                  call: http.post
+                                  args:
+                                    url: ${assistant_url + path}
+                                    # 助理只收帶這個標頭的 JSON 請求（Day 26 的來源檢查）
+                                    headers:
+                                      X-Martech-Chat: "1"
+                                      Content-Type: application/json
+                                    body:
+                                      question: ${q.text}
+                                    # 身分權杖由流程的服務帳號產生，對象固定是服務的網址（不含路徑）
+                                    auth:
+                                      type: OIDC
+                                      audience: ${assistant_url}
+                                    # 流程等 150 秒就放棄，助理那一邊可能還在跑，逾時的那一題錢可能已經花了
+                                    timeout: 150
+                                  result: resp
+                              # 助理不管有沒有答出來都回 HTTP 200，真正的結果在 status 欄位，要自己看
+                              - read_answer:
                                   assign:
-                                    - detail: ${"http_" + string(e.code)}
-                          - condition: ${get_type(e) == "map" and "tags" in e and len(e.tags) > 0}
+                                    - detail: ${default(map.get(resp.body, "status"), "no_status")}
+                                    - answer: ${default(map.get(resp.body, "answer"), "")}
+                                    - session_id: ${default(map.get(resp.body, "session_id"), "")}
+                                    - got: true
+                          retry:
+                            predicate: ${retry_if_not_started}
+                            max_retries: 2
+                            backoff:
+                              initial_delay: 10
+                              max_delay: 40
+                              multiplier: 2
+                          except:
+                            as: e
                             steps:
-                              - tagged_error:
-                                  assign:
-                                    - detail: ${"error_" + e.tags[0]}
-                    - count_failed_call:
-                        assign:
-                          - failed_count: ${failed_count + 1}
-                    - save_failed_call:
-                        call: save_row
-                        args:
-                          project: ${project}
-                          table: ${table}
-                          report_date: ${report_date}
-                          execution_id: ${execution_id}
-                          trigger: ${trigger}
-                          q: ${q}
-                          answer: ""
-                          row_status: failed
-                          detail: ${detail}
-                          session_id: ""
-                    - after_failed_call:
-                        next: continue
-
-            # 助理不管有沒有答出來都回 HTTP 200，真正的結果在 status 欄位，要自己看
-            - read_answer:
-                assign:
-                  - detail: ${default(map.get(resp.body, "status"), "no_status")}
-                  - answer: ${default(map.get(resp.body, "answer"), "")}
-                  - session_id: ${default(map.get(resp.body, "session_id"), "")}
+                              - describe_error:
+                                  switch:
+                                    - condition: ${get_type(e) == "map" and "code" in e}
+                                      steps:
+                                        - http_error:
+                                            assign:
+                                              - detail: ${"http_" + string(e.code)}
+                                    - condition: ${get_type(e) == "map" and "tags" in e and len(e.tags) > 0}
+                                      steps:
+                                        - tagged_error:
+                                            assign:
+                                              - detail: ${"error_" + e.tags[0]}
 
             - judge:
                 switch:
+                  - condition: ${not do_ask}
+                    steps:
+                      - mark_skipped:
+                          assign:
+                            - row_status: skipped
+                            - detail: ${stop_reason}
+                            - skipped_count: ${skipped_count + 1}
+                  # 呼叫本身失敗（HTTP 錯誤、逾時、連線問題），detail 已經在上面填好
+                  - condition: ${not got}
+                    steps:
+                      - mark_call_failed:
+                          assign:
+                            - failed_count: ${failed_count + 1}
                   - condition: ${detail in ["passed", "claims_flagged", "exits_sealed", "claims_flagged,exits_sealed"] and answer != ""}
                     steps:
                       - mark_ok:
@@ -247,17 +237,15 @@ main:
                     steps:
                       - mark_cap:
                           assign:
-                            - row_status: failed
                             - failed_count: ${failed_count + 1}
                             - stop_reason: daily_cap
                   - condition: true
                     steps:
                       - mark_failed:
                           assign:
-                            - row_status: failed
                             - failed_count: ${failed_count + 1}
 
-            - save_answer:
+            - save:
                 call: save_row
                 args:
                   project: ${project}
@@ -313,9 +301,10 @@ main:
 
 # ── 只有確定助理還沒開始處理的錯誤才重試 ───────────────────────────────────────
 #   429：Cloud Run 的執行個體都在忙，請求沒有進到程式
-#   503：服務還沒準備好，或程式自己回報現在不能用，都還沒呼叫模型
+#   503 而且回應是助理自己寫的 unavailable：程式回報現在不能用，還沒呼叫模型
 #   ConnectionFailedError：連線根本沒有建立
-# 逾時（TimeoutError）與連線中斷（ConnectionError）不重試：助理可能已經呼叫過模型，再問一次就是再花一次錢
+# 其他的 503 不重試：Cloud Run 在請求處理到一半、執行個體出狀況時也會回 503，那時模型可能已經被呼叫
+# 逾時（TimeoutError）與連線中斷（ConnectionError）也不重試，理由相同，再問一次就是再花一次錢
 retry_if_not_started:
   params: [e]
   steps:
@@ -323,7 +312,9 @@ retry_if_not_started:
         switch:
           - condition: ${get_type(e) != "map"}
             return: false
-          - condition: ${"code" in e and (e.code == 429 or e.code == 503)}
+          - condition: ${"code" in e and e.code == 429}
+            return: true
+          - condition: ${"code" in e and e.code == 503 and get_type(map.get(e, "body")) == "map" and map.get(e.body, "status") == "unavailable"}
             return: true
           - condition: ${"tags" in e and "ConnectionFailedError" in e.tags}
             return: true
