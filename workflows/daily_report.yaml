@@ -5,6 +5,8 @@
 #   1. 看資料裡有沒有還沒通知過的成效異常，有就送一則警報到 Slack（Day 28）
 #   2. 依序向 Day 26 的助理服務問三個固定問題，每問完一題就把結果寫進 martech_dw.daily_reports（Day 27）
 #   3. 把日報送到 Slack，三題沒有全部答完則改送一則「日報沒有寫完」（Day 28）
+#   今天已經有完整的日報時不再發問，但 Slack 還沒收到過的話會從日報表補送一次
+#   三題沒有全部答完、或該送的訊息沒送出去，這次執行都以失敗結束
 # 誰啟動：Cloud Scheduler（服務帳號 martech-scheduler，只有啟動流程的權限）或有權限的人手動啟動
 # 用誰的身分做事：流程綁定的服務帳號 martech-pipeline-runner（部署時指定）
 #
@@ -14,7 +16,7 @@
 #   test_break  清單，例如 [2] 表示第 2 題改打一個不存在的路徑，用來不花錢地測試「這一題失敗了」的處理
 #   notify      false 表示這一次不送 Slack（測試用），預設 true
 #   as_of       把哪一天當成今天去看有沒有異常，格式 YYYY-MM-DD，用來重播過去的日子，沒帶就用資料裡最新的一天
-#   renotify    true 表示已經通知過的異常與日報也再送一次，預設 false
+#   renotify    true 表示已經通知過的異常也再送一次，預設 false（日報要重送請用 force，或等流程自己補送）
 #
 # 寫死在部署設定裡、不從參數讀的東西（環境變數）：
 #   ASSISTANT_URL  助理的網址：流程會替它簽一張 martech-pipeline-runner 的身分權杖，
@@ -59,6 +61,22 @@ main:
                       - crash_tags:
                           assign:
                             - crash_kind: ${"error_" + crash.tags[0]}
+            # 參數打錯不通知（那是啟動的人自己要看的錯），這一次指定不送 Slack 的也不通知
+            - crash_default:
+                assign:
+                  - crash_notify_on: true
+            - crash_quiet:
+                switch:
+                  - condition: ${crash_kind == "error_BadArgs"}
+                    steps:
+                      - quiet_bad_args:
+                          assign:
+                            - crash_notify_on: false
+                  - condition: ${get_type(input) == "map" and get_type(map.get(input, "notify")) == "boolean"}
+                    steps:
+                      - quiet_as_asked:
+                          assign:
+                            - crash_notify_on: ${input.notify}
             # 訊息裡只放錯誤的種類與執行編號，不放錯誤的原文（原文裡可能有不該外流的內容）
             - crash_notify:
                 call: notify
@@ -71,7 +89,7 @@ main:
                   dedupe_key: ${"flow_error:" + crash_exec}
                   message: ${"*行銷日報流程中途出錯*（" + crash_day + "）：" + crash_kind + "，執行編號 " + crash_exec + "，請到 Workflows 的執行清單查看"}
                   renotify: true
-                  enabled: ${not (get_type(input) == "map" and map.get(input, "notify") == false)}
+                  enabled: ${crash_notify_on}
                 result: crash_sent
             - crash_raise:
                 raise: ${crash}
@@ -139,13 +157,21 @@ run_report:
     - check_args:
         switch:
           - condition: ${not (trigger in ["scheduler", "manual"])}
-            raise: 'trigger 只能是 "scheduler" 或 "manual"'
+            raise:
+              tags: ["BadArgs"]
+              message: 'trigger 只能是 "scheduler" 或 "manual"'
           - condition: ${get_type(force) != "boolean" or get_type(test_break) != "list"}
-            raise: 'force 要是 true 或 false，test_break 要是清單，例如 [2]'
+            raise:
+              tags: ["BadArgs"]
+              message: 'force 要是 true 或 false，test_break 要是清單，例如 [2]'
           - condition: ${get_type(notify_on) != "boolean" or get_type(renotify) != "boolean" or get_type(as_of) != "string"}
-            raise: 'notify 與 renotify 要是 true 或 false，as_of 要是字串'
+            raise:
+              tags: ["BadArgs"]
+              message: 'notify 與 renotify 要是 true 或 false，as_of 要是字串'
           - condition: ${as_of != "" and not text.match_regex(as_of, "^[0-9]{4}-[0-9]{2}-[0-9]{2}$")}
-            raise: 'as_of 的格式是 YYYY-MM-DD，例如 "2026-08-27"'
+            raise:
+              tags: ["BadArgs"]
+              message: 'as_of 的格式是 YYYY-MM-DD，例如 "2026-08-27"'
 
     # 題號放成字串（例如 ["2"]）會對不到任何一題，結果是三題照問照花錢，所以先擋下來
     - check_break_items:
@@ -156,7 +182,9 @@ run_report:
             - must_be_int:
                 switch:
                   - condition: ${get_type(b) != "integer"}
-                    raise: "test_break 裡面只能放題號（整數），例如 [2]"
+                    raise:
+                      tags: ["BadArgs"]
+                      message: "test_break 裡面只能放題號（整數），例如 [2]"
 
     - log_start:
         call: sys.log
@@ -173,21 +201,38 @@ run_report:
             renotify: ${renotify}
 
     # ── Day 28：先看有沒有還沒通知過的成效異常，這一步不呼叫模型 ──────────────────
+    # 查異常出了錯不應該拖垮日報：記一筆、算成一次通知失敗，三題照問
     - alerts:
-        call: anomaly_alerts
-        args:
-          project: ${project}
-          dataset: ${dataset}
-          report_date: ${report_date}
-          execution_id: ${execution_id}
-          as_of: ${as_of}
-          renotify: ${renotify}
-          enabled: ${notify_on}
-        result: alert_result
-    - count_alerts:
-        assign:
-          - alerts_sent: ${alert_result.sent}
-          - notify_failed: ${notify_failed + alert_result.failed}
+        try:
+          steps:
+            - look:
+                call: anomaly_alerts
+                args:
+                  project: ${project}
+                  dataset: ${dataset}
+                  report_date: ${report_date}
+                  execution_id: ${execution_id}
+                  as_of: ${as_of}
+                  renotify: ${renotify}
+                  enabled: ${notify_on}
+                result: alert_result
+            - count_alerts:
+                assign:
+                  - alerts_sent: ${alert_result.sent}
+                  - notify_failed: ${notify_failed + alert_result.failed}
+        except:
+          as: alert_error
+          steps:
+            - alerts_broken:
+                assign:
+                  - notify_failed: ${notify_failed + 1}
+            - log_alerts_broken:
+                call: sys.log
+                args:
+                  severity: ERROR
+                  json:
+                    event: anomaly_alerts_failed
+                    report_date: ${report_date}
 
     # ── 今天已經有一份三題都答完的日報就不再問，重跑不花錢也不會多出一份 ──────────
     - find_existing:
@@ -230,7 +275,57 @@ run_report:
                       event: daily_report_skipped
                       report_date: ${report_date}
                       reason: already_complete
-              # 日報今天已經送過了，不再送一次，異常警報上面已經處理
+              # 日報已經寫好但 Slack 可能還沒收到（上一次送失敗、或那一次指定不送），從日報表組一次訊息補送
+              # 送過的會被擋成 duplicate，這一步不呼叫模型
+              - load_done:
+                  call: googleapis.bigquery.v2.jobs.query
+                  args:
+                    projectId: ${project}
+                    body:
+                      query: ${"SELECT CAST(section_no AS STRING), section_title, answer FROM `" + project + "." + dataset + ".v_daily_report` WHERE report_date = @report_date AND status = 'ok' ORDER BY section_no"}
+                      useLegacySql: false
+                      location: US
+                      timeoutMs: 60000
+                      parameterMode: NAMED
+                      queryParameters:
+                        - name: report_date
+                          parameterType:
+                            type: DATE
+                          parameterValue:
+                            value: ${report_date}
+                  result: done_rows
+              - done_head:
+                  assign:
+                    - done_message: ${"*行銷日報 " + report_date + "*"}
+                    - done_notice: failed
+              - done_ready:
+                  switch:
+                    - condition: ${done_rows.jobComplete and "rows" in done_rows}
+                      steps:
+                        - done_body:
+                            for:
+                              value: dr
+                              in: ${done_rows.rows}
+                              steps:
+                                - done_add:
+                                    assign:
+                                      - done_message: ${done_message + nl + nl + "*" + dr.f[0].v + " " + dr.f[1].v + "*" + nl + dr.f[2].v}
+                        - done_send:
+                            call: notify
+                            args:
+                              project: ${project}
+                              dataset: ${dataset}
+                              report_date: ${report_date}
+                              execution_id: ${execution_id}
+                              kind: daily_report
+                              dedupe_key: ${"daily_report:" + report_date}
+                              message: ${done_message}
+                              renotify: false
+                              enabled: ${notify_on}
+                            result: done_notice
+              - done_count:
+                  assign:
+                    - notify_failed: ${notify_failed + if(done_notice == "failed", 1, 0)}
               - return_skip:
                   return:
                     report_date: ${report_date}
@@ -239,6 +334,7 @@ run_report:
                     asked: 0
                     alerts_sent: ${alerts_sent}
                     notify_failed: ${notify_failed}
+                    report_notice: ${done_notice}
 
     # ── 一題一題問，問完一題就寫一列，流程中途停掉時前面問到的還在 ───────────────
     - ask_all:
@@ -409,14 +505,6 @@ run_report:
                   assign:
                     - summary.result: failed
 
-    - log_end:
-        call: sys.log
-        args:
-          severity: ${if(summary.result == "complete", "INFO", "ERROR")}
-          json:
-            event: daily_report_end
-            summary: ${summary}
-
     # ── Day 28：把結果送到 Slack，三題都答完送日報，否則送「沒有寫完」 ──────────────
     - message_head:
         switch:
@@ -480,6 +568,13 @@ run_report:
           - summary.report_notice: ${notice}
           - notify_failed: ${notify_failed + if(notice == "failed", 1, 0)}
           - summary.notify_failed: ${notify_failed}
+    - log_end:
+        call: sys.log
+        args:
+          severity: ${if(summary.result == "complete" and summary.notify_failed == 0, "INFO", "ERROR")}
+          json:
+            event: daily_report_end
+            summary: ${summary}
     - give_back:
         return: ${summary}
 
@@ -579,7 +674,8 @@ save_row:
         return: true
 
 
-# ── Day 28：看 as_of 那一天有沒有落在某一筆異常的期間裡，有而且還沒通知過就送警報 ──────
+# ── Day 28：看 as_of 那一天有沒有落在某一筆異常的期間裡（期間結束後 7 天內也算），有而且還沒通知過就送警報 ──────
+# 多留 7 天是因為全站的異常期間只有一天，排程漏跑一天就會永遠錯過，同一筆異常只送一次所以放寬也不會重複
 # 異常與判讀都是 Day 09 算好的（diag_summary、mart_diagnosis），訊息的文字在 v_anomaly_alerts 這個 view 裡組好
 # 所以這一步只查表、不呼叫模型，不花錢
 anomaly_alerts:
@@ -595,7 +691,7 @@ anomaly_alerts:
         args:
           projectId: ${project}
           body:
-            query: ${"SELECT anomaly_id, message FROM " + view + " WHERE IF(@as_of = '', data_through, SAFE.PARSE_DATE('%Y-%m-%d', @as_of)) BETWEEN period_start AND period_end ORDER BY period_start, anomaly_id"}
+            query: ${"SELECT anomaly_id, message FROM " + view + " WHERE IF(@as_of = '', data_through, SAFE.PARSE_DATE('%Y-%m-%d', @as_of)) BETWEEN period_start AND DATE_ADD(period_end, INTERVAL 7 DAY) ORDER BY period_start, anomaly_id"}
             useLegacySql: false
             location: US
             timeoutMs: 60000
@@ -640,7 +736,7 @@ anomaly_alerts:
                 assign:
                   - sent: ${sent + if(outcome == "sent", 1, 0)}
                   - failed: ${failed + if(outcome == "failed", 1, 0)}
-    - result:
+    - give_counts:
         return:
           sent: ${sent}
           failed: ${failed}
@@ -655,8 +751,12 @@ notify:
         assign:
           - log_table: ${"`" + project + "." + dataset + ".ops_notifications`"}
           - outcome: failed
-          - detail: error_unknown
+          - detail: unknown_error
           - safe: ""
+          # 出錯時記下錯在哪一段：查通知紀錄（check）、拿密鑰（secret）、送 Slack（slack）
+          - stage: check
+          - nl2: "\n"
+          - cr: "\r"
     - skip_when_off:
         switch:
           - condition: ${not enabled}
@@ -692,6 +792,9 @@ notify:
                 assign:
                   - safe: ${text.replace_all(text.replace_all(text.replace_all(message, "&", "&amp;"), "<", "&lt;"), ">", "&gt;")}
             # 網址只活在這個子流程的變數裡，用完就沒了，不回傳、不寫紀錄
+            - at_secret:
+                assign:
+                  - stage: secret
             - hook:
                 call: googleapis.secretmanager.v1.projects.secrets.versions.accessString
                 args:
@@ -699,6 +802,11 @@ notify:
                   version: ${sys.get_env("SLACK_SECRET_VERSION")}
                   project_id: ${project}
                 result: hook_url
+            # 從網頁貼進密鑰的人常會多帶一個換行或空白，網址裡本來就不會有這些字，直接拿掉
+            - at_slack:
+                assign:
+                  - hook_url: ${text.replace_all(text.replace_all(text.replace_all(hook_url, nl2, ""), " ", ""), cr, "")}
+                  - stage: slack
             - post:
                 try:
                   call: http.post
@@ -729,12 +837,12 @@ notify:
                     steps:
                       - why_code:
                           assign:
-                            - detail: ${"http_" + string(e.code)}
+                            - detail: ${stage + "_http_" + string(e.code)}
                   - condition: ${get_type(e) == "map" and "tags" in e and len(e.tags) > 0}
                     steps:
                       - why_tag:
                           assign:
-                            - detail: ${"error_" + e.tags[0]}
+                            - detail: ${stage + "_error_" + e.tags[0]}
     - keep:
         try:
           call: googleapis.bigquery.v2.jobs.query

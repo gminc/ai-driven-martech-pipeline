@@ -23,25 +23,40 @@ QUESTIONS=3
 # 和 agent/serve.py 相同的上限與單價，只用來印估價
 MAX_STEPS=4; INPUT_CAP=6000; MAX_OUTPUT=1024; PRICE_IN=0.75; PRICE_OUT=3.75; FX=32
 
-MODE="normal"; BREAK=""; FREE_BAD=0; AS_OF=""; RENOTIFY="false"; NOTIFY="true"
+MODE="normal"; BREAK=""; FREE_BAD=0; AS_OF=""; RENOTIFY="false"; NOTIFY="true"; NO_SLACK=0
+set_mode() {   # 五種跑法一次只能選一種
+  if [[ "${MODE}" != "normal" && "${MODE}" != "$1" ]]; then
+    echo "❌ --free、--slack-test、--force、--break、--report 一次只能用一個"
+    exit 1
+  fi
+  MODE="$1"
+}
 while [[ $# -gt 0 ]]; do
   case "$1" in
-    --free) MODE="free"; NOTIFY="false" ;;
-    --slack-test) MODE="slacktest" ;;
-    --force) MODE="force" ;;
-    --report) MODE="report" ;;
+    --free) set_mode free ;;
+    --slack-test) set_mode slacktest ;;
+    --force) set_mode force ;;
+    --report) set_mode report ;;
     --break)
-      MODE="break"; BREAK="${2:-}"; shift || true
+      set_mode break; BREAK="${2:-}"; shift || true
       [[ "${BREAK}" =~ ^[1-3]$ ]] || { echo "❌ --break 後面要接 1、2 或 3"; exit 1; } ;;
     --as-of)
       AS_OF="${2:-}"; shift || true
-      [[ "${AS_OF}" =~ ^[0-9]{4}-[0-9]{2}-[0-9]{2}$ ]] || { echo "❌ --as-of 後面要接日期，例如 2026-08-27"; exit 1; } ;;
+      # 格式對還不夠，2026-02-30 這種不存在的日子也要擋下來
+      if [[ ! "${AS_OF}" =~ ^[0-9]{4}-[0-9]{2}-[0-9]{2}$ ]] || [[ "$(date -u -d "${AS_OF}" +%F 2>/dev/null || true)" != "${AS_OF}" ]]; then
+        echo "❌ --as-of 後面要接一個真的存在的日期，例如 2026-08-27"; exit 1
+      fi ;;
     --renotify) RENOTIFY="true" ;;
-    --no-slack) NOTIFY="false" ;;
+    --no-slack) NO_SLACK=1 ;;
     *) echo "❌ 不認得的參數「$1」，用法見這個檔案開頭"; exit 1 ;;
   esac
   shift || true
 done
+if [[ "${MODE}" == "slacktest" && "${NO_SLACK}" == "1" ]]; then
+  echo "❌ --slack-test 就是要送一則測試訊息，不能和 --no-slack 一起用"
+  exit 1
+fi
+if [[ "${MODE}" == "free" || "${NO_SLACK}" == "1" ]]; then NOTIFY="false"; fi
 
 ACTIVE="$(gcloud auth list --filter=status:ACTIVE --format='value(account)' 2>/dev/null || true)"
 if [[ -z "${ACTIVE}" ]]; then
@@ -183,7 +198,7 @@ PYEXEC
     if [[ "${MODE}" == "slacktest" ]]; then
       SENT="$(scalar "SELECT COUNT(*) FROM martech_dw.ops_notifications WHERE execution_id = '${EXEC_ID}' AND kind = 'report_incomplete' AND status = 'sent'")"
       if [[ "${SENT}" != "1" ]]; then
-        echo "❌ 測試訊息沒有送出去，請看下面報表第 5 段的 detail（http_403、http_404 多半是網址失效，error 開頭的多半是讀不到密鑰）"
+        echo "❌ 測試訊息沒有送出去，請看下面報表第 5 段的 detail（slack_http_403、slack_http_404 多半是網址失效，secret_ 開頭的是讀不到密鑰，check_ 開頭的是查通知紀錄就失敗）"
         FREE_BAD=1
       else
         echo "✅ 測試訊息已經送到 Slack，請到頻道確認看得到"
@@ -225,7 +240,7 @@ if [[ "${FREE_BAD}" != "0" ]]; then
 fi
 # 真的要寫日報的那兩種跑法，流程沒有以成功結束就不能印完成（--free 與 --break 本來就預期失敗）
 if [[ "${MODE}" == "normal" || "${MODE}" == "force" ]] && [[ "$(cat "${TMP}/exec.json.state" 2>/dev/null || true)" != "SUCCEEDED" ]]; then
-  echo "❌ 這次執行沒有以成功結束，日報可能缺題，請看上面報表第 2 段的 detail"
+  echo "❌ 這次執行沒有以成功結束：日報缺題或 Slack 沒有送出去，請看上面報表第 2 段與第 5 段的 detail"
   exit 1
 fi
 echo "✅ 完成，日報在 ${PROJECT}.${DATASET}.v_daily_report"

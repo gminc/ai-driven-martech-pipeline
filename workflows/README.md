@@ -8,8 +8,8 @@
 
 | 檔案 | 做什麼 | 會不會花錢 |
 | --- | --- | --- |
-| `daily_report.yaml` | 流程本體：檢查今天有沒有日報、問三題、每題寫一列、決定這次執行算成功還是失敗 | 流程本身不會，助理呼叫模型會 |
-| `setup.sql` | 建日報表與 view | 不會 |
+| `daily_report.yaml` | 流程本體：檢查今天有沒有日報、問三題、每題寫一列、送 Slack、決定這次執行算成功還是失敗 | 流程本身不會，助理呼叫模型會 |
+| `setup.sql` | 建日報表與 view，Day 28 多了通知紀錄表 `ops_notifications` 與組警報文字的 `v_anomaly_alerts` | 不會 |
 | `run.sh` | 手動啟動一次流程，再跑檢查與報表 | `--free`、`--slack-test`、`--report` 不會，今天已經有完整的日報時不帶參數也不會，其他會先印估價 |
 | `check.sql` | 21 項檢查，一列一項，只看昨天與今天（第 19、21 項看全部） | 不會 |
 | `report.sql` | 五段報表：最新的日報、每次執行、每題的花費、合計、送到 Slack 的通知 | 不會 |
@@ -94,31 +94,34 @@
 
 | 通知 | 什麼時候送 | 同一件事送幾次 | 會不會呼叫模型 |
 | --- | --- | --- | --- |
-| 成效異常（`anomaly`） | `as_of` 那一天落在 Day 09 某一筆異常的期間裡 | 每一筆異常只送一次，帶 `renotify` 才重送 | 不會，判讀是 Day 09 算好的 |
-| 日報（`daily_report`） | 三題都答完 | 每天一次，帶 `force` 重問才重送 | 日報本身會，送出去這一步不會 |
+| 成效異常（`anomaly`） | `as_of` 那一天落在 Day 09 某一筆異常的期間裡，或期間結束後 7 天內 | 每一筆異常只送一次，帶 `renotify` 才重送 | 不會，判讀是 Day 09 算好的 |
+| 日報（`daily_report`） | 三題都答完，當天稍後重跑被跳過時如果 Slack 還沒收過也會補送 | 每天一次，帶 `force` 重問才重送 | 日報本身會，送出去這一步不會 |
 | 日報沒有寫完（`report_incomplete`） | 三題沒有全部答完 | 每一次沒寫完的執行都送 | 不會 |
-| 流程中途出錯（`flow_error`） | 流程丟出沒料到的錯 | 每一次都送 | 不會 |
+| 流程中途出錯（`flow_error`） | 流程丟出沒料到的錯，啟動參數寫錯不算 | 每一次都送 | 不會 |
 
 每一次通知都在 `martech_dw.ops_notifications` 留一列，送成功是 `sent`，沒送出去是 `failed`。同一件事只通知一次靠的就是這張表，送之前先查同一個 `dedupe_key` 有沒有送成功過。
+
+日報寫完了但有任何一則通知沒送出去，這次執行一樣以失敗結束，執行清單上是紅色的，日報本身還是在日報表裡。帶 `notify: false` 的那一次完全不碰 Secret Manager 與 Slack，也不留通知紀錄。
 
 ### Slack 的網址放在哪裡
 
 Slack 的 Incoming Webhook 網址本身就是密鑰，拿到的人可以往那個頻道發訊息，所以：
 
 - 網址只放在 Secret Manager 的密鑰 `slack-webhook-url`（Terraform 建的是空的密鑰，內容要自己放）
-- 流程定義、環境變數、BigQuery 的表、紀錄裡都沒有網址，環境變數放的是密鑰的名稱與版本
+- 流程定義、環境變數、BigQuery 的表裡都沒有網址，環境變數放的是密鑰的名稱與版本，流程自己寫的紀錄（`sys.log`）也不寫網址
 - 流程每次要送訊息才向 Secret Manager 拿，網址只活在送訊息那個子流程的變數裡
 - 只有 `martech-pipeline-runner` 這個服務帳號讀得到這個密鑰（專案擁有者本來就讀得到）
-- 不要打開流程的 call logging，打開之後送 Slack 那一步的請求網址會被寫進 Cloud Logging
-- 送失敗時只記錯誤的種類（例如 `http_404`），不記錯誤的原文
+- 部署時把 call logging 關掉（`--call-log-level log-none`），打開之後送 Slack 那一步的請求網址會被寫進 Cloud Logging
+- 上面這一條只管得到流程的預設值：有啟動權限的人可以在啟動單一次執行時自己帶 `--call-log-level` 或把執行歷程調成詳細，那一次的網址就可能出現在紀錄或執行歷程裡，所以啟動權限與看紀錄的權限都要當成「看得到網址」來管
+- 送失敗時只記在哪一步、哪一種錯（例如 `slack_http_404`、`secret_http_403`），不記錯誤的原文
 
 放網址的做法（不要把網址直接打在指令列上，會留在指令紀錄裡）：
 
 ```bash
-read -r -s -p 'Webhook 網址：' HOOK && printf '%s' "$HOOK" | gcloud secrets versions add slack-webhook-url --data-file=- && unset HOOK
+read -r -s -p 'Webhook 網址：' HOOK && printf '%s' "$HOOK" | gcloud secrets versions add slack-webhook-url --data-file=- ; unset HOOK
 ```
 
-換網址就是再加一個版本，流程預設讀 `latest`，不用重新部署，舊的版本記得停用。
+換網址就是再加一個版本，流程預設讀 `latest`，不用重新部署，舊的版本記得停用。`latest` 指的是最新建立的那個版本，把它停用之後流程不會退回上一版，而是讀不到密鑰（`secret_` 開頭的 detail），要停用的是舊版本。
 
 ### 訊息的內容怎麼處理
 
@@ -135,7 +138,7 @@ bash workflows/run.sh --as-of 2026-08-27   # 全站追蹤碼失效那一天
 bash workflows/run.sh --as-of 2026-08-12   # meta-trn-prospecting 點擊成本變貴的那一週
 ```
 
-`as_of` 只影響「看哪一天有沒有異常」，日報還是助理照它自己的今天寫的。
+`as_of` 只影響「看哪一天有沒有異常」，日報還是助理照它自己的今天寫的。警報本身不呼叫模型，但這兩行是一般的跑法：今天還沒有完整的日報時流程會照常問三題（先印估價、輸入 yes 才問），今天已經有日報時才是完全不花錢。只想看警報又不想等日報，可以改用 `bash workflows/run.sh --slack-test --as-of 2026-08-27`，代價是頻道裡會多一則標明【測試】的訊息。
 
 ### Day 28 新增的已知限制
 

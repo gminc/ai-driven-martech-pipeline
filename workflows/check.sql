@@ -64,11 +64,14 @@ checks AS (
     CAST((SELECT COUNT(*) FROM notes WHERE status NOT IN ('sent', 'failed')) AS STRING)
   UNION ALL SELECT '16 notifications with a kind other than anomaly / daily_report / report_incomplete / flow_error', '0',
     CAST((SELECT COUNT(*) FROM notes WHERE kind NOT IN ('anomaly', 'daily_report', 'report_incomplete', 'flow_error')) AS STRING)
-  UNION ALL SELECT '17 notifications that were not delivered', '0',
-    CAST((SELECT COUNT(*) FROM notes WHERE status = 'failed') AS STRING)
+  -- 17 只算「失敗之後同一個鍵沒有再送成功」的通知，後來補送成功的不算
+  UNION ALL SELECT '17 notifications that failed and were not delivered afterwards', '0',
+    CAST((SELECT COUNT(*) FROM notes f WHERE f.status = 'failed'
+          AND NOT EXISTS (SELECT 1 FROM martech_dw.ops_notifications s
+                          WHERE s.dedupe_key = f.dedupe_key AND s.status = 'sent' AND s.sent_at > f.sent_at)) AS STRING)
   UNION ALL SELECT '18 anomaly notifications whose anomaly is not in diag_summary', '0',
     CAST((SELECT COUNT(*) FROM notes n WHERE kind = 'anomaly'
-          AND REPLACE(dedupe_key, 'anomaly:', '') NOT IN (SELECT anomaly_id FROM martech_dw.diag_summary)) AS STRING)
+          AND NOT EXISTS (SELECT 1 FROM martech_dw.diag_summary d WHERE CONCAT('anomaly:', d.anomaly_id) = n.dedupe_key)) AS STRING)
   -- 19 是底線：Slack 的網址不可以出現在任何一張表裡，這裡查通知紀錄與日報表
   UNION ALL SELECT '19 rows that contain a Slack webhook address', '0',
     CAST((SELECT COUNT(*) FROM martech_dw.ops_notifications WHERE REGEXP_CONTAINS(CONCAT(IFNULL(message, ''), ' ', IFNULL(detail, '')), r'hooks\.slack\.com'))
