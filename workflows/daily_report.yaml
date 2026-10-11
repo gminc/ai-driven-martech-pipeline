@@ -72,11 +72,16 @@ main:
                       - quiet_bad_args:
                           assign:
                             - crash_notify_on: false
-                  - condition: ${get_type(input) == "map" and get_type(map.get(input, "notify")) == "boolean"}
+                  # 分兩層判斷，不靠 and 會不會先停下來：input 是 null 時不可以去讀它的欄位
+                  - condition: ${get_type(input) == "map"}
                     steps:
                       - quiet_as_asked:
-                          assign:
-                            - crash_notify_on: ${input.notify}
+                          switch:
+                            - condition: ${get_type(map.get(input, "notify")) == "boolean"}
+                              steps:
+                                - quiet_set:
+                                    assign:
+                                      - crash_notify_on: ${input.notify}
             # 訊息裡只放錯誤的種類與執行編號，不放錯誤的原文（原文裡可能有不該外流的內容）
             - crash_notify:
                 call: notify
@@ -113,6 +118,10 @@ run_report:
           - opts: {}
     - read_input:
         switch:
+          - condition: ${input != null and get_type(input) != "map"}
+            raise:
+              tags: ["BadArgs"]
+              message: '啟動參數要是一個 JSON 物件，例如 {"force": true}'
           - condition: ${input != null}
             steps:
               - use_input:
@@ -132,6 +141,8 @@ run_report:
           - notify_on: ${default(map.get(opts, "notify"), true)}
           - as_of: ${default(map.get(opts, "as_of"), "")}
           - renotify: ${default(map.get(opts, "renotify"), false)}
+          # alerts 是 false 時這一次不看成效異常，給 Slack 測試用：測試不應該把真的警報送掉、佔掉「只通知一次」
+          - alerts_on: ${default(map.get(opts, "alerts"), true)}
           - notify_failed: 0
           - alerts_sent: 0
           - nl: "\n"
@@ -164,10 +175,10 @@ run_report:
             raise:
               tags: ["BadArgs"]
               message: 'force 要是 true 或 false，test_break 要是清單，例如 [2]'
-          - condition: ${get_type(notify_on) != "boolean" or get_type(renotify) != "boolean" or get_type(as_of) != "string"}
+          - condition: ${get_type(notify_on) != "boolean" or get_type(renotify) != "boolean" or get_type(alerts_on) != "boolean" or get_type(as_of) != "string"}
             raise:
               tags: ["BadArgs"]
-              message: 'notify 與 renotify 要是 true 或 false，as_of 要是字串'
+              message: 'notify、renotify 與 alerts 要是 true 或 false，as_of 要是字串'
           - condition: ${as_of != "" and not text.match_regex(as_of, "^[0-9]{4}-[0-9]{2}-[0-9]{2}$")}
             raise:
               tags: ["BadArgs"]
@@ -197,6 +208,7 @@ run_report:
             force: ${force}
             test_break: ${test_break}
             notify: ${notify_on}
+            alerts: ${alerts_on}
             as_of: ${as_of}
             renotify: ${renotify}
 
@@ -214,7 +226,7 @@ run_report:
                   execution_id: ${execution_id}
                   as_of: ${as_of}
                   renotify: ${renotify}
-                  enabled: ${notify_on}
+                  enabled: ${notify_on and alerts_on}
                 result: alert_result
             - count_alerts:
                 assign:
@@ -277,55 +289,67 @@ run_report:
                       reason: already_complete
               # 日報已經寫好但 Slack 可能還沒收到（上一次送失敗、或那一次指定不送），從日報表組一次訊息補送
               # 送過的會被擋成 duplicate，這一步不呼叫模型
-              - load_done:
-                  call: googleapis.bigquery.v2.jobs.query
-                  args:
-                    projectId: ${project}
-                    body:
-                      query: ${"SELECT CAST(section_no AS STRING), section_title, answer FROM `" + project + "." + dataset + ".v_daily_report` WHERE report_date = @report_date AND status = 'ok' ORDER BY section_no"}
-                      useLegacySql: false
-                      location: US
-                      timeoutMs: 60000
-                      parameterMode: NAMED
-                      queryParameters:
-                        - name: report_date
-                          parameterType:
-                            type: DATE
-                          parameterValue:
-                            value: ${report_date}
-                  result: done_rows
               - done_head:
                   assign:
                     - done_message: ${"*行銷日報 " + report_date + "*"}
-                    - done_notice: failed
-              - done_ready:
+                    - done_notice: ${if(notify_on, "failed", "disabled")}
+              - resend:
                   switch:
-                    - condition: ${done_rows.jobComplete and "rows" in done_rows}
+                    - condition: ${notify_on}
                       steps:
-                        - done_body:
-                            for:
-                              value: dr
-                              in: ${done_rows.rows}
-                              steps:
-                                - done_add:
-                                    assign:
-                                      - done_message: ${done_message + nl + nl + "*" + dr.f[0].v + " " + dr.f[1].v + "*" + nl + dr.f[2].v}
-                        - done_send:
-                            call: notify
+                        - load_done:
+                            call: googleapis.bigquery.v2.jobs.query
                             args:
-                              project: ${project}
-                              dataset: ${dataset}
-                              report_date: ${report_date}
-                              execution_id: ${execution_id}
-                              kind: daily_report
-                              dedupe_key: ${"daily_report:" + report_date}
-                              message: ${done_message}
-                              renotify: false
-                              enabled: ${notify_on}
-                            result: done_notice
+                              projectId: ${project}
+                              body:
+                                query: ${"SELECT CAST(section_no AS STRING), section_title, answer FROM `" + project + "." + dataset + ".v_daily_report` WHERE report_date = @report_date AND status = 'ok' ORDER BY section_no"}
+                                useLegacySql: false
+                                location: US
+                                timeoutMs: 60000
+                                parameterMode: NAMED
+                                queryParameters:
+                                  - name: report_date
+                                    parameterType:
+                                      type: DATE
+                                    parameterValue:
+                                      value: ${report_date}
+                            result: done_rows
+                        - done_ready:
+                            switch:
+                              - condition: ${done_rows.jobComplete and "rows" in done_rows}
+                                steps:
+                                  - done_body:
+                                      for:
+                                        value: dr
+                                        in: ${done_rows.rows}
+                                        steps:
+                                          - done_add:
+                                              assign:
+                                                - done_message: ${done_message + nl + nl + "*" + dr.f[0].v + " " + dr.f[1].v + "*" + nl + dr.f[2].v}
+                                  - done_send:
+                                      call: notify
+                                      args:
+                                        project: ${project}
+                                        dataset: ${dataset}
+                                        report_date: ${report_date}
+                                        execution_id: ${execution_id}
+                                        kind: daily_report
+                                        dedupe_key: ${"daily_report:" + report_date}
+                                        message: ${done_message}
+                                        renotify: false
+                                        enabled: ${notify_on}
+                                      result: done_notice
               - done_count:
                   assign:
                     - notify_failed: ${notify_failed + if(done_notice == "failed", 1, 0)}
+              - done_log:
+                  call: sys.log
+                  args:
+                    severity: ${if(done_notice == "failed", "WARNING", "INFO")}
+                    json:
+                      event: daily_report_resend
+                      report_date: ${report_date}
+                      outcome: ${done_notice}
               - return_skip:
                   return:
                     report_date: ${report_date}
@@ -560,7 +584,7 @@ run_report:
           kind: ${notice_kind}
           dedupe_key: ${notice_key}
           message: ${message}
-          renotify: ${renotify or force}
+          renotify: ${force}
           enabled: ${notify_on}
         result: notice
     - record_notice:
@@ -686,12 +710,21 @@ anomaly_alerts:
           - sent: 0
           - failed: 0
           - view: ${"`" + project + "." + dataset + ".v_anomaly_alerts`"}
+    # 這一次不送就連查都不查
+    - skip_alerts_off:
+        switch:
+          - condition: ${not enabled}
+            return:
+              sent: 0
+              failed: 0
+    # as_of 是不存在的日子（例如 2026-02-30）時 PARSE_DATE 會讓查詢出錯，呼叫的人會把它算成一次通知失敗
+    # 故意不用 SAFE.PARSE_DATE：那樣會安靜地查不到任何異常，看起來像沒事
     - find:
         call: googleapis.bigquery.v2.jobs.query
         args:
           projectId: ${project}
           body:
-            query: ${"SELECT anomaly_id, message FROM " + view + " WHERE IF(@as_of = '', data_through, SAFE.PARSE_DATE('%Y-%m-%d', @as_of)) BETWEEN period_start AND DATE_ADD(period_end, INTERVAL 7 DAY) ORDER BY period_start, anomaly_id"}
+            query: ${"SELECT anomaly_id, message FROM " + view + " WHERE IF(@as_of = '', data_through, PARSE_DATE('%Y-%m-%d', @as_of)) BETWEEN period_start AND DATE_ADD(period_end, INTERVAL 7 DAY) ORDER BY period_start, anomaly_id"}
             useLegacySql: false
             location: US
             timeoutMs: 60000
@@ -765,27 +798,33 @@ notify:
         try:
           steps:
             # 同一件事只通知一次：異常用異常的編號，日報用日期，查通知紀錄裡有沒有送成功過
-            - seen:
-                call: googleapis.bigquery.v2.jobs.query
-                args:
-                  projectId: ${project}
-                  body:
-                    query: ${"SELECT COUNT(*) FROM " + log_table + " WHERE dedupe_key = @k AND status = 'sent'"}
-                    useLegacySql: false
-                    location: US
-                    timeoutMs: 60000
-                    parameterMode: NAMED
-                    queryParameters:
-                      - name: k
-                        parameterType:
-                          type: STRING
-                        parameterValue:
-                          value: ${dedupe_key}
-                result: before
-            - already:
+            # 指定重送（renotify）的時候不查：流程中途出錯的通知就是這樣，那時候 BigQuery 可能正是出錯的地方
+            # 其他通知查不到紀錄就不送、記成失敗：寧可這一次漏送被看見，也不要每天重複送同一則
+            - first_time:
                 switch:
-                  - condition: ${before.jobComplete and int(before.rows[0].f[0].v) > 0 and not renotify}
-                    return: duplicate
+                  - condition: ${not renotify}
+                    steps:
+                      - seen:
+                          call: googleapis.bigquery.v2.jobs.query
+                          args:
+                            projectId: ${project}
+                            body:
+                              query: ${"SELECT COUNT(*) FROM " + log_table + " WHERE dedupe_key = @k AND status = 'sent'"}
+                              useLegacySql: false
+                              location: US
+                              timeoutMs: 60000
+                              parameterMode: NAMED
+                              queryParameters:
+                                - name: k
+                                  parameterType:
+                                    type: STRING
+                                  parameterValue:
+                                    value: ${dedupe_key}
+                          result: before
+                      - already:
+                          switch:
+                            - condition: ${before.jobComplete and int(before.rows[0].f[0].v) > 0}
+                              return: duplicate
             # Slack 的訊息格式裡 & < > 有特殊意義（連結、提及整個頻道都靠 < >），內容一律先換掉再送
             # 助理的回答是模型寫的，不能假設裡面沒有這些字
             - escape:

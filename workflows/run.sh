@@ -2,7 +2,7 @@
 # Day 27、28：手動啟動一次日報流程，再跑檢查與報表
 # 用法（在儲存庫根目錄，先 bash scripts/deploy_daily_report.sh）：
 #   bash workflows/run.sh --free        不花錢、不送 Slack：三題都改打不存在的路徑，三題都要是 http_404 才算過
-#   bash workflows/run.sh --slack-test  不花錢、會送一則標明【測試】的訊息到 Slack：確認密鑰讀得到、訊息送得出去
+#   bash workflows/run.sh --slack-test  不花錢、會送一則標明【測試】的訊息到 Slack：確認密鑰讀得到、訊息送得出去（不加 --as-of 就不送成效異常）
 #   bash workflows/run.sh               今天還沒有完整的日報就問三題並送到 Slack（先印估價，輸入 yes 才問），已經有就直接跳過
 #   bash workflows/run.sh --force       今天已經有日報也重新問一次並重送（再花一次錢）
 #   bash workflows/run.sh --break 2     第 2 題故意失敗、其他兩題照問（會花兩題的錢），Slack 會收到「日報沒有寫完」
@@ -43,7 +43,7 @@ while [[ $# -gt 0 ]]; do
     --as-of)
       AS_OF="${2:-}"; shift || true
       # 格式對還不夠，2026-02-30 這種不存在的日子也要擋下來
-      if [[ ! "${AS_OF}" =~ ^[0-9]{4}-[0-9]{2}-[0-9]{2}$ ]] || [[ "$(date -u -d "${AS_OF}" +%F 2>/dev/null || true)" != "${AS_OF}" ]]; then
+      if [[ ! "${AS_OF}" =~ ^[0-9]{4}-[0-9]{2}-[0-9]{2}$ ]] || ! python3 -c 'import datetime, sys; datetime.date.fromisoformat(sys.argv[1])' "${AS_OF}" 2>/dev/null; then
         echo "❌ --as-of 後面要接一個真的存在的日期，例如 2026-08-27"; exit 1
       fi ;;
     --renotify) RENOTIFY="true" ;;
@@ -109,13 +109,19 @@ if [[ "${MODE}" != "report" ]]; then
     break)  FORCE="true"; TEST_BREAK="[${BREAK}]"; ASK=$((QUESTIONS - 1)) ;;
     normal) if [[ "${DONE}" != "0" ]]; then ASK=0; fi ;;
   esac
-  DATA="{\"force\": ${FORCE}, \"test_break\": ${TEST_BREAK}, \"notify\": ${NOTIFY}, \"as_of\": \"${AS_OF}\", \"renotify\": ${RENOTIFY}}"
+  # Slack 測試預設不看成效異常：真的警報不應該在測試時送掉、佔掉「只通知一次」，加了 --as-of 才一起送
+  ALERTS="true"
+  if [[ "${MODE}" == "slacktest" && -z "${AS_OF}" ]]; then ALERTS="false"; fi
+  DATA="{\"force\": ${FORCE}, \"test_break\": ${TEST_BREAK}, \"notify\": ${NOTIFY}, \"alerts\": ${ALERTS}, \"as_of\": \"${AS_OF}\", \"renotify\": ${RENOTIFY}}"
 
   if [[ "${ASK}" == "0" ]]; then
     if [[ "${MODE}" == "free" ]]; then
       echo "🆓 不花錢的測試：三題都改打不存在的路徑，助理不會呼叫模型，也不送 Slack，這次執行預期以失敗結束"
     elif [[ "${MODE}" == "slacktest" ]]; then
       echo "🆓 Slack 測試：不呼叫模型，會送一則標明【測試】的「日報沒有寫完」到 Slack，這次執行預期以失敗結束"
+      if [[ "${ALERTS}" == "true" ]]; then
+        echo "   加了 --as-of：那一天該送的成效異常也會一起送出去（沒有【測試】標記，而且之後不會再送，要重送得加 --renotify）"
+      fi
     else
       echo "🆓 ${TODAY} 已經有一份三題都答完的日報，流程會直接跳過、不發問（要重問請用 --force）"
     fi
