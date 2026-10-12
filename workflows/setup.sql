@@ -86,7 +86,8 @@ SELECT
   d.cause,
   d.confidence,
   CONCAT(
-    '*成效異常*：',
+    -- 收尾的 * 後面要接空白或換行 Slack 才會顯示粗體，接全形標點會把星號原樣印出來（Day 28 實測）
+    '*成效異常*\n',
     CASE s.level
       WHEN 'site_day' THEN CONCAT('全站 ', CAST(s.period_start AS STRING))
       WHEN 'adgroup_week' THEN CONCAT('廣告群組 ', s.entity, '，', CAST(s.period_start AS STRING), ' 到 ', CAST(s.period_end AS STRING), ' 這一週')

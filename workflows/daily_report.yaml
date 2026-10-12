@@ -92,7 +92,7 @@ main:
                   execution_id: ${crash_exec}
                   kind: flow_error
                   dedupe_key: ${"flow_error:" + crash_exec}
-                  message: ${"*行銷日報流程中途出錯*（" + crash_day + "）：" + crash_kind + "，執行編號 " + crash_exec + "，請到 Workflows 的執行清單查看"}
+                  message: ${"*行銷日報流程中途出錯* " + crash_day + "，" + crash_kind + "，執行編號 " + crash_exec + "，請到 Workflows 的執行清單查看"}
                   renotify: true
                   enabled: ${crash_notify_on}
                 result: crash_sent
@@ -530,6 +530,7 @@ run_report:
                     - summary.result: failed
 
     # ── Day 28：把結果送到 Slack，三題都答完送日報，否則送「沒有寫完」 ──────────────
+    # Slack 的粗體 *…* 收尾的星號後面要接空白或換行，接全形標點（：（）會把星號原樣印出來，開頭的星號前面也要是空白或行首
     - message_head:
         switch:
           - condition: ${summary.result == "complete"}
@@ -545,7 +546,7 @@ run_report:
                   assign:
                     - notice_kind: report_incomplete
                     - notice_key: ${"report_incomplete:" + execution_id}
-                    - message: ${"*行銷日報 " + report_date + " 沒有寫完*：" + string(len(questions)) + " 題答完 " + string(ok_count) + " 題"}
+                    - message: ${"*行銷日報 " + report_date + " 沒有寫完*" + nl + string(len(questions)) + " 題答完 " + string(ok_count) + " 題"}
     # 測試用的參數有帶的時候在最前面標明，收到的人才不會當真
     - mark_test:
         switch:
@@ -553,7 +554,7 @@ run_report:
             steps:
               - add_test_label:
                   assign:
-                    - message: ${"【測試】" + message}
+                    - message: ${"【測試】 " + message}
     - message_body:
         for:
           value: s
