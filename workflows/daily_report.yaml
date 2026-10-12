@@ -49,18 +49,32 @@ main:
                   - crash_kind: unknown
                   - crash_exec: ${sys.get_env("GOOGLE_CLOUD_WORKFLOW_EXECUTION_ID")}
                   - crash_day: ${text.substring(time.format(sys.now(), "Asia/Taipei"), 0, 10)}
+            # 分兩層判斷：錯誤也可能是一段文字（例如寫入逾時的 raise），先確定是 map 才讀欄位，不靠 and 會不會先停下來
             - crash_tag:
                 switch:
-                  - condition: ${get_type(crash) == "map" and "code" in crash}
+                  - condition: ${get_type(crash) == "map"}
                     steps:
-                      - crash_code:
-                          assign:
-                            - crash_kind: ${"http_" + string(crash.code)}
-                  - condition: ${get_type(crash) == "map" and "tags" in crash and len(crash.tags) > 0}
+                      - crash_tag_map:
+                          switch:
+                            - condition: ${"code" in crash}
+                              steps:
+                                - crash_code:
+                                    assign:
+                                      - crash_kind: ${"http_" + string(crash.code)}
+                            - condition: ${"tags" in crash}
+                              steps:
+                                - crash_tags:
+                                    switch:
+                                      - condition: ${len(crash.tags) > 0}
+                                        steps:
+                                          - crash_tag_first:
+                                              assign:
+                                                - crash_kind: ${"error_" + crash.tags[0]}
+                  - condition: ${get_type(crash) == "string"}
                     steps:
-                      - crash_tags:
+                      - crash_text:
                           assign:
-                            - crash_kind: ${"error_" + crash.tags[0]}
+                            - crash_kind: error_raised
             # 參數打錯不通知（那是啟動的人自己要看的錯），這一次指定不送 Slack 的也不通知
             - crash_default:
                 assign:
@@ -822,9 +836,16 @@ notify:
                                   parameterValue:
                                     value: ${dedupe_key}
                           result: before
+                      # 查詢沒有在時限內完成就當成查紀錄失敗（下面 except 會記成 failed），不能當成沒送過而照送
+                      - seen_must_finish:
+                          switch:
+                            - condition: ${not before.jobComplete}
+                              raise:
+                                tags: ["LookupTimeout"]
+                                message: "查通知紀錄的查詢沒有在時限內完成"
                       - already:
                           switch:
-                            - condition: ${before.jobComplete and int(before.rows[0].f[0].v) > 0}
+                            - condition: ${int(before.rows[0].f[0].v) > 0}
                               return: duplicate
             # Slack 的訊息格式裡 & < > 有特殊意義（連結、提及整個頻道都靠 < >），內容一律先換掉再送
             # 助理的回答是模型寫的，不能假設裡面沒有這些字
@@ -873,16 +894,24 @@ notify:
             # 只記錯誤的種類，不記錯誤的原文：送 Slack 失敗時原文裡可能帶著網址
             - why:
                 switch:
-                  - condition: ${get_type(e) == "map" and "code" in e}
+                  - condition: ${get_type(e) == "map"}
                     steps:
-                      - why_code:
-                          assign:
-                            - detail: ${stage + "_http_" + string(e.code)}
-                  - condition: ${get_type(e) == "map" and "tags" in e and len(e.tags) > 0}
-                    steps:
-                      - why_tag:
-                          assign:
-                            - detail: ${stage + "_error_" + e.tags[0]}
+                      - why_map:
+                          switch:
+                            - condition: ${"code" in e}
+                              steps:
+                                - why_code:
+                                    assign:
+                                      - detail: ${stage + "_http_" + string(e.code)}
+                            - condition: ${"tags" in e}
+                              steps:
+                                - why_tags:
+                                    switch:
+                                      - condition: ${len(e.tags) > 0}
+                                        steps:
+                                          - why_tag:
+                                              assign:
+                                                - detail: ${stage + "_error_" + e.tags[0]}
     - keep:
         try:
           call: googleapis.bigquery.v2.jobs.query
