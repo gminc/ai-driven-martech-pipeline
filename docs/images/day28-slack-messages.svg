@@ -1,0 +1,45 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1240 502" width="1240" height="502" font-family="'Noto Sans TC','Noto Sans CJK TC','PingFang TC','Microsoft JhengHei',sans-serif">
+  <defs><style>
+    .title { font-size: 22px; font-weight: 700; fill: #202124; }
+    .note { font-size: 13px; fill: #5f6368; }
+    .cap { font-size: 13px; font-weight: 700; fill: #5f6368; }
+    .ico { font-size: 18px; font-weight: 700; fill: #ffffff; }
+    .app { font-size: 15px; font-weight: 700; fill: #1d1c1d; }
+    .tag { font-size: 10px; font-weight: 700; fill: #616061; }
+    .msg { font-size: 14px; fill: #1d1c1d; }
+    .bold { font-size: 14px; font-weight: 700; fill: #1d1c1d; }
+    .meta { font-size: 13px; fill: #616061; }
+    .star { fill: #c5221f; }
+  </style></defs>
+  <rect width="1240" height="502" fill="#ffffff"/>
+  <text x="40" y="44" class="title">圖二：Slack 頻道實際收到的成效異常警報</text>
+  <text x="40" y="68" class="note">左邊收尾的星號後面接了全形冒號，星號被原樣印出來（紅字），右邊改成標題獨立一行，判讀與依據是 Day 09 存好的，送這一則不呼叫模型</text>
+  <text x="40" y="90" class="note">依頻道裡的訊息重畫，app 名稱與文字照原樣，介面樣式為示意</text>
+  <rect x="40" y="120" width="560" height="318" rx="10" fill="#ffffff" stroke="#dadce0" stroke-width="1.4"/>
+  <text x="60" y="150" class="cap">2026-10-12 11:18 收到（修正前，2026-08-27 的警報）</text>
+  <rect x="60" y="168" width="40" height="40" rx="8" fill="#9aa0a6"/>
+  <text x="80" y="194" text-anchor="middle" class="ico">M</text>
+  <text x="112" y="184" class="app">MarTech Alert Bot</text><text x="252" y="184" class="tag">APP</text>
+  <text x="112" y="210" class="msg"><tspan class="star">*成效異常*：</tspan>全站 2026-08-27</text>
+  <text x="112" y="238" class="msg">判讀：追蹤碼失效（信心 0.95）</text>
+  <text x="112" y="266" class="msg">依據：廣告點擊數（1386次）與後台成立訂單（37筆）皆維持在正常水平，</text>
+  <text x="112" y="288" class="msg">但網站追蹤到的購買數卻驟降為 0 筆，致使追蹤營收 ROAS 變為 0.0。</text>
+  <text x="112" y="316" class="msg">建議先查：請技術人員檢查網站上的購買完成事件（Purchase Event）及</text>
+  <text x="112" y="338" class="msg">轉換追蹤碼（如 Meta Pixel 或 GA4）是否正常觸發。</text>
+  <text x="112" y="366" class="meta">判讀是 Day 09 請 Gemini 做的，數字在 martech_dw.diag_summary</text>
+  <rect x="640" y="120" width="560" height="318" rx="10" fill="#ffffff" stroke="#dadce0" stroke-width="1.4"/>
+  <text x="660" y="150" class="cap">2026-10-12 12:14 收到（修正後，2026-08-12 的警報）</text>
+  <rect x="660" y="168" width="40" height="40" rx="8" fill="#1a73e8"/>
+  <text x="680" y="194" text-anchor="middle" class="ico">M</text>
+  <text x="712" y="184" class="app">MarTech Alert Bot</text><text x="852" y="184" class="tag">APP</text>
+  <text x="712" y="210" class="bold">成效異常</text>
+  <text x="712" y="238" class="msg">廣告群組 meta-trn-prospecting，2026-08-10 到 2026-08-16 這一週</text>
+  <text x="712" y="266" class="msg">判讀：競價變貴（信心 0.85）</text>
+  <text x="712" y="294" class="msg">依據：平均每次點擊花費從前四週的 7.55 元大幅增加 78% 至 13.42 元，</text>
+  <text x="712" y="316" class="msg">且點擊率自 2.28% 微微上升至 2.39%，顯示素材吸引力並未下降但獲客成</text>
+  <text x="712" y="338" class="msg">本顯著提升。</text>
+  <text x="712" y="366" class="msg">建議先查：確認同產業競品近期是否提高投放預算或競價策略，以及廣告平</text>
+  <text x="712" y="388" class="msg">台內的競價拍賣重疊率與 CPM 變化。</text>
+  <text x="712" y="416" class="meta">判讀是 Day 09 請 Gemini 做的，數字在 martech_dw.diag_summary</text>
+  <text x="40" y="476" class="note">每一筆異常只送一次，所以左邊那一則的舊格式會一直留在頻道裡</text>
+</svg>

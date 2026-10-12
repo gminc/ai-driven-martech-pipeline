@@ -1,0 +1,92 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1240 640" width="1240" height="640" font-family="'Noto Sans TC','Noto Sans CJK TC','PingFang TC','Microsoft JhengHei',sans-serif">
+  <defs>
+    <style>
+      .title { font-size: 22px; font-weight: 700; fill: #202124; }
+      .note { font-size: 13px; fill: #5f6368; }
+      .who { fill: #e8f0fe; stroke: #1a73e8; stroke-width: 1.6; }
+      .cap { fill: #fef7e0; stroke: #e37400; stroke-width: 1.6; }
+      .can { fill: #e6f4ea; stroke: #188038; stroke-width: 1.6; }
+      .sec { fill: #fce8e6; stroke: #c5221f; stroke-width: 1.6; }
+      .box { fill: #f8f9fa; stroke: #9aa0a6; stroke-width: 1.4; }
+      .bt { font-size: 16px; font-weight: 700; fill: #202124; }
+      .bs { font-size: 12.5px; fill: #3c4043; }
+      .bm { font-size: 12.5px; fill: #5f6368; }
+      .lane { font-size: 15px; font-weight: 700; }
+      .sa { font-size: 12.5px; font-weight: 700; }
+      .arrow { stroke: #5f6368; stroke-width: 2; fill: none; }
+      .lbl { font-size: 12px; fill: #5f6368; }
+    </style>
+    <marker id="ah" markerWidth="10" markerHeight="8" refX="9" refY="4" orient="auto"><path d="M0,0 L10,4 L0,8 z" fill="#5f6368"/></marker>
+  </defs>
+  <rect width="1240" height="640" fill="#ffffff"/>
+  <text x="40" y="44" class="title">圖一：日報寫完之後多一步，把結果與成效異常送進 Slack</text>
+  <text x="40" y="68" class="note">網址只放在 Secret Manager，要送的那一刻才拿，送之前先查通知紀錄，同一件事只送一次</text>
+
+  <text x="40" y="112" class="lane" fill="#1a73e8">幾點跑</text>
+  <text x="250" y="112" class="lane" fill="#e37400">Workflows 流程（Day 27 的同一個）</text>
+  <text x="890" y="112" class="lane" fill="#188038">資料、密鑰與頻道</text>
+
+  <rect x="40" y="130" width="170" height="150" rx="8" class="who"/>
+  <text x="125" y="164" text-anchor="middle" class="bt">Cloud Scheduler</text>
+  <text x="125" y="192" text-anchor="middle" class="bm">每天 08:30</text>
+  <text x="125" y="214" text-anchor="middle" class="bm">Asia/Taipei</text>
+  <text x="125" y="256" text-anchor="middle" class="sa" fill="#1a73e8">目前暫停中</text>
+  <path d="M210,205 L246,205" class="arrow" marker-end="url(#ah)"/>
+
+  <rect x="250" y="130" width="290" height="300" rx="8" class="cap"/>
+  <text x="395" y="162" text-anchor="middle" class="bt">martech-daily-report</text>
+  <text x="268" y="196" class="bs">1　問助理三題，每題寫一列日報（Day 27）</text>
+  <text x="268" y="224" class="bs">2　挑出該送的成效異常</text>
+  <text x="286" y="244" class="bm">Day 09 已經判讀好，不呼叫模型</text>
+  <text x="268" y="272" class="bs">3　日報（或「沒有寫完」）與每一筆</text>
+  <text x="286" y="292" class="bs">異常都交給 notify 送出</text>
+  <text x="268" y="320" class="bs">4　最後結算：沒寫完、或有通知</text>
+  <text x="286" y="340" class="bs">沒送出去 → 這次執行失敗</text>
+  <text x="268" y="372" class="bs">中途出了沒料到的錯</text>
+  <text x="286" y="392" class="bs">→ 送「流程中途出錯」再讓執行失敗</text>
+  <text x="395" y="420" text-anchor="middle" class="sa" fill="#e37400">身分：martech-pipeline-runner</text>
+  <path d="M540,290 L576,290" class="arrow" marker-end="url(#ah)"/>
+
+  <rect x="580" y="130" width="280" height="330" rx="8" class="box"/>
+  <text x="720" y="162" text-anchor="middle" class="bt">子流程 notify（每則通知一次）</text>
+  <text x="598" y="198" class="bs">①　查通知紀錄：同一個鍵送過了嗎</text>
+  <text x="616" y="218" class="bm">送過就停下（日報、異常）</text>
+  <text x="598" y="250" class="bs">②　把 &amp; &lt; &gt; 換掉</text>
+  <text x="616" y="270" class="bm">回答是模型寫的</text>
+  <text x="598" y="302" class="bs">③　向 Secret Manager 拿網址</text>
+  <text x="616" y="322" class="bm">只活在這個子流程裡</text>
+  <text x="598" y="354" class="bs">④　送到 Slack</text>
+  <text x="616" y="374" class="bm">429、500、502～504 重試 2 次（5 秒、10 秒）</text>
+  <text x="598" y="406" class="bs">⑤　留一列紀錄，失敗只記錯誤種類</text>
+  <text x="720" y="444" text-anchor="middle" class="bm">自己不丟錯誤，只回報結果</text>
+
+  <rect x="890" y="130" width="310" height="120" rx="8" class="can"/>
+  <text x="1045" y="160" text-anchor="middle" class="bt">BigQuery martech_dw</text>
+  <text x="906" y="190" class="bs">v_anomaly_alerts　Day 09 的異常組成文字</text>
+  <text x="906" y="214" class="bs">ops_notifications　每送一次留一列</text>
+  <text x="906" y="238" class="bs">daily_reports　Day 27 的日報表</text>
+
+  <rect x="890" y="270" width="310" height="96" rx="8" class="sec"/>
+  <text x="1045" y="300" text-anchor="middle" class="bt">Secret Manager</text>
+  <text x="1045" y="326" text-anchor="middle" class="bs">slack-webhook-url（網址只在這裡）</text>
+  <text x="1045" y="350" text-anchor="middle" class="bm">流程的環境變數只放密鑰名稱與版本</text>
+
+  <rect x="890" y="386" width="310" height="74" rx="8" class="who"/>
+  <text x="1045" y="416" text-anchor="middle" class="bt">Slack 頻道</text>
+  <text x="1045" y="442" text-anchor="middle" class="bm">Incoming Webhook，建立時選定頻道</text>
+
+  <path d="M860,200 L886,200" class="arrow" marker-end="url(#ah)"/>
+  <text x="862" y="192" class="lbl">①⑤</text>
+  <path d="M860,312 L886,312" class="arrow" marker-end="url(#ah)"/>
+  <text x="866" y="304" class="lbl">③</text>
+  <path d="M860,362 C875,362 875,423 886,423" class="arrow" marker-end="url(#ah)"/>
+  <text x="866" y="400" class="lbl">④</text>
+
+  <rect x="40" y="490" width="1160" height="120" rx="8" fill="#ffffff" stroke="#dadce0" stroke-width="1.4"/>
+  <text x="60" y="520" class="sa" fill="#202124">四種通知</text>
+  <text x="60" y="548" class="bs">日報：三題都答完，每天一次</text>
+  <text x="340" y="548" class="bs">日報沒有寫完：每一次沒寫完的執行都送</text>
+  <text x="700" y="548" class="bs">流程中途出錯：不查紀錄，每次都送</text>
+  <text x="60" y="578" class="bs">成效異常：資料最新的一天（或指定的 as_of）落在異常期間或之後 7 天內，每一筆只送一次</text>
+  <text x="60" y="600" class="bm">送不出去時日報照樣留在表裡，這次執行以失敗結束，Workflows 的執行清單上看得到</text>
+</svg>
