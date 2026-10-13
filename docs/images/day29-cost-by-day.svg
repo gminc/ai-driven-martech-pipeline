@@ -1,0 +1,92 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1240 700" width="1240" height="700" font-family="'Noto Sans TC','Noto Sans CJK TC','PingFang TC','Microsoft JhengHei',sans-serif">
+  <defs>
+    <style>
+      .title { font-size: 22px; font-weight: 700; fill: #202124; }
+      .note { font-size: 13px; fill: #5f6368; }
+      .grid { stroke: #e8eaed; stroke-width: 1; }
+      .base { stroke: #9aa0a6; stroke-width: 1.2; }
+      .ax { font-size: 13px; fill: #5f6368; }
+      .val { font-size: 13px; font-weight: 700; fill: #202124; }
+      .zero { font-size: 12px; fill: #80868b; }
+      .sname { font-size: 14px; font-weight: 700; fill: #202124; }
+      .stot { font-size: 13px; fill: #5f6368; }
+      .foot { font-size: 13px; fill: #5f6368; }
+    </style>
+  </defs>
+  <rect width="1240" height="700" fill="#ffffff"/>
+  <text x="40" y="44" class="title">圖二：Day 09 到 Day 28 每一篇的費用（新台幣）</text>
+  <text x="40" y="68" class="note">有逐次紀錄的部分合計約 34.4 元，四個階段用不同顏色區分，費用高低和呼叫次數關係不大，差在給模型什麼和用哪個模型</text>
+  <line x1="100" y1="560.0" x2="1200" y2="560.0" class="base"/>
+  <text x="88" y="564.0" class="ax" text-anchor="end">0 元</text>
+  <line x1="100" y1="467.5" x2="1200" y2="467.5" class="grid"/>
+  <text x="88" y="471.5" class="ax" text-anchor="end">2 元</text>
+  <line x1="100" y1="375.0" x2="1200" y2="375.0" class="grid"/>
+  <text x="88" y="379.0" class="ax" text-anchor="end">4 元</text>
+  <line x1="100" y1="282.5" x2="1200" y2="282.5" class="grid"/>
+  <text x="88" y="286.5" class="ax" text-anchor="end">6 元</text>
+  <line x1="100" y1="190.0" x2="1200" y2="190.0" class="grid"/>
+  <text x="88" y="194.0" class="ax" text-anchor="end">8 元</text>
+  <rect x="104.0" y="104" width="377.0" height="4" rx="2" fill="#1a73e8"/>
+  <text x="104.0" y="130" class="sname">在 SQL 裡叫 AI</text>
+  <text x="104.0" y="150" class="stot">約 8.7 元</text>
+  <rect x="489.0" y="104" width="267.0" height="4" rx="2" fill="#e37400"/>
+  <text x="489.0" y="130" class="sname">看圖與素材</text>
+  <text x="489.0" y="150" class="stot">約 16.9 元</text>
+  <rect x="764.0" y="104" width="212.0" height="4" rx="2" fill="#9334e6"/>
+  <text x="764.0" y="130" class="sname">助理</text>
+  <text x="764.0" y="150" class="stot">約 5.8 元</text>
+  <rect x="984.0" y="104" width="212.0" height="4" rx="2" fill="#188038"/>
+  <text x="984.0" y="130" class="sname">上線與自動化</text>
+  <text x="984.0" y="150" class="stot">約 3.0 元</text>
+  <path d="M111.5,560 L111.5,527.0 Q111.5,523.0 115.5,523.0 L139.5,523.0 Q143.5,523.0 143.5,527.0 L143.5,560 Z" fill="#1a73e8"/>
+  <text x="127.5" y="582" class="ax" text-anchor="middle">09</text>
+  <path d="M166.5,560 L166.5,355.9 Q166.5,351.9 170.5,351.9 L194.5,351.9 Q198.5,351.9 198.5,355.9 L198.5,560 Z" fill="#1a73e8"/>
+  <text x="182.5" y="343.9" class="val" text-anchor="middle">4.5</text>
+  <text x="182.5" y="582" class="ax" text-anchor="middle">10</text>
+  <path d="M221.5,560 L221.5,545.5 Q221.5,541.5 225.5,541.5 L249.5,541.5 Q253.5,541.5 253.5,545.5 L253.5,560 Z" fill="#1a73e8"/>
+  <text x="237.5" y="582" class="ax" text-anchor="middle">11</text>
+  <path d="M276.5,560 L276.5,545.5 Q276.5,541.5 280.5,541.5 L304.5,541.5 Q308.5,541.5 308.5,545.5 L308.5,560 Z" fill="#1a73e8"/>
+  <text x="292.5" y="582" class="ax" text-anchor="middle">12</text>
+  <path d="M331.5,560 L331.5,496.9 Q331.5,492.9 335.5,492.9 L359.5,492.9 Q363.5,492.9 363.5,496.9 L363.5,560 Z" fill="#1a73e8"/>
+  <text x="347.5" y="484.9" class="val" text-anchor="middle">1.45</text>
+  <text x="347.5" y="582" class="ax" text-anchor="middle">13</text>
+  <path d="M386.5,560 L386.5,549.2 Q386.5,545.2 390.5,545.2 L414.5,545.2 Q418.5,545.2 418.5,549.2 L418.5,560 Z" fill="#1a73e8"/>
+  <text x="402.5" y="582" class="ax" text-anchor="middle">14</text>
+  <path d="M441.5,560 L441.5,527.9 Q441.5,523.9 445.5,523.9 L469.5,523.9 Q473.5,523.9 473.5,527.9 L473.5,560 Z" fill="#1a73e8"/>
+  <text x="457.5" y="582" class="ax" text-anchor="middle">15</text>
+  <path d="M496.5,560 L496.5,527.9 Q496.5,523.9 500.5,523.9 L524.5,523.9 Q528.5,523.9 528.5,527.9 L528.5,560 Z" fill="#e37400"/>
+  <text x="512.5" y="582" class="ax" text-anchor="middle">16</text>
+  <text x="567.5" y="552" class="zero" text-anchor="middle">0</text>
+  <text x="567.5" y="582" class="ax" text-anchor="middle">17</text>
+  <path d="M606.5,560 L606.5,423.4 Q606.5,419.4 610.5,419.4 L634.5,419.4 Q638.5,419.4 638.5,423.4 L638.5,560 Z" fill="#e37400"/>
+  <text x="622.5" y="411.4" class="val" text-anchor="middle">3.04*</text>
+  <text x="622.5" y="582" class="ax" text-anchor="middle">18</text>
+  <path d="M661.5,560 L661.5,308.7 Q661.5,304.7 665.5,304.7 L689.5,304.7 Q693.5,304.7 693.5,308.7 L693.5,560 Z" fill="#e37400"/>
+  <text x="677.5" y="296.7" class="val" text-anchor="middle">5.52</text>
+  <text x="677.5" y="582" class="ax" text-anchor="middle">19</text>
+  <path d="M716.5,560 L716.5,212.5 Q716.5,208.5 720.5,208.5 L744.5,208.5 Q748.5,208.5 748.5,212.5 L748.5,560 Z" fill="#e37400"/>
+  <text x="732.5" y="200.5" class="val" text-anchor="middle">7.60</text>
+  <text x="732.5" y="582" class="ax" text-anchor="middle">20</text>
+  <path d="M771.5,560 L771.5,523.8 Q771.5,519.8 775.5,519.8 L799.5,519.8 Q803.5,519.8 803.5,523.8 L803.5,560 Z" fill="#9334e6"/>
+  <text x="787.5" y="582" class="ax" text-anchor="middle">21</text>
+  <path d="M826.5,560 L826.5,513.6 Q826.5,509.6 830.5,509.6 L854.5,509.6 Q858.5,509.6 858.5,513.6 L858.5,560 Z" fill="#9334e6"/>
+  <text x="842.5" y="582" class="ax" text-anchor="middle">22</text>
+  <path d="M881.5,560 L881.5,446.5 Q881.5,442.5 885.5,442.5 L909.5,442.5 Q913.5,442.5 913.5,446.5 L913.5,560 Z" fill="#9334e6"/>
+  <text x="897.5" y="434.5" class="val" text-anchor="middle">2.54</text>
+  <text x="897.5" y="582" class="ax" text-anchor="middle">23</text>
+  <path d="M936.5,560 L936.5,505.3 Q936.5,501.3 940.5,501.3 L964.5,501.3 Q968.5,501.3 968.5,505.3 L968.5,560 Z" fill="#9334e6"/>
+  <text x="952.5" y="493.3" class="val" text-anchor="middle">1.27*</text>
+  <text x="952.5" y="582" class="ax" text-anchor="middle">24</text>
+  <text x="1007.5" y="552" class="zero" text-anchor="middle">0</text>
+  <text x="1007.5" y="582" class="ax" text-anchor="middle">25</text>
+  <path d="M1046.5,560 L1046.5,465.5 Q1046.5,461.5 1050.5,461.5 L1074.5,461.5 Q1078.5,461.5 1078.5,465.5 L1078.5,560 Z" fill="#188038"/>
+  <text x="1062.5" y="453.5" class="val" text-anchor="middle">2.13</text>
+  <text x="1062.5" y="582" class="ax" text-anchor="middle">26</text>
+  <path d="M1101.5,560 L1101.5,524.2 Q1101.5,520.2 1105.5,520.2 L1129.5,520.2 Q1133.5,520.2 1133.5,524.2 L1133.5,560 Z" fill="#188038"/>
+  <text x="1117.5" y="582" class="ax" text-anchor="middle">27</text>
+  <text x="1172.5" y="552" class="zero" text-anchor="middle">0</text>
+  <text x="1172.5" y="582" class="ax" text-anchor="middle">28</text>
+  <text x="650.0" y="606" class="ax" text-anchor="middle">Day</text>
+  <text x="40" y="646" class="foot">* Day 18 不含一支 Veo 影片（當天估 4 到 6 元），Day 24 不含評分服務（估價上限 2.77 元），兩筆加上去約 38 到 43 元，實際金額以帳單為準</text>
+  <text x="40" y="668" class="foot">Day 11、12 是建 BigQuery ML 模型的費用，Day 16 到 Day 24 用的是 Day 25 儀表板算出來的數字，Day 17、25、28 沒有呼叫模型</text>
+</svg>

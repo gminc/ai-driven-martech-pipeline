@@ -1,0 +1,145 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1240 900" width="1240" height="900" font-family="'Noto Sans TC','Noto Sans CJK TC','PingFang TC','Microsoft JhengHei',sans-serif">
+  <defs>
+    <style>
+      .title { font-size: 22px; font-weight: 700; fill: #202124; }
+      .note { font-size: 13px; fill: #5f6368; }
+      .lname { font-size: 18px; font-weight: 700; fill: #202124; }
+      .ldays { font-size: 13px; fill: #5f6368; }
+      .card { fill: #ffffff; stroke: #dadce0; stroke-width: 1.4; }
+      .tx { font-size: 14px; fill: #202124; }
+      .hd { font-size: 13px; font-weight: 700; fill: #5f6368; }
+      .def { fill: #ffffff; stroke: #9aa0a6; stroke-width: 1.2; stroke-dasharray: 4 3; }
+      .deft { font-size: 13.5px; fill: #202124; }
+      .arrow { stroke: #9aa0a6; stroke-width: 1.4; fill: none; }
+    </style>
+  </defs>
+  <rect width="1240" height="900" fill="#ffffff"/>
+  <text x="40" y="44" class="title">圖一：踩坑地圖，28 天的坑落在系統的哪一層</text>
+  <text x="40" y="68" class="note">由下往上是資料串接、分析、AI 與助理、雲端與成本，每張卡片是一個坑與發生的那一天，最右邊是後來補上的做法，這些坑都不會報錯</text>
+  <text x="222" y="104" class="hd">踩到的坑</text>
+  <text x="1024" y="104" class="hd">後來的做法</text>
+  <rect x="40" y="116" width="1160" height="178" rx="10" fill="#e6f4ea"/>
+  <rect x="40" y="116" width="6" height="178" rx="3" fill="#188038"/>
+  <text x="62" y="194" class="lname">雲端與成本層</text>
+  <text x="62" y="218" class="ldays">Day 03、10、20、26</text>
+  <rect x="222" y="132" width="190" height="146" rx="8" class="card"/>
+  <text x="236" y="160" font-size="13" font-weight="700" fill="#188038">Day 26</text>
+  <text x="236" y="192" class="tx">執行個體閒置 4 秒</text>
+  <text x="236" y="216" class="tx">就被收掉</text>
+  <text x="236" y="240" class="tx">前面的對話全部不見</text>
+  <rect x="422" y="132" width="190" height="146" rx="8" class="card"/>
+  <text x="436" y="160" font-size="13" font-weight="700" fill="#188038">Day 10、20</text>
+  <text x="436" y="192" class="tx">模型不在以為的區域</text>
+  <text x="436" y="216" class="tx">flash-lite 沒有</text>
+  <text x="436" y="240" class="tx">us-central1 版本</text>
+  <rect x="622" y="132" width="190" height="146" rx="8" class="card"/>
+  <text x="636" y="160" font-size="13" font-weight="700" fill="#188038">Day 10、14</text>
+  <text x="636" y="192" class="tx">只寫模型名稱</text>
+  <text x="636" y="216" class="tx">送到非 global 端點</text>
+  <text x="636" y="240" class="tx">單價貴一成</text>
+  <rect x="822" y="132" width="190" height="146" rx="8" class="card"/>
+  <text x="836" y="160" font-size="13" font-weight="700" fill="#188038">Day 03</text>
+  <text x="836" y="192" class="tx">預算警報扣掉抵免</text>
+  <text x="836" y="216" class="tx">才計算，試用期間</text>
+  <text x="836" y="240" class="tx">三段警報都不寄</text>
+  <rect x="1024" y="132" width="176" height="146" rx="8" class="def"/>
+  <circle cx="1042" cy="169" r="3.5" fill="#188038"/>
+  <text x="1054" y="174" class="deft">花錢前先印估價</text>
+  <circle cx="1042" cy="201" r="3.5" fill="#188038"/>
+  <text x="1054" y="206" class="deft">共用的用量表</text>
+  <circle cx="1042" cy="233" r="3.5" fill="#188038"/>
+  <text x="1054" y="238" class="deft">先查區域與生命週期</text>
+  <rect x="40" y="308" width="1160" height="178" rx="10" fill="#f3e8fd"/>
+  <rect x="40" y="308" width="6" height="178" rx="3" fill="#9334e6"/>
+  <text x="62" y="386" class="lname">AI 與助理層</text>
+  <text x="62" y="410" class="ldays">Day 18 到 Day 24</text>
+  <rect x="222" y="324" width="190" height="146" rx="8" class="card"/>
+  <text x="236" y="352" font-size="13" font-weight="700" fill="#9334e6">Day 21</text>
+  <text x="236" y="384" class="tx">不給工具就編出</text>
+  <text x="236" y="408" class="tx">125,000 元</text>
+  <text x="236" y="432" class="tx">和 ROAS 3.5</text>
+  <rect x="422" y="324" width="190" height="146" rx="8" class="card"/>
+  <text x="436" y="352" font-size="13" font-weight="700" fill="#9334e6">Day 18</text>
+  <text x="436" y="384" class="tx">只說多強調機能</text>
+  <text x="436" y="408" class="tx">6 份有 5 份</text>
+  <text x="436" y="432" class="tx">用了誇大用語</text>
+  <rect x="622" y="324" width="190" height="146" rx="8" class="card"/>
+  <text x="636" y="352" font-size="13" font-weight="700" fill="#9334e6">Day 23</text>
+  <text x="636" y="384" class="tx">交出顧客姓名</text>
+  <text x="636" y="408" class="tx">email、手機的</text>
+  <text x="636" y="432" class="tx">是查詢工具</text>
+  <rect x="822" y="324" width="190" height="146" rx="8" class="card"/>
+  <text x="836" y="352" font-size="13" font-weight="700" fill="#9334e6">Day 24</text>
+  <text x="836" y="384" class="tx">講錯又講得很肯定</text>
+  <text x="836" y="408" class="tx">規則與評分模型</text>
+  <text x="836" y="432" class="tx">都給 1 分</text>
+  <rect x="1024" y="324" width="176" height="146" rx="8" class="def"/>
+  <circle cx="1042" cy="361" r="3.5" fill="#9334e6"/>
+  <text x="1054" y="366" class="deft">先給工具再問</text>
+  <circle cx="1042" cy="393" r="3.5" fill="#9334e6"/>
+  <text x="1054" y="398" class="deft">規則寫進題目</text>
+  <circle cx="1042" cy="425" r="3.5" fill="#9334e6"/>
+  <text x="1054" y="430" class="deft">個資在程式碼遮掉</text>
+  <rect x="40" y="500" width="1160" height="178" rx="10" fill="#fef7e0"/>
+  <rect x="40" y="500" width="6" height="178" rx="3" fill="#e37400"/>
+  <text x="62" y="578" class="lname">分析層</text>
+  <text x="62" y="602" class="ldays">Day 08 到 Day 17</text>
+  <rect x="222" y="516" width="190" height="146" rx="8" class="card"/>
+  <text x="236" y="544" font-size="13" font-weight="700" fill="#e37400">Day 08</text>
+  <text x="236" y="576" class="tx">google / cpc 第一次</text>
+  <text x="236" y="600" class="tx">接觸 295 筆</text>
+  <text x="236" y="624" class="tx">最後接觸 670 筆</text>
+  <rect x="422" y="516" width="190" height="146" rx="8" class="card"/>
+  <text x="436" y="544" font-size="13" font-weight="700" fill="#e37400">Day 07 → 15</text>
+  <text x="436" y="576" class="tx">設計規格欄位</text>
+  <text x="436" y="600" class="tx">就放在分析資料旁</text>
+  <text x="436" y="624" class="tx">等於考卷旁放解答</text>
+  <rect x="622" y="516" width="190" height="146" rx="8" class="card"/>
+  <text x="636" y="544" font-size="13" font-weight="700" fill="#e37400">Day 17</text>
+  <text x="636" y="576" class="tx">不分受眾 0.907</text>
+  <text x="636" y="600" class="tx">分層後 1.133</text>
+  <text x="636" y="624" class="tx">方向整個相反</text>
+  <rect x="822" y="516" width="190" height="146" rx="8" class="card"/>
+  <text x="836" y="544" font-size="13" font-weight="700" fill="#e37400">Day 11</text>
+  <text x="836" y="576" class="tx">K-means 每重跑</text>
+  <text x="836" y="600" class="tx">一次分法就不同</text>
+  <text x="836" y="624" class="tx">舊模型找不回來</text>
+  <rect x="1024" y="516" width="176" height="146" rx="8" class="def"/>
+  <circle cx="1042" cy="553" r="3.5" fill="#e37400"/>
+  <text x="1054" y="558" class="deft">先把答案藏好再考</text>
+  <circle cx="1042" cy="585" r="3.5" fill="#e37400"/>
+  <text x="1054" y="590" class="deft">比較前先分層</text>
+  <circle cx="1042" cy="617" r="3.5" fill="#e37400"/>
+  <text x="1054" y="622" class="deft">重建前先另存副本</text>
+  <rect x="40" y="692" width="1160" height="178" rx="10" fill="#e8f0fe"/>
+  <rect x="40" y="692" width="6" height="178" rx="3" fill="#1a73e8"/>
+  <text x="62" y="770" class="lname">資料串接層</text>
+  <text x="62" y="794" class="ldays">Day 04 到 Day 07</text>
+  <rect x="222" y="708" width="190" height="146" rx="8" class="card"/>
+  <text x="236" y="736" font-size="13" font-weight="700" fill="#1a73e8">Day 04</text>
+  <text x="236" y="768" class="tx">金流自訂欄位放中文</text>
+  <text x="236" y="792" class="tx">被轉換後</text>
+  <text x="236" y="816" class="tx">整筆驗章失敗</text>
+  <rect x="422" y="708" width="190" height="146" rx="8" class="card"/>
+  <text x="436" y="736" font-size="13" font-weight="700" fill="#1a73e8">Day 06</text>
+  <text x="436" y="768" class="tx">自動偵測綱要</text>
+  <text x="436" y="792" class="tx">手機號碼開頭的 0</text>
+  <text x="436" y="816" class="tx">直接消失</text>
+  <rect x="622" y="708" width="190" height="146" rx="8" class="card"/>
+  <text x="636" y="736" font-size="13" font-weight="700" fill="#1a73e8">Day 07</text>
+  <text x="636" y="768" class="tx">GA4 金額存在整數欄位</text>
+  <text x="636" y="792" class="tx">99 個事件只有</text>
+  <text x="636" y="816" class="tx">2 個帶 UTM</text>
+  <rect x="822" y="708" width="190" height="146" rx="8" class="card"/>
+  <text x="836" y="736" font-size="13" font-weight="700" fill="#1a73e8">Day 09</text>
+  <text x="836" y="768" class="tx">網站追蹤 0 筆</text>
+  <text x="836" y="792" class="tx">後台訂單 37 筆</text>
+  <text x="836" y="816" class="tx">是追蹤碼失效</text>
+  <rect x="1024" y="708" width="176" height="146" rx="8" class="def"/>
+  <circle cx="1042" cy="745" r="3.5" fill="#1a73e8"/>
+  <text x="1054" y="750" class="deft">載入時寫明確綱要</text>
+  <circle cx="1042" cy="777" r="3.5" fill="#1a73e8"/>
+  <text x="1054" y="782" class="deft">兩邊對帳</text>
+  <circle cx="1042" cy="809" r="3.5" fill="#1a73e8"/>
+  <text x="1054" y="814" class="deft">追蹤和後台對帳</text>
+</svg>
