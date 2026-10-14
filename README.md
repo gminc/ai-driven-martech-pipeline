@@ -41,6 +41,7 @@
 | 27 | [早上一進辦公室，AI 行銷日報已經自動寫好了](https://ithelp.ithome.com.tw/articles/10423358) | `workflows/`、`scripts/deploy_daily_report.sh` | Workflows 流程、`daily_reports` |
 | 28 | [廣告出狀況時，讓 Slack 機器人第一時間通知你](https://ithelp.ithome.com.tw/articles/10423581) | `workflows/` | Slack 通知、`ops_notifications` |
 | 29 | [做完一套 AI 行銷系統後我踩到的坑與心路歷程](https://ithelp.ithome.com.tw/articles/10423920) | （只有文章） | 踩坑整理、`gemini-3.6-flash` 停用前的檢查 |
+| 30 | [整套系統開源交付之後，MarTech 還能怎麼走？](https://ithelp.ithome.com.tw/articles/10424186) | （只有文章） | 儲存庫用法、規劃與實際的對照、接上真實資料要換的三塊 |
 
 ## 模型停用提醒
 
