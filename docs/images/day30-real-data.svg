@@ -1,0 +1,75 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1240 640" width="1240" height="640" font-family="'Noto Sans TC','Noto Sans CJK TC','PingFang TC','Microsoft JhengHei',sans-serif">
+  <defs>
+    <style>
+      .title { font-size: 22px; font-weight: 700; fill: #202124; }
+      .note { font-size: 13px; fill: #5f6368; }
+      .hd { font-size: 15px; font-weight: 700; fill: #5f6368; }
+      .bname { font-size: 17px; font-weight: 700; fill: #202124; }
+      .bdays { font-size: 13px; fill: #5f6368; }
+      .chip { fill: #ffffff; stroke: #dadce0; stroke-width: 1.2; }
+      .ct { font-size: 13.5px; fill: #202124; }
+      .cd { font-size: 12px; fill: #5f6368; }
+      .arrow { stroke: #9aa0a6; stroke-width: 1.6; fill: none; }
+      .tx { font-size: 14px; fill: #202124; }
+    </style>
+    <marker id="ah" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0,0 L10,5 L0,10 z" fill="#9aa0a6"/></marker>
+  </defs>
+  <rect width="1240" height="640" fill="#ffffff"/>
+  <text x="40" y="44" class="title" text-anchor="start">圖二：接上真實資料時要換掉的三塊</text>
+  <text x="40" y="68" class="note" text-anchor="start">橘色是要換掉的資料來源，綠色是可以沿用的倉儲與分析，紫色是合成資料用不到而接上真實資料才要補上的</text>
+  <text x="40" y="104" class="hd" text-anchor="start">資料來源（換掉）</text>
+  <text x="450" y="104" class="hd" text-anchor="start">倉儲與分析（沿用）</text>
+  <text x="860" y="104" class="hd" text-anchor="start">要補上的</text>
+  <rect x="40" y="118" width="340" height="470" rx="10" fill="#fef7e0"/>
+  <rect x="40" y="118" width="6" height="470" rx="3" fill="#e37400"/>
+  <rect x="60" y="136" width="300" height="134" rx="8" class="chip"/>
+  <text x="76" y="162" class="cd" text-anchor="start">合成器的 raw_events</text>
+  <path d="M90 172 L90 194" class="arrow" marker-end="url(#ah)"/>
+  <text x="76" y="220" class="bname" text-anchor="start">GA4 的 BigQuery 匯出</text>
+  <text x="76" y="246" class="note" text-anchor="start">標準版每天上限 100 萬個事件</text>
+  <rect x="60" y="284" width="300" height="134" rx="8" class="chip"/>
+  <text x="76" y="310" class="cd" text-anchor="start">合成器的 raw_ad_daily</text>
+  <path d="M90 320 L90 342" class="arrow" marker-end="url(#ah)"/>
+  <text x="76" y="368" class="bname" text-anchor="start">BigQuery Data Transfer Service</text>
+  <text x="76" y="394" class="note" text-anchor="start">Google Ads 與 Facebook Ads 連接器</text>
+  <rect x="60" y="432" width="300" height="134" rx="8" class="chip"/>
+  <text x="76" y="458" class="cd" text-anchor="start">合成器的 raw_orders</text>
+  <path d="M90 468 L90 490" class="arrow" marker-end="url(#ah)"/>
+  <text x="76" y="516" class="bname" text-anchor="start">電商後台或 ERP 每天匯出</text>
+  <text x="76" y="542" class="note" text-anchor="start">營收和 GA4 先對帳再分析</text>
+  <rect x="450" y="118" width="340" height="470" rx="10" fill="#e6f4ea"/>
+  <rect x="450" y="118" width="6" height="470" rx="3" fill="#188038"/>
+  <rect x="470" y="136" width="300" height="96" rx="8" class="chip"/>
+  <text x="486" y="166" class="bname" text-anchor="start">Day 07 星狀綱要</text>
+  <text x="486" y="192" class="note" text-anchor="start">事實表欄位不變，只改</text>
+  <text x="486" y="212" class="note" text-anchor="start">warehouse/build.sql 讀 raw 表的段落</text>
+  <rect x="470" y="252" width="300" height="96" rx="8" class="chip"/>
+  <text x="486" y="288" class="bname" text-anchor="start">Day 08～13</text>
+  <text x="486" y="316" class="note" text-anchor="start">歸因與診斷還有分群與 LTV</text>
+  <rect x="470" y="362" width="300" height="96" rx="8" class="chip"/>
+  <text x="486" y="398" class="bname" text-anchor="start">Day 14～20</text>
+  <text x="486" y="426" class="note" text-anchor="start">素材圖與視覺特徵</text>
+  <rect x="470" y="472" width="300" height="96" rx="8" class="chip"/>
+  <text x="486" y="508" class="bname" text-anchor="start">Day 21～28</text>
+  <text x="486" y="536" class="note" text-anchor="start">助理與護欄還有日報與 Slack</text>
+  <rect x="860" y="118" width="340" height="470" rx="10" fill="#f3e8fd"/>
+  <rect x="860" y="118" width="6" height="470" rx="3" fill="#9334e6"/>
+  <rect x="880" y="136" width="300" height="134" rx="8" class="chip"/>
+  <text x="896" y="170" class="bname" text-anchor="start">標準答案</text>
+  <text x="896" y="206" class="note" text-anchor="start">合成器藏好的 ground_truth.json</text>
+  <text x="896" y="236" class="tx" text-anchor="start">改成增量實驗，留一組停投當對照</text>
+  <rect x="880" y="284" width="300" height="134" rx="8" class="chip"/>
+  <text x="896" y="318" class="bname" text-anchor="start">個資</text>
+  <text x="896" y="354" class="note" text-anchor="start">姓名和 email 與手機都是真的</text>
+  <text x="896" y="384" class="tx" text-anchor="start">Day 23 的遮蔽放在送進模型之前</text>
+  <rect x="880" y="432" width="300" height="134" rx="8" class="chip"/>
+  <text x="896" y="466" class="bname" text-anchor="start">同意</text>
+  <text x="896" y="502" class="note" text-anchor="start">沒有同意的使用者資料不完整</text>
+  <text x="896" y="532" class="tx" text-anchor="start">先確認網站的 Cookie 同意設定</text>
+  <path d="M384 203 L446 203" class="arrow" marker-end="url(#ah)"/>
+  <path d="M384 351 L446 351" class="arrow" marker-end="url(#ah)"/>
+  <path d="M384 499 L446 499" class="arrow" marker-end="url(#ah)"/>
+  <path d="M856 300 L794 300" class="arrow" marker-end="url(#ah)"/>
+  <text x="825" y="290" class="cd" text-anchor="middle">檢查</text>
+  <text x="40" y="616" class="note" text-anchor="start">增量實驗算出來的數字拿來檢查 Day 08 的歸因與 Day 09 的 AI 診斷，資料累積兩年以上再接行銷組合模型（Meridian）</text>
+</svg>

@@ -1,0 +1,135 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1240 758" width="1240" height="758" font-family="'Noto Sans TC','Noto Sans CJK TC','PingFang TC','Microsoft JhengHei',sans-serif">
+  <defs>
+    <style>
+      .title { font-size: 22px; font-weight: 700; fill: #202124; }
+      .note { font-size: 13px; fill: #5f6368; }
+      .hd { font-size: 15px; font-weight: 700; fill: #5f6368; }
+      .bname { font-size: 17px; font-weight: 700; fill: #202124; }
+      .bdays { font-size: 13px; fill: #5f6368; }
+      .chip { fill: #ffffff; stroke: #dadce0; stroke-width: 1.2; }
+      .ct { font-size: 13.5px; fill: #202124; }
+      .cd { font-size: 12px; fill: #5f6368; }
+      .arrow { stroke: #9aa0a6; stroke-width: 1.6; fill: none; }
+      .tx { font-size: 14px; fill: #202124; }
+    </style>
+    <marker id="ah" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0,0 L10,5 L0,10 z" fill="#9aa0a6"/></marker>
+  </defs>
+  <rect width="1240" height="758" fill="#ffffff"/>
+  <text x="40" y="44" class="title" text-anchor="start">圖一：Day 01 規劃的目錄骨架和最後完成的實際結構</text>
+  <text x="40" y="68" class="note" text-anchor="start">左邊照模組分成四個大目錄，右邊大致一篇一個目錄，顏色相同的是同一段的天數，共用的東西都放在 BigQuery 的 martech_dw 資料集</text>
+  <text x="40" y="104" class="hd" text-anchor="start">Day 01 的規劃</text>
+  <text x="560" y="104" class="hd" text-anchor="start">最後完成的樣子</text>
+  <rect x="40" y="118" width="400" height="74" rx="10" fill="#f1f3f4"/>
+  <rect x="40" y="118" width="6" height="74" rx="3" fill="#80868b"/>
+  <text x="62" y="153.0" class="bname" text-anchor="start">terraform/  scripts/</text>
+  <text x="62" y="175.0" class="bname" text-anchor="start">live-demo/  synthesizer/</text>
+  <text x="420" y="157.0" class="bdays" text-anchor="end">Day 03～06</text>
+  <rect x="560" y="118" width="640" height="74" rx="10" fill="#f1f3f4"/>
+  <rect x="560" y="118" width="6" height="74" rx="3" fill="#80868b"/>
+  <rect x="580" y="130" width="124" height="40" rx="6" class="chip"/>
+  <text x="592" y="155" class="ct" text-anchor="start">terraform/</text>
+  <text x="694" y="155" class="cd" text-anchor="end">D03</text>
+  <rect x="712" y="130" width="146" height="40" rx="6" class="chip"/>
+  <text x="724" y="155" class="ct" text-anchor="start">scripts/</text>
+  <text x="848" y="155" class="cd" text-anchor="end">D03～27</text>
+  <rect x="866" y="130" width="136" height="40" rx="6" class="chip"/>
+  <text x="878" y="155" class="ct" text-anchor="start">live-demo/</text>
+  <text x="992" y="155" class="cd" text-anchor="end">D04</text>
+  <rect x="1010" y="130" width="180" height="40" rx="6" class="chip"/>
+  <text x="1022" y="155" class="ct" text-anchor="start">synthesizer/</text>
+  <text x="1180" y="155" class="cd" text-anchor="end">D05～06</text>
+  <path d="M448 155.0 L552 155.0" class="arrow" marker-end="url(#ah)"/>
+  <text x="500" y="147.0" class="cd" text-anchor="middle">沒有變</text>
+  <rect x="40" y="208" width="400" height="124" rx="10" fill="#e6f4ea"/>
+  <rect x="40" y="208" width="6" height="124" rx="3" fill="#188038"/>
+  <text x="62" y="272.0" class="bname" text-anchor="start">data-pipeline/</text>
+  <text x="420" y="272.0" class="bdays" text-anchor="end">Day 07～13</text>
+  <rect x="560" y="208" width="640" height="124" rx="10" fill="#e6f4ea"/>
+  <rect x="560" y="208" width="6" height="124" rx="3" fill="#188038"/>
+  <rect x="580" y="220" width="146" height="40" rx="6" class="chip"/>
+  <text x="592" y="245" class="ct" text-anchor="start">warehouse/</text>
+  <text x="716" y="245" class="cd" text-anchor="end">D07</text>
+  <rect x="734" y="220" width="146" height="40" rx="6" class="chip"/>
+  <text x="746" y="245" class="ct" text-anchor="start">attribution/</text>
+  <text x="870" y="245" class="cd" text-anchor="end">D08</text>
+  <rect x="888" y="220" width="146" height="40" rx="6" class="chip"/>
+  <text x="900" y="245" class="ct" text-anchor="start">diagnosis/</text>
+  <text x="1024" y="245" class="cd" text-anchor="end">D09</text>
+  <rect x="1042" y="220" width="146" height="40" rx="6" class="chip"/>
+  <text x="1054" y="245" class="ct" text-anchor="start">caching/</text>
+  <text x="1178" y="245" class="cd" text-anchor="end">D10</text>
+  <rect x="580" y="270" width="146" height="40" rx="6" class="chip"/>
+  <text x="592" y="295" class="ct" text-anchor="start">segmentation/</text>
+  <text x="716" y="295" class="cd" text-anchor="end">D11</text>
+  <rect x="734" y="270" width="146" height="40" rx="6" class="chip"/>
+  <text x="746" y="295" class="ct" text-anchor="start">ltv/</text>
+  <text x="870" y="295" class="cd" text-anchor="end">D12</text>
+  <rect x="888" y="270" width="146" height="40" rx="6" class="chip"/>
+  <text x="900" y="295" class="ct" text-anchor="start">acceptance/</text>
+  <text x="1024" y="295" class="cd" text-anchor="end">D13</text>
+  <path d="M448 270.0 L552 270.0" class="arrow" marker-end="url(#ah)"/>
+  <rect x="40" y="348" width="400" height="124" rx="10" fill="#e8f0fe"/>
+  <rect x="40" y="348" width="6" height="124" rx="3" fill="#1a73e8"/>
+  <text x="62" y="412.0" class="bname" text-anchor="start">vertex-ai/</text>
+  <text x="420" y="412.0" class="bdays" text-anchor="end">Day 14～20</text>
+  <rect x="560" y="348" width="640" height="124" rx="10" fill="#e8f0fe"/>
+  <rect x="560" y="348" width="6" height="124" rx="3" fill="#1a73e8"/>
+  <rect x="580" y="360" width="146" height="40" rx="6" class="chip"/>
+  <text x="592" y="385" class="ct" text-anchor="start">multimodal/</text>
+  <text x="716" y="385" class="cd" text-anchor="end">D14</text>
+  <rect x="734" y="360" width="146" height="40" rx="6" class="chip"/>
+  <text x="746" y="385" class="ct" text-anchor="start">creatives/</text>
+  <text x="870" y="385" class="cd" text-anchor="end">D14</text>
+  <rect x="888" y="360" width="146" height="40" rx="6" class="chip"/>
+  <text x="900" y="385" class="ct" text-anchor="start">structured/</text>
+  <text x="1024" y="385" class="cd" text-anchor="end">D15</text>
+  <rect x="1042" y="360" width="146" height="40" rx="6" class="chip"/>
+  <text x="1054" y="385" class="ct" text-anchor="start">features/</text>
+  <text x="1178" y="385" class="cd" text-anchor="end">D16</text>
+  <rect x="580" y="410" width="146" height="40" rx="6" class="chip"/>
+  <text x="592" y="435" class="ct" text-anchor="start">lift/</text>
+  <text x="716" y="435" class="cd" text-anchor="end">D17</text>
+  <rect x="734" y="410" width="146" height="40" rx="6" class="chip"/>
+  <text x="746" y="435" class="ct" text-anchor="start">drafts/</text>
+  <text x="870" y="435" class="cd" text-anchor="end">D18</text>
+  <rect x="888" y="410" width="146" height="40" rx="6" class="chip"/>
+  <text x="900" y="435" class="ct" text-anchor="start">consistency/</text>
+  <text x="1024" y="435" class="cd" text-anchor="end">D19</text>
+  <rect x="1042" y="410" width="146" height="40" rx="6" class="chip"/>
+  <text x="1054" y="435" class="ct" text-anchor="start">benchmark/</text>
+  <text x="1178" y="435" class="cd" text-anchor="end">D20</text>
+  <path d="M448 410.0 L552 410.0" class="arrow" marker-end="url(#ah)"/>
+  <rect x="40" y="488" width="400" height="74" rx="10" fill="#f3e8fd"/>
+  <rect x="40" y="488" width="6" height="74" rx="3" fill="#9334e6"/>
+  <text x="62" y="527.0" class="bname" text-anchor="start">agent/</text>
+  <text x="420" y="527.0" class="bdays" text-anchor="end">Day 21～25</text>
+  <rect x="560" y="488" width="640" height="74" rx="10" fill="#f3e8fd"/>
+  <rect x="560" y="488" width="6" height="74" rx="3" fill="#9334e6"/>
+  <rect x="580" y="500" width="146" height="40" rx="6" class="chip"/>
+  <text x="592" y="525" class="ct" text-anchor="start">agent/</text>
+  <text x="716" y="525" class="cd" text-anchor="end">D21～23</text>
+  <rect x="734" y="500" width="146" height="40" rx="6" class="chip"/>
+  <text x="746" y="525" class="ct" text-anchor="start">evaluation/</text>
+  <text x="870" y="525" class="cd" text-anchor="end">D24</text>
+  <rect x="888" y="500" width="146" height="40" rx="6" class="chip"/>
+  <text x="900" y="525" class="ct" text-anchor="start">monitoring/</text>
+  <text x="1024" y="525" class="cd" text-anchor="end">D25</text>
+  <path d="M448 525.0 L552 525.0" class="arrow" marker-end="url(#ah)"/>
+  <rect x="40" y="578" width="400" height="74" rx="10" fill="#fef7e0"/>
+  <rect x="40" y="578" width="6" height="74" rx="3" fill="#e37400"/>
+  <text x="62" y="617.0" class="bname" text-anchor="start">deployment/</text>
+  <text x="420" y="617.0" class="bdays" text-anchor="end">Day 26～28</text>
+  <rect x="560" y="578" width="640" height="74" rx="10" fill="#fef7e0"/>
+  <rect x="560" y="578" width="6" height="74" rx="3" fill="#e37400"/>
+  <rect x="580" y="590" width="146" height="40" rx="6" class="chip"/>
+  <text x="592" y="615" class="ct" text-anchor="start">agent/serve.py</text>
+  <text x="716" y="615" class="cd" text-anchor="end">D26</text>
+  <rect x="734" y="590" width="146" height="40" rx="6" class="chip"/>
+  <text x="746" y="615" class="ct" text-anchor="start">workflows/</text>
+  <text x="870" y="615" class="cd" text-anchor="end">D27～28</text>
+  <path d="M448 615.0 L552 615.0" class="arrow" marker-end="url(#ah)"/>
+  <rect x="40" y="672" width="1160" height="70" rx="10" fill="#f1f3f4"/>
+  <rect x="40" y="672" width="6" height="70" rx="3" fill="#80868b"/>
+  <text x="62" y="702" class="tx" text-anchor="start">共用的表都在 martech_dw，例如 Day 07 的事實表和 Day 16 起的用量表 ops_llm_usage 還有 Day 25 的單價表 ref_llm_price</text>
+  <text x="62" y="726" class="note" text-anchor="start">各天的程式大多只讀表，agent/ 收了助理相關的 Day 21～23 與 Day 26，Day 24 的評測直接沿用 agent/ask.py</text>
+</svg>
