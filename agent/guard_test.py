@@ -29,13 +29,14 @@ sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 import guard as G  # noqa: E402
 import tools as T  # noqa: E402
 
-MODEL = "gemini-3.6-flash"   # 換模型要連下面的單價一起改
+MODEL = T.FLASH_MODEL   # 環境變數 GEMINI_MODEL_FLASH，沒設是 gemini-3.8-flash，單價從 tools.PRICES 讀
 LOCATION = "global"
 DATASET = T.DATASET
 MAX_STEPS = 4            # 一題最多呼叫模型幾次（含最後作答那一次）
 MAX_OUTPUT = 1024        # 每次呼叫的輸出上限，思考 Token 也算在裡面
 INPUT_CAP = 4000         # 每次呼叫的輸入上限，送出前先數，超過就不送
-PRICE_IN, PRICE_OUT, FX = 0.75, 3.75, 32
+PRICE_IN, PRICE_OUT = T.price(MODEL)   # global 端點每百萬 Token 的美元單價
+FX = 32
 SPEND_STOP = 6.0         # 這次執行累計花到新台幣幾元就不再問下一題，剩下的題次下次執行會補問
 TODAY = (datetime.date.fromisoformat(T.AD_END) + datetime.timedelta(days=1)).isoformat()
 WEEKDAY = "一二三四五六日"[datetime.date.fromisoformat(TODAY).weekday()]

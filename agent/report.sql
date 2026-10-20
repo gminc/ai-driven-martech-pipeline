@@ -25,7 +25,7 @@ SELECT DISTINCT question_id, facts_expected
 FROM martech_dw.mart_fc_score
 ORDER BY question_id;
 
--- 5. Token 與費用：gemini-3.6-flash global 端點每百萬 Token 輸入 0.75、輸出 3.75 美元，匯率 32
+-- 5. Token 與費用：gemini-3.8-flash global 端點每百萬 Token 輸入 0.75、輸出 3.75 美元，匯率 32
 SELECT s.mode,
   COUNT(DISTINCT s.question_id) AS questions,
   COUNT(*) AS model_calls,

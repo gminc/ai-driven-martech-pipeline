@@ -7,7 +7,7 @@
 --   B1 output_schema、題目加上判斷標準                        gemini-3.5-flash-lite（和 A 只差題目，看判斷標準有沒有用）
 --   B2 同 B1 再跑一次                                          gemini-3.5-flash-lite（同一張圖問兩次，看答案一不一樣）
 --   C  response_schema（enum）、題目同 B                       gemini-3.5-flash-lite（和 B 只差鎖法，看 enum 有沒有用）
---   D  同 C 換模型                                             gemini-3.6-flash
+--   D  同 C 換模型                                             gemini-3.8-flash
 -- endpoint 與 model_params 只能寫常數，所以每輪各寫一段
 -- 這一步會產生 Token 費用，run.sh 會先印出最壞情況的費用再問要不要繼續，只讀 martech_dw，不讀答案表，對答案在 report.sql
 
@@ -122,9 +122,9 @@ FROM (
   JOIN martech_dw.mm_sample s USING (uri)
 );
 
--- D：同 C 換 gemini-3.6-flash
+-- D：同 C 換 gemini-3.8-flash
 INSERT INTO martech_dw.mm_structured
-SELECT 'D', 'response_schema', 'gemini-3.6-flash', 1, creative_id,
+SELECT 'D', 'response_schema', 'gemini-3.8-flash', 1, creative_id,
   SAFE_CAST(JSON_VALUE(g.result, '$.has_person') AS BOOL),
   JSON_VALUE(g.result, '$.cta_position'),
   JSON_VALUE(g.result, '$.dominant_color'),
@@ -139,7 +139,7 @@ FROM (
     AI.GENERATE(
       (prompt_b, o.ref),
       connection_id => 'us.vertex_ai_conn',
-      endpoint => 'gemini-3.6-flash',
+      endpoint => 'gemini-3.8-flash',
       model_params => JSON '''{"generation_config": {
         "max_output_tokens": 256,
         "thinking_config": {"thinking_budget": 0},

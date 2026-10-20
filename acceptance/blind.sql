@@ -4,14 +4,15 @@
 -- thinking_budget 設 0：和 Day 09 一樣，思考 token 也算在 max_output_tokens 裡，關掉才好控制費用與長度
 -- 這一步會產生 Token 費用，執行前先跑 blind_cost.sql 數 Token；只讀 martech_dw，不讀答案表
 
--- 遠端模型只是一個「指向 Gemini 的捷徑」，建立本身不收費；Day 09 建過就沿用
-CREATE MODEL IF NOT EXISTS martech_dw.gemini_flash_lite
+-- 遠端模型只是一個「指向 Gemini 的捷徑」，建立本身不收費；用 OR REPLACE 是為了換模型時一定指到這裡寫的 endpoint
+--   （原本是 IF NOT EXISTS 沿用 Day 09 建的，Day 09 用舊模型建過的話只改這裡不會生效）
+CREATE OR REPLACE MODEL martech_dw.gemini_flash_lite
   REMOTE WITH CONNECTION `us.vertex_ai_conn`
   OPTIONS (ENDPOINT = 'gemini-3.5-flash-lite');
 
-CREATE MODEL IF NOT EXISTS martech_dw.gemini_flash
+CREATE OR REPLACE MODEL martech_dw.gemini_flash
   REMOTE WITH CONNECTION `us.vertex_ai_conn`
-  OPTIONS (ENDPOINT = 'gemini-3.6-flash');
+  OPTIONS (ENDPOINT = 'gemini-3.8-flash');
 
 -- 主跑：gemini-3.5-flash-lite × 3
 CREATE OR REPLACE TABLE martech_dw.blind_result
@@ -58,11 +59,11 @@ FROM AI.GENERATE_TEXT(
   )
 );
 
--- 對照：同一份題目交給 gemini-3.6-flash × 3
+-- 對照：同一份題目交給 gemini-3.8-flash × 3
 INSERT INTO martech_dw.blind_result
 SELECT
   run_no,
-  'gemini-3.6-flash',
+  'gemini-3.8-flash',
   result, statistics, status, CURRENT_TIMESTAMP()
 FROM AI.GENERATE_TEXT(
   MODEL martech_dw.gemini_flash,

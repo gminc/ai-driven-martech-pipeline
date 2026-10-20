@@ -7,6 +7,11 @@ set -euo pipefail
 
 cd "$(dirname "$0")"
 DATASET="${DATASET:-martech_dw}"
+# Flash 等級的模型名稱：環境變數 GEMINI_MODEL_FLASH，沒設就用 SQL 裡寫的預設值 gemini-3.8-flash（執行前替換 SQL 裡的 'gemini-3.8-flash'）
+FLASH="${GEMINI_MODEL_FLASH:-gemini-3.8-flash}"
+[[ "${FLASH}" =~ ^[a-z0-9][a-z0-9.-]*$ ]] || { echo "❌ GEMINI_MODEL_FLASH 只能有小寫英數、點與減號，拿到「${FLASH}」"; exit 1; }
+export GEMINI_MODEL_FLASH="${FLASH}"
+[[ "${FLASH}" == "gemini-3.8-flash" ]] || echo "📌 Flash 模型用 ${FLASH}（估價與報表的單價是照 gemini-3.8-flash 算的，單價不同要另外改）"
 
 ACTIVE="$(gcloud auth list --filter=status:ACTIVE --format='value(account)' 2>/dev/null || true)"
 if [[ -z "${ACTIVE}" ]]; then
@@ -42,7 +47,7 @@ TMP="$(mktemp -d)"
 trap 'rm -rf "${TMP}"' EXIT
 
 run_sql() {
-  if ! sed -e "s/martech_dw\./${DATASET}./g" -e "s/PROJECT_ID/${PROJECT}/g" "$1" \
+  if ! sed -e "s/martech_dw\./${DATASET}./g" -e "s/'gemini-3\.8-flash'/'${FLASH}'/g" -e "s/PROJECT_ID/${PROJECT}/g" "$1" \
       | bq --headless --location=US query --nouse_legacy_sql --quiet "${@:2}" \
         > "${TMP}/out" 2> "${TMP}/err"; then
     echo "❌ $1 執行失敗" >&2
@@ -69,11 +74,11 @@ run_sql demo.sql --format=pretty
 # 單價用非 global 端點（endpoint 只寫模型名稱時 BigQuery 送到非 global，比 global 高一成）
 IMAGE_TOKENS_MAX="${IMAGE_TOKENS_MAX:-1200}"
 python3 - "${IMAGE_TOKENS_MAX}" <<'PYCOST'
-import sys
+import os, sys
 tin, tout, fx = int(sys.argv[1]), 1024, 32
 lite = 9 * (tin * 0.33 + tout * 2.75) / 1e6
 flash = 3 * (tin * 0.825 + tout * 4.125) / 1e6
-print(f"💰 將呼叫 Gemini 12 次（3.5-flash-lite 9 次、3.6-flash 3 次）")
+print(f"💰 將呼叫 Gemini 12 次（3.5-flash-lite 9 次、{os.environ['GEMINI_MODEL_FLASH']} 3 次）")
 print(f"   最壞情況約 US$ {lite + flash:.4f} ≈ 新台幣 {(lite + flash) * fx:.2f} 元（每次輸入 {tin:,}、輸出 {tout:,} Token 計）")
 PYCOST
 if [[ "${AUTO_YES:-0}" != "1" ]]; then

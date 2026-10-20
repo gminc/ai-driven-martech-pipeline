@@ -2,13 +2,13 @@
 -- 兩種題目 × 三個模型，其中 Pro 只做難題，所以是五個組合，每個組合 24 張廣告圖：
 --   features（簡單題）：看一張廣告圖填五個固定欄位，題目、鎖法與參數和 Day 16 的 features/extract.sql 預設解析度那一輪一模一樣
 --   gaps（難題）    ：廣告圖加上頁面文字，列出對不上的地方，題目、鎖法與參數和 Day 19 的 consistency/compare.sql 給文字那一輪一模一樣
---   模型：gemini-3.5-flash-lite、gemini-3.6-flash、gemini-3.1-pro-preview（只做難題）
+--   模型：gemini-3.5-flash-lite、gemini-3.8-flash、gemini-3.1-pro-preview（只做難題）
 -- 每個組合換的只有 endpoint，題目、response_schema、輸出上限與思考設定都不動
 -- Pro 是預覽版，us 這個位置沒有，只寫模型名稱會被 BigQuery 擋下（Unsupported endpoint），所以 endpoint 寫成 global 端點的完整網址，
 -- 網址裡的 PROJECT_ID 由 run.sh 換成專案 ID，另外兩個模型只寫名稱，走的是非 global 端點
 --   簡單題：output_schema、max_output_tokens 256、thinking_budget 0
 --   難題  ：response_schema（gap_type 用 enum 鎖）、max_output_tokens 2,048（思考 Token 也算在裡面）、thinking_level LOW
--- 前幾天問過的不重問：reuse.sql 已經把 Day 16（簡單題 × flash-lite）與 Day 19（難題 × 3.6-flash）的成功紀錄抄進 mm_bench_log，
+-- 前幾天問過的不重問：reuse.sql 已經把 Day 16（簡單題 × flash-lite）與 Day 19（難題 × 3.8-flash）的成功紀錄抄進 mm_bench_log，
 -- 這裡五段都寫，但只會呼叫「還沒有成功紀錄」的組合，所以第一次執行實際上只呼叫三個組合，執行第二次是 0 次
 -- 直接用 bq query 執行時，要先把 PROJECT_ID 換成自己的專案 ID
 -- @batch_limit：每個組合這次最多呼叫幾張，run.sh 先用 1 試一張（確認模型叫得動、看實際用掉多少 Token），再用 24 跑完
@@ -67,9 +67,9 @@ FROM (
     ROW_NUMBER() OVER (PARTITION BY c.task, c.model ORDER BY m.creative_id) AS rn
   FROM UNNEST([
     STRUCT('features' AS task, 'gemini-3.5-flash-lite' AS model),
-    STRUCT('features', 'gemini-3.6-flash'),
+    STRUCT('features', 'gemini-3.8-flash'),
     STRUCT('gaps', 'gemini-3.5-flash-lite'),
-    STRUCT('gaps', 'gemini-3.6-flash'),
+    STRUCT('gaps', 'gemini-3.8-flash'),
     STRUCT('gaps', 'gemini-3.1-pro-preview')
   ]) AS c
   CROSS JOIN martech_dw.map_creative_landing m
@@ -112,10 +112,10 @@ FROM (
   WHERE t.task = 'features' AND t.model = 'gemini-3.5-flash-lite'
 );
 
--- 簡單題 × gemini-3.6-flash
+-- 簡單題 × gemini-3.8-flash
 INSERT INTO martech_dw.mm_bench_log (run_id, task, model, creative_id, page_id, result,
   prompt_tokens, output_tokens, thoughts_tokens, finish_reason, status, created_at, source, prompt_version, ok)
-SELECT this_run, 'features', 'gemini-3.6-flash', creative_id, CAST(NULL AS STRING),
+SELECT this_run, 'features', 'gemini-3.8-flash', creative_id, CAST(NULL AS STRING),
   TO_JSON_STRING(STRUCT(g.has_person AS has_person, g.cta_position AS cta_position, g.dominant_color AS dominant_color,
     g.text_density AS text_density, g.headline AS headline)),
   SAFE_CAST(JSON_VALUE(g.full_response, '$.usage_metadata.prompt_token_count') AS INT64),
@@ -130,13 +130,13 @@ FROM (
     AI.GENERATE(
       (prompt_b, o.ref),
       connection_id => 'us.vertex_ai_conn',
-      endpoint => 'gemini-3.6-flash',
+      endpoint => 'gemini-3.8-flash',
       output_schema => 'has_person BOOL, cta_position STRING, dominant_color STRING, text_density STRING, headline STRING',
       model_params => JSON '{"generation_config": {"max_output_tokens": 256, "thinking_config": {"thinking_budget": 0}}}'
     ) AS g
   FROM todo t
   JOIN martech_dw.obj_creatives o ON o.uri LIKE CONCAT('%/', t.creative_id, '.jpg')
-  WHERE t.task = 'features' AND t.model = 'gemini-3.6-flash'
+  WHERE t.task = 'features' AND t.model = 'gemini-3.8-flash'
 );
 
 -- 難題 × gemini-3.5-flash-lite
@@ -176,10 +176,10 @@ FROM (
   WHERE t.task = 'gaps' AND t.model = 'gemini-3.5-flash-lite'
 );
 
--- 難題 × gemini-3.6-flash
+-- 難題 × gemini-3.8-flash
 INSERT INTO martech_dw.mm_bench_log (run_id, task, model, creative_id, page_id, result,
   prompt_tokens, output_tokens, thoughts_tokens, finish_reason, status, created_at, source, prompt_version, ok)
-SELECT this_run, 'gaps', 'gemini-3.6-flash', creative_id, page_id, g.result,
+SELECT this_run, 'gaps', 'gemini-3.8-flash', creative_id, page_id, g.result,
   SAFE_CAST(JSON_VALUE(g.full_response, '$.usage_metadata.prompt_token_count') AS INT64),
   SAFE_CAST(JSON_VALUE(g.full_response, '$.usage_metadata.candidates_token_count') AS INT64),
   SAFE_CAST(JSON_VALUE(g.full_response, '$.usage_metadata.thoughts_token_count') AS INT64),
@@ -193,7 +193,7 @@ FROM (
       (CONCAT(t.intro, '附上的圖是廣告圖，那個頁面上看得到的文字放在最後面。\n\n', task_text,
         '\n\n頁面上的文字（由上到下）：\n', t.page_text), a.ref),
       connection_id => 'us.vertex_ai_conn',
-      endpoint => 'gemini-3.6-flash',
+      endpoint => 'gemini-3.8-flash',
       model_params => JSON '''{"generation_config": {
         "max_output_tokens": 2048,
         "thinking_config": {"thinking_level": "LOW"},
@@ -210,7 +210,7 @@ FROM (
     ) AS g
   FROM todo t
   JOIN martech_dw.obj_creatives a ON a.uri LIKE CONCAT('%/', t.creative_id, '.jpg')
-  WHERE t.task = 'gaps' AND t.model = 'gemini-3.6-flash'
+  WHERE t.task = 'gaps' AND t.model = 'gemini-3.8-flash'
 );
 
 -- 難題 × gemini-3.1-pro-preview

@@ -3,7 +3,7 @@
 -- 四輪、每輪三張，共 12 次呼叫：
 --   1. gemini-3.5-flash-lite、預設解析度，第 1 次
 --   2. gemini-3.5-flash-lite、預設解析度，第 2 次（同一張圖問兩次，看措辭一不一樣）
---   3. gemini-3.6-flash、預設解析度（對照一次）
+--   3. gemini-3.8-flash、預設解析度（對照一次）
 --   4. gemini-3.5-flash-lite、低解析度 MEDIA_RESOLUTION_LOW（看一張圖少算多少 Token、描述少了什麼）
 -- endpoint 與 model_params 只能寫常數，所以四輪各寫一段
 -- 這一步會產生 Token 費用，run.sh 會先印出最壞情況的費用再問要不要繼續，只讀 martech_dw，不讀答案表
@@ -44,9 +44,9 @@ FROM (
   CROSS JOIN UNNEST([1, 2]) AS run_no
 );
 
--- 第 3 輪：gemini-3.6-flash、預設解析度，對照一次
+-- 第 3 輪：gemini-3.8-flash、預設解析度，對照一次
 INSERT INTO martech_dw.mm_describe
-SELECT 'gemini-3.6-flash', 'default', 1, creative_id,
+SELECT 'gemini-3.8-flash', 'default', 1, creative_id,
   g.result,
   CAST(JSON_VALUE(g.full_response, '$.usage_metadata.prompt_token_count') AS INT64),
   CAST(JSON_VALUE(g.full_response, '$.usage_metadata.candidates_token_count') AS INT64),
@@ -56,7 +56,7 @@ FROM (
     AI.GENERATE(
       (prompt_text, o.ref),
       connection_id => 'us.vertex_ai_conn',
-      endpoint => 'gemini-3.6-flash',
+      endpoint => 'gemini-3.8-flash',
       model_params => JSON '{"generation_config": {"max_output_tokens": 1024, "thinking_config": {"thinking_budget": 0}}}'
     ) AS g
   FROM martech_dw.obj_creatives o

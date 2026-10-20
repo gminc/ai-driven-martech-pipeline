@@ -8,6 +8,11 @@ set -euo pipefail
 
 cd "$(dirname "$0")"
 DATASET="${DATASET:-martech_dw}"
+# Flash 等級的模型名稱：環境變數 GEMINI_MODEL_FLASH，沒設就用 SQL 裡寫的預設值 gemini-3.8-flash（執行前替換 SQL 裡的 'gemini-3.8-flash'）
+FLASH="${GEMINI_MODEL_FLASH:-gemini-3.8-flash}"
+[[ "${FLASH}" =~ ^[a-z0-9][a-z0-9.-]*$ ]] || { echo "❌ GEMINI_MODEL_FLASH 只能有小寫英數、點與減號，拿到「${FLASH}」"; exit 1; }
+export GEMINI_MODEL_FLASH="${FLASH}"
+[[ "${FLASH}" == "gemini-3.8-flash" ]] || echo "📌 Flash 模型用 ${FLASH}（估價與報表的單價是照 gemini-3.8-flash 算的，單價不同要另外改）"
 
 ACTIVE="$(gcloud auth list --filter=status:ACTIVE --format='value(account)' 2>/dev/null || true)"
 if [[ -z "${ACTIVE}" ]]; then
@@ -35,7 +40,7 @@ TMP="$(mktemp -d)"
 trap 'rm -rf "${TMP}"' EXIT
 
 run_sql() {
-  if ! sed -e "s/martech_dw\./${DATASET}./g" -e "s/PROJECT_ID/${PROJECT}/g" "$1" \
+  if ! sed -e "s/martech_dw\./${DATASET}./g" -e "s/'gemini-3\.8-flash'/'${FLASH}'/g" -e "s/PROJECT_ID/${PROJECT}/g" "$1" \
       | bq --headless --location=US query --nouse_legacy_sql --quiet "${@:2}" \
         > "${TMP}/out" 2> "${TMP}/err"; then
     echo "❌ $1 執行失敗" >&2
@@ -59,8 +64,8 @@ scalar() {
 
 # 五個組合各還有幾張要問（task,model,pending 的 CSV，寫到 $1）：還沒成功、而且「有回答但不算成功」不到兩次的張數，條件要和 bench.sql 的 todo 一樣
 PENDING_SQL="SELECT c.task, c.model, COUNTIF(d.creative_id IS NULL AND x.creative_id IS NULL) AS pending
-FROM UNNEST([STRUCT('features' AS task, 'gemini-3.5-flash-lite' AS model), STRUCT('features', 'gemini-3.6-flash'),
-  STRUCT('gaps', 'gemini-3.5-flash-lite'), STRUCT('gaps', 'gemini-3.6-flash'), STRUCT('gaps', 'gemini-3.1-pro-preview')]) AS c
+FROM UNNEST([STRUCT('features' AS task, 'gemini-3.5-flash-lite' AS model), STRUCT('features', '${FLASH}'),
+  STRUCT('gaps', 'gemini-3.5-flash-lite'), STRUCT('gaps', '${FLASH}'), STRUCT('gaps', 'gemini-3.1-pro-preview')]) AS c
 CROSS JOIN ${DATASET}.map_creative_landing m
 JOIN ${DATASET}.ref_landing_pages p USING (page_id)
 LEFT JOIN (SELECT DISTINCT task, model, creative_id FROM ${DATASET}.mm_bench_log WHERE ok) d
@@ -89,14 +94,12 @@ bq_now() {
   echo "${v}"
 }
 
-# 題目、評分的 SQL 有未 commit 的修改就停下來：看完結果再改題目或評分方式，就不能說是同一份題目了
+# 題目、評分的 SQL 有未 commit 的修改就提醒，並把這次用的版本記進 ops_run_versions：看完結果再改題目或評分方式，就不能說是同一份題目了
+# （原本是直接停下，完賽後改成提醒，題目一字不差另外由下面的靜態檢查與 bench.sql 的 ASSERT 擋）
 # 答案表是 Day 15、Day 16、Day 19 寫好的，評分之後有沒有被改過由 check.sql 第 14 項用指紋檢查
-if git rev-parse --is-inside-work-tree >/dev/null 2>&1; then
-  if [[ -n "$(git status --porcelain -- reuse.sql bench.sql score.sql ../features/extract.sql ../features/review.sql ../consistency/compare.sql ../consistency/pages.sql ../consistency/answers.sql ../creatives/images ../creatives/landing)" ]]; then
-    echo "❌ benchmark/ 的 reuse.sql、bench.sql、score.sql，或 Day 16、Day 19 的題目、頁面文字、答案與圖片有未 commit 的修改（或還沒 commit 過），先 commit 再執行"
-    exit 1
-  fi
-fi
+source ../scripts/run_version.sh
+run_version "Day 20" reuse.sql bench.sql score.sql ../features/extract.sql ../features/review.sql ../consistency/compare.sql ../consistency/pages.sql ../consistency/answers.sql ../creatives/images ../creatives/landing
+run_version_record
 
 # 三項不花錢的檢查放在呼叫之前：題目一字不差、每一段呼叫除了 endpoint 之外和原本的一樣、呼叫模型的 SQL 不讀答案
 # （bench.sql 裡另外有 ASSERT 用指紋再擋一次題目）
@@ -147,8 +150,8 @@ run_sql reuse.sql --format=pretty
 # 另外印一個「照 Day 19 實測的輸出量」的估計：難題輸出含思考以 600 個 Token 計（3.6-flash 實測平均 190、最多 951，Pro 會想比較多）
 estimate() {  # $1 = pending 的 CSV
   python3 - "$1" <<'PYCOST'
-import csv, sys
-price = {"gemini-3.5-flash-lite": (0.33, 2.75), "gemini-3.6-flash": (0.825, 4.125), "gemini-3.1-pro-preview": (2.0, 12.0)}
+import csv, os, sys
+price = {"gemini-3.5-flash-lite": (0.33, 2.75), os.environ["GEMINI_MODEL_FLASH"]: (0.825, 4.125), "gemini-3.1-pro-preview": (2.0, 12.0)}
 shape = {"features": (1600, 256, 80), "gaps": (2900, 2048, 600)}   # 輸入、輸出上限、預期輸出
 fx, worst, likely, n_all = 32, 0.0, 0.0, 0
 for r in csv.DictReader(open(sys.argv[1])):
@@ -168,8 +171,8 @@ confirm() {  # $1 = 問句
 pending_csv "${TMP}/pending.csv"
 # 沿用的兩個組合應該 24 筆都抄到，沒抄滿代表篩選條件沒對上（例如舊紀錄沒有題目指紋），這時不要自動重問
 SHORT="$(python3 -c "
-import csv, sys
-reuse = {('features', 'gemini-3.5-flash-lite'), ('gaps', 'gemini-3.6-flash')}
+import csv, os, sys
+reuse = {('features', 'gemini-3.5-flash-lite'), ('gaps', os.environ['GEMINI_MODEL_FLASH'])}
 print(sum(int(r['pending']) for r in csv.DictReader(open(sys.argv[1])) if (r['task'], r['model']) in reuse))" "${TMP}/pending.csv")"
 if [[ "${SHORT}" != "0" && "${ALLOW_RECALL:-0}" != "1" ]]; then
   echo "❌ 應該沿用的兩個組合還有 ${SHORT} 張沒有成功紀錄（看上面那張表），先停下來，沒有呼叫模型"
@@ -193,8 +196,8 @@ if [[ "${P}" -gt 0 ]]; then
   fi
   pending_csv "${TMP}/pending.csv"
   python3 - "${TMP}/before.csv" "${TMP}/pending.csv" "${TMP}/canary.csv" <<'PYCANARY'
-import csv, sys
-price = {"gemini-3.5-flash-lite": (0.33, 2.75), "gemini-3.6-flash": (0.825, 4.125), "gemini-3.1-pro-preview": (2.0, 12.0)}
+import csv, os, sys
+price = {"gemini-3.5-flash-lite": (0.33, 2.75), os.environ["GEMINI_MODEL_FLASH"]: (0.825, 4.125), "gemini-3.1-pro-preview": (2.0, 12.0)}
 before = {(r["task"], r["model"]): int(r["pending"]) for r in csv.DictReader(open(sys.argv[1]))}
 after = {(r["task"], r["model"]): int(r["pending"]) for r in csv.DictReader(open(sys.argv[2]))}
 seen = {}

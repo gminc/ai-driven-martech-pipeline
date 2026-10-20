@@ -8,6 +8,11 @@ set -euo pipefail
 
 cd "$(dirname "$0")"
 DATASET="${DATASET:-martech_dw}"
+# Flash 等級的模型名稱：環境變數 GEMINI_MODEL_FLASH，沒設就用 SQL 裡寫的預設值 gemini-3.8-flash（執行前替換 SQL 裡的 'gemini-3.8-flash'）
+FLASH="${GEMINI_MODEL_FLASH:-gemini-3.8-flash}"
+[[ "${FLASH}" =~ ^[a-z0-9][a-z0-9.-]*$ ]] || { echo "❌ GEMINI_MODEL_FLASH 只能有小寫英數、點與減號，拿到「${FLASH}」"; exit 1; }
+export GEMINI_MODEL_FLASH="${FLASH}"
+[[ "${FLASH}" == "gemini-3.8-flash" ]] || echo "📌 Flash 模型用 ${FLASH}（估價與報表的單價是照 gemini-3.8-flash 算的，單價不同要另外改）"
 EXPECTED=12   # 3 張圖 × 2 版題目 × 各 2 次
 
 ACTIVE="$(gcloud auth list --filter=status:ACTIVE --format='value(account)' 2>/dev/null || true)"
@@ -31,7 +36,7 @@ TMP="$(mktemp -d)"
 trap 'rm -rf "${TMP}"' EXIT
 
 run_sql() {
-  if ! sed -e "s/martech_dw\./${DATASET}./g" "$1" \
+  if ! sed -e "s/martech_dw\./${DATASET}./g" -e "s/'gemini-3\.8-flash'/'${FLASH}'/g" "$1" \
       | bq --headless --location=US query --nouse_legacy_sql --quiet "${@:2}" \
         > "${TMP}/out" 2> "${TMP}/err"; then
     echo "❌ $1 執行失敗" >&2
@@ -77,7 +82,7 @@ fi
 P="$(pending)"
 [[ "${P}" =~ ^[0-9]+$ ]] || { echo "❌ 算不出這次要呼叫幾次（拿到「${P}」），先停下來，沒有呼叫 Gemini"; exit 1; }
 # 最壞情況：每次輸入以 2,600 個 Token 計（一張圖約 1,100、題目與倍數表約 1,000，留兩成餘裕，這一項是估計值），
-# 輸出以 max_output_tokens 4,096 計（思考 Token 也算在裡面，這一項是上限），單價用 gemini-3.6-flash 非 global 端點
+# 輸出以 max_output_tokens 4,096 計（思考 Token 也算在裡面，這一項是上限），單價用 gemini-3.8-flash 非 global 端點
 python3 - "${P}" <<'PYCOST'
 import sys
 n = int(sys.argv[1])

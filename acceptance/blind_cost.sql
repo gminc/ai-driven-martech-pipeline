@@ -2,7 +2,7 @@
 -- AI.COUNT_TOKENS 只數題目本身，實測每次呼叫還會多約 150–200 個 token（response_schema 也算輸入），這裡多算 200
 -- blind.sql 會跑兩個模型、每個各三次，共 6 次：
 --   gemini-3.5-flash-lite 每百萬 token 輸入 0.33、輸出 2.75 美元
---   gemini-3.6-flash      每百萬 token 輸入 0.825、輸出 4.125 美元（2026/12/31 前的優惠價）
+--   gemini-3.8-flash      每百萬 token 輸入 0.825、輸出 4.125 美元（2026/12/31 前的優惠價）
 --   （非 global 端點的單價，和 Day 09 cost.sql 同一組，2026-09-29 由 global 單價更正，比 global 高一成）
 -- 最壞情況＝每一次都把 max_output_tokens 4096 用滿；新台幣以 1 美元 32 元換算
 
@@ -16,7 +16,7 @@ runs AS (
 ),
 price AS (
   SELECT 'gemini-3.5-flash-lite' AS model, 0.33 AS in_usd, 2.75 AS out_usd
-  UNION ALL SELECT 'gemini-3.6-flash', 0.825, 4.125
+  UNION ALL SELECT 'gemini-3.8-flash', 0.825, 4.125
 ),
 per_model AS (
   SELECT

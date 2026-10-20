@@ -74,7 +74,7 @@ WHERE i.mode = 'image' AND t.mode = 'text' AND i.verdict IN ('hit', 'miss')
 GROUP BY ROLLUP(i.gap_type)
 ORDER BY i.gap_type NULLS LAST;
 
--- ⑧ 費用（呼叫紀錄全部算，包含失敗的呼叫），單價是 gemini-3.6-flash 非 global 端點，每百萬 Token 輸入 US$ 0.825、輸出含思考 US$ 4.125，匯率 32
+-- ⑧ 費用（呼叫紀錄全部算，包含失敗的呼叫），單價是 gemini-3.8-flash 非 global 端點，每百萬 Token 輸入 US$ 0.825、輸出含思考 US$ 4.125，匯率 32
 SELECT mode, page_id,
   COUNT(*) AS calls,
   CAST(ROUND(AVG(prompt_tokens)) AS INT64) AS avg_input_tokens,

@@ -1,6 +1,6 @@
 -- Day 20：建立評測的呼叫紀錄表 mm_bench_log，再把前幾天已經問過、可以直接拿來比的結果抄進來（不呼叫 Gemini，免費）
 --   簡單題（看圖填五個欄位）× gemini-3.5-flash-lite：Day 16 預設解析度那一輪（mm_features_log）
---   難題（廣告圖對頁面文字找落差）× gemini-3.6-flash：Day 19 給文字那一輪（mm_gaps_log，mode = 'text'）
+--   難題（廣告圖對頁面文字找落差）× gemini-3.8-flash：Day 19 給文字那一輪（mm_gaps_log，mode = 'text'）
 -- 抄進來的列保留原本的 run_id 與 created_at，source 記 day16／day19，之後 bench.sql 新問的記 day20
 -- 已經抄過的不會再抄，可以重複執行，只讀 martech_dw，不讀答案表，查詢在每月 1 TiB 免費額度內
 
@@ -40,20 +40,20 @@ WHERE resolution = 'default' AND method = 'output_schema' AND model = 'gemini-3.
     WHERE task = 'features' AND model = 'gemini-3.5-flash-lite' AND ok)
 QUALIFY ROW_NUMBER() OVER (PARTITION BY creative_id ORDER BY created_at DESC) = 1;
 
--- 難題 × 3.6-flash：每張圖取 Day 19 給文字那一輪最新的一筆成功紀錄，題目指紋要和 bench.sql 的一樣
+-- 難題 × 3.8-flash：每張圖取 Day 19 給文字那一輪最新的一筆成功紀錄，題目指紋要和 bench.sql 的一樣
 INSERT INTO martech_dw.mm_bench_log (run_id, task, model, creative_id, page_id, result,
   prompt_tokens, output_tokens, thoughts_tokens, finish_reason, status, created_at, source, prompt_version, ok)
 SELECT run_id, 'gaps', model, creative_id, page_id, result,
   prompt_tokens, output_tokens, thoughts_tokens, finish_reason, status, created_at,
   'day19', prompt_version, TRUE
 FROM martech_dw.mm_gaps_log
-WHERE mode = 'text' AND model = 'gemini-3.6-flash'
+WHERE mode = 'text' AND model = 'gemini-3.8-flash'
   AND prompt_version = '9a7497b1ba445523991489428b9b0af3'
   AND status = '' AND IFNULL(finish_reason, '') != 'MAX_TOKENS'
   AND JSON_QUERY_ARRAY(SAFE.PARSE_JSON(result), '$.gaps') IS NOT NULL
   AND creative_id NOT IN (
     SELECT creative_id FROM martech_dw.mm_bench_log
-    WHERE task = 'gaps' AND model = 'gemini-3.6-flash' AND ok)
+    WHERE task = 'gaps' AND model = 'gemini-3.8-flash' AND ok)
 QUALIFY ROW_NUMBER() OVER (PARTITION BY creative_id ORDER BY created_at DESC) = 1;
 
 SELECT task, model, source, COUNT(*) AS call_rows, COUNTIF(ok) AS ok_rows

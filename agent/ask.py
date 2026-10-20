@@ -26,13 +26,14 @@ from google.genai import types
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 import tools as T  # noqa: E402
 
-MODEL = "gemini-3.6-flash"   # 換模型要連下面的單價一起改
+MODEL = T.FLASH_MODEL   # 環境變數 GEMINI_MODEL_FLASH，沒設是 gemini-3.8-flash，單價從 tools.PRICES 讀
 LOCATION = "global"
 DATASET = T.DATASET
 MAX_STEPS = 4            # 一個問題最多呼叫模型幾次（含最後作答那一次）
 MAX_OUTPUT = 2048        # 每次呼叫的輸出上限，思考 Token 也算在裡面
 INPUT_CAP = 4000         # 每次呼叫的輸入上限，送出前先數，超過就不送
-PRICE_IN, PRICE_OUT, FX = 0.75, 3.75, 32   # gemini-3.6-flash global 端點每百萬 Token 的美元單價、匯率
+PRICE_IN, PRICE_OUT = T.price(MODEL)   # global 端點每百萬 Token 的美元單價
+FX = 32
 EXPECT_IN = {"tools": 1300, "none": 80}    # 估「預期費用」用的每次輸入 Token（估計值）
 EXPECT_OUT = 150
 
@@ -263,7 +264,7 @@ def truth(bq):
     meta = one(f"SELECT SUM(credit_last) l, SUM(credit_decay) d FROM {DATASET}.mart_attribution WHERE channel = 'meta / paid_social'")[0]
     causes = [clean(r["cause"]) for r in one(
         f"""SELECT DISTINCT d.cause FROM {DATASET}.diag_summary s JOIN {DATASET}.mart_diagnosis d USING (anomaly_id)
-            WHERE s.channel = 'meta' AND d.model = 'gemini-3.6-flash' AND IFNULL(d.cause, '') != '' ORDER BY 1""")]
+            WHERE s.channel = 'meta' AND d.model LIKE 'gemini-%-flash' AND IFNULL(d.cause, '') != '' ORDER BY 1""")]
     person = one(f"SELECT stratified v FROM {DATASET}.mart_creative_lift WHERE attr = 'person' AND metric = 'ctr'")[0]["v"]
 
     def num(v):   # 620.4 → 寫 620、620.4 或四捨五入都算對

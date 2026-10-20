@@ -27,6 +27,9 @@ REGION="${REGION:-us-central1}"
 IMAGE_REPO="martech"
 DATASET="${DATASET:-martech_dw}"
 DAILY_CAP_TWD="${DAILY_CAP_TWD:-3}"
+# 助理用的模型：環境變數 GEMINI_MODEL_FLASH，沒設就用 gemini-3.8-flash（gemini-3.6-flash 2026-11-19 停用）
+GEMINI_MODEL_FLASH="${GEMINI_MODEL_FLASH:-gemini-3.8-flash}"
+[[ "${GEMINI_MODEL_FLASH}" =~ ^[a-z0-9][a-z0-9.-]*$ ]] || { echo "❌ GEMINI_MODEL_FLASH 只能有小寫英數、點與減號，拿到「${GEMINI_MODEL_FLASH}」"; exit 1; }
 
 PROJECT_ID="$(gcloud config get-value project 2>/dev/null || true)"
 if [[ -z "${PROJECT_ID}" || "${PROJECT_ID}" == "(unset)" ]]; then
@@ -79,6 +82,18 @@ for T in "fct_ad_daily:Day 07（bash warehouse/build.sh）" "fct_orders:Day 07" 
     exit 1
   }
 done
+
+# 服務第一次處理請求時從單價表讀這個模型今天適用的 global 單價，不是剛好一列就不回答，所以部署前先確認
+PRICE_ROWS="$(bq --headless --location=US query --nouse_legacy_sql --quiet --format=csv \
+  --parameter="model::${GEMINI_MODEL_FLASH}" \
+  "SELECT COUNT(*) FROM ${DATASET}.ref_llm_price WHERE model = @model AND endpoint_type = 'global' AND CURRENT_DATE('Asia/Taipei') BETWEEN valid_from AND valid_to" \
+  2>/dev/null | tail -n 1 || true)"
+if [[ "${PRICE_ROWS}" != "1" ]]; then
+  echo "❌ 單價表 ${DATASET}.ref_llm_price 裡 ${GEMINI_MODEL_FLASH} 今天適用的 global 單價有「${PRICE_ROWS:-查不到}」列，應該剛好 1 列"
+  echo "   先在 monitoring/price.sql 補上這個模型的單價，執行 bash monitoring/run.sh 重建單價表，再部署"
+  exit 1
+fi
+echo "📌 助理用的模型：${GEMINI_MODEL_FLASH}"
 
 echo "── 不花錢的自我檢查 ──"
 python3 "${APP_DIR}/guard.py"
@@ -133,7 +148,7 @@ gcloud run deploy "${SERVICE_NAME}" \
   --cpu 1 \
   --memory 512Mi \
   --timeout 300 \
-  --set-env-vars "GOOGLE_CLOUD_PROJECT=${PROJECT_ID},DATASET=${DATASET},DAILY_CAP_TWD=${DAILY_CAP_TWD}" \
+  --set-env-vars "GOOGLE_CLOUD_PROJECT=${PROJECT_ID},DATASET=${DATASET},DAILY_CAP_TWD=${DAILY_CAP_TWD},GEMINI_MODEL_FLASH=${GEMINI_MODEL_FLASH}" \
   --quiet
 
 # ------------------------------------------------------------------------------

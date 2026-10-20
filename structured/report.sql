@@ -60,17 +60,17 @@ JOIN martech_dw.mm_structured b2 USING (creative_id)
 WHERE b1.round = 'B1' AND b2.round = 'B2'
 ORDER BY 1;
 
--- 6. 實際費用（輸入、輸出 Token 單價：3.5-flash-lite 0.33／2.75、3.6-flash 0.825／4.125 美元每百萬）
+-- 6. 實際費用（輸入、輸出 Token 單價：3.5-flash-lite 0.33／2.75、3.8-flash 0.825／4.125 美元每百萬）
 --    extract.sql 的 endpoint 只寫模型名稱，BigQuery 會送到非 global 端點，單價比 global 高一成（Day 10 實測，見 caching/README.md）
 --    新台幣以 1 美元 32 元換算
 SELECT round, model,
   COUNT(*) AS calls,
   SUM(prompt_tokens) AS input_tokens,
   SUM(output_tokens) AS output_tokens,
-  ROUND(SUM(prompt_tokens * IF(model = 'gemini-3.6-flash', 0.825, 0.33)
-          + output_tokens * IF(model = 'gemini-3.6-flash', 4.125, 2.75)) / 1e6, 5) AS usd,
-  ROUND(SUM(prompt_tokens * IF(model = 'gemini-3.6-flash', 0.825, 0.33)
-          + output_tokens * IF(model = 'gemini-3.6-flash', 4.125, 2.75)) / 1e6 * 32, 3) AS twd
+  ROUND(SUM(prompt_tokens * IF(model = 'gemini-3.8-flash', 0.825, 0.33)
+          + output_tokens * IF(model = 'gemini-3.8-flash', 4.125, 2.75)) / 1e6, 5) AS usd,
+  ROUND(SUM(prompt_tokens * IF(model = 'gemini-3.8-flash', 0.825, 0.33)
+          + output_tokens * IF(model = 'gemini-3.8-flash', 4.125, 2.75)) / 1e6 * 32, 3) AS twd
 FROM martech_dw.mm_structured
 GROUP BY 1, 2
 ORDER BY 1;

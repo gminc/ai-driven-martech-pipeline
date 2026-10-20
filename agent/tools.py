@@ -14,6 +14,26 @@ import re
 from google.cloud import bigquery
 
 DATASET = os.environ.get("DATASET", "martech_dw")
+# 模型名稱從環境變數讀，沒設就用預設值：gemini-3.6-flash 2026-11-19 停用，2026-10 起預設改成官方建議的 gemini-3.8-flash
+FLASH_MODEL = os.environ.get("GEMINI_MODEL_FLASH", "gemini-3.8-flash")
+LITE_MODEL = os.environ.get("GEMINI_MODEL_LITE", "gemini-3.5-flash-lite")
+# global 端點每百萬 Token 的美元單價：(模型, 生效日, 到哪天, 輸入, 輸出)，和 monitoring/price.sql 的 global 列相同，只用來估價與設花費上限
+PRICES = [
+    ("gemini-3.8-flash", "2026-09-02", "2026-12-31", 0.75, 3.75),
+    ("gemini-3.8-flash", "2027-01-01", "9999-12-31", 1.50, 7.50),
+    ("gemini-3.6-flash", "2026-07-21", "2026-12-31", 0.75, 3.75),
+    ("gemini-3.6-flash", "2027-01-01", "9999-12-31", 1.50, 7.50),
+    ("gemini-3.5-flash-lite", "2026-07-21", "9999-12-31", 0.30, 2.50),
+]
+
+
+def price(model, day=None):
+    """回傳 (輸入, 輸出) 每百萬 Token 的美元單價，找不到就停下來，不讓估價和花費上限用錯的單價"""
+    day = day or datetime.date.today().isoformat()
+    hit = [(i, o) for m, a, b, i, o in PRICES if m == model and a <= day <= b]
+    if len(hit) != 1:
+        raise SystemExit(f"❌ agent/tools.py 的 PRICES 沒有 {model} 在 {day} 適用的單價（找到 {len(hit)} 列），先補上再執行")
+    return hit[0]
 MAX_BYTES = 100 * 1024 * 1024   # 單次查詢最多掃 100 MB，超過就失敗、不收費
 MAX_ROWS = 20                   # 回給模型的列數上限，結果越長下一輪的輸入 Token 越多
 DATA_START, DATA_END = "2026-06-19", "2026-09-16"
@@ -236,7 +256,7 @@ SELECT s.level, s.entity, IFNULL(NULLIF(s.channel, ''), 'all_site') AS channel, 
   s.cpc_chg_pct, s.ctr_chg_pct, SUBSTR(d.cause, 1, 40) AS cause, SUBSTR(d.evidence, 1, 120) AS evidence, d.confidence
 FROM {DATASET}.diag_summary s
 LEFT JOIN {DATASET}.mart_diagnosis d
-  ON d.anomaly_id = s.anomaly_id AND d.model = 'gemini-3.6-flash'
+  ON d.anomaly_id = s.anomaly_id AND d.model LIKE 'gemini-%-flash'   -- Day 09 的 Flash 那一輪（不含 flash-lite），換模型前後存的判讀都讀得到
 WHERE @channel = 'all' OR s.channel = @channel OR IFNULL(s.channel, '') = ''
 ORDER BY s.period_start"""
     rows, billed = _query(client, sql, [bigquery.ScalarQueryParameter("channel", "STRING", channel)])

@@ -31,13 +31,11 @@ python3 -c "from google import genai; from google.cloud import bigquery" 2>/dev/
   exit 1
 }
 
-# 問題、工具定義有未 commit 的修改就停下來：看完結果再改題目或工具說明，就不能說是同一份題目了
-if git rev-parse --is-inside-work-tree >/dev/null 2>&1; then
-  if [[ -n "$(git status --porcelain -- ask.py tools.py)" ]]; then
-    echo "❌ agent/ask.py 或 agent/tools.py 有未 commit 的修改（或還沒 commit 過），先 commit 再執行"
-    exit 1
-  fi
-fi
+# 問題、工具定義有未 commit 的修改就提醒，並把這次用的版本記進 ops_run_versions：看完結果再改題目或工具說明，就不能說是同一份題目了
+# （原本是直接停下，完賽後改成提醒，見 scripts/run_version.sh；ask.py 另外把題目指紋寫進每一筆紀錄）
+source ../scripts/run_version.sh
+run_version "Day 21" ask.py tools.py
+run_version_record
 
 TMP="$(mktemp -d)"
 trap 'rm -rf "${TMP}"' EXIT

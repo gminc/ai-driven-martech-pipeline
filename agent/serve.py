@@ -58,7 +58,7 @@ sys.path.insert(0, HERE)
 import guard as G  # noqa: E402
 import tools as T  # noqa: E402
 
-MODEL = "gemini-3.6-flash"   # 單價從 Day 25 的單價表 ref_llm_price 讀，換模型要先確定單價表有這個模型
+MODEL = T.FLASH_MODEL   # 環境變數 GEMINI_MODEL_FLASH，沒設是 gemini-3.8-flash，單價從 Day 25 的單價表 ref_llm_price 讀，換模型要先確定單價表有這個模型
 LOCATION = "global"
 ENDPOINT_TYPE = "global"
 DATASET = T.DATASET

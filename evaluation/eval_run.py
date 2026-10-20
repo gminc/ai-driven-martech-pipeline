@@ -42,9 +42,9 @@ DATASET = T.DATASET
 MODES = ("tools", "none")
 # 官方範例用 us-central1，但 2026-10-07 實測那裡找不到這兩個評分模型（回 404），端點和模型都改用 global 才通
 EVAL_LOCATION = os.environ.get("EVAL_LOCATION", "global")
-JUDGES = [j for j in os.environ.get("JUDGES", "gemini-3.6-flash,gemini-3.5-flash-lite").split(",") if j]
-# 每百萬 Token 的美元單價（輸入, 輸出），global 端點的價格，換模型或換地區要一起改
-JUDGE_PRICE = {"gemini-3.6-flash": (0.75, 3.75), "gemini-3.5-flash-lite": (0.30, 2.50)}
+JUDGES = [j for j in os.environ.get("JUDGES", f"{T.FLASH_MODEL},{T.LITE_MODEL}").split(",") if j]
+# 每百萬 Token 的美元單價（輸入, 輸出），global 端點的價格，從 agent/tools.py 的 PRICES 讀，換地區要另外改
+JUDGE_PRICE = {j: T.price(j) for j in JUDGES}
 JUDGE_MAX_OUT = 768       # 評分模型每次的輸出上限（思考也算在裡面）。evaluation service 不回報用掉幾個 Token，估價一律用這個上限算
 INPUT_MARGIN = 1.3        # 服務自己會在評分說明外面再加輸出格式的要求，輸入 Token 多估三成
 FX = 32

@@ -48,15 +48,11 @@ python3 -c "from google import genai; from google.cloud import bigquery; import 
 }
 
 # 題目、標準答案、評分規則、評分標準都在 eval_run.py，助理的工具在 agent/
-# 有未 commit 的修改就停下來：看完回答再改題目或標準答案，分數就不能信了
-if ! git rev-parse --is-inside-work-tree >/dev/null 2>&1; then
-  echo "❌ 這裡不是 git 儲存庫，沒辦法確認題目在問之前就定下來了，請在 clone 下來的儲存庫裡執行"
-  exit 1
-fi
-if [[ -n "$(git status --porcelain -- eval_run.py ../agent/ask.py ../agent/tools.py)" ]]; then
-  echo "❌ evaluation/eval_run.py、agent/ask.py 或 agent/tools.py 有未 commit 的修改（或還沒 commit 過），先 commit 再執行"
-  exit 1
-fi
+# 有未 commit 的修改就提醒，並把這次用的版本記進 ops_run_versions：看完回答再改題目或標準答案，分數就不能信了
+# （原本是直接停下，完賽後改成提醒，見 scripts/run_version.sh；人工評分要先 commit 的規定不變，在 judge 那一步檢查）
+source ../scripts/run_version.sh
+run_version "Day 24" eval_run.py ../agent/ask.py ../agent/tools.py
+run_version_record
 
 TMP="$(mktemp -d)"
 trap 'rm -rf "${TMP}"' EXIT
@@ -92,6 +88,10 @@ case "${STEP}" in
     ;;
   judge)
     # 人的分數要在評分模型開始之前 commit，commit 的時間就是「人先評完」的證據
+    if ! git rev-parse --is-inside-work-tree >/dev/null 2>&1; then
+      echo "❌ 這裡不是 git 儲存庫，沒辦法用 commit 時間證明人工評分在評分模型之前完成，請在 clone 下來的儲存庫裡執行 judge"
+      exit 1
+    fi
     if [[ ! -f human_labels.csv || -n "$(git status --porcelain -- human_labels.csv)" ]]; then
       echo "❌ evaluation/human_labels.csv 還沒有 commit（或 commit 之後又改過），先 commit 再請評分模型評分"
       exit 1

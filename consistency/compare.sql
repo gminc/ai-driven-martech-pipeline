@@ -9,7 +9,7 @@
 --
 -- 寫法沿用 Day 18：AI.GENERATE 搭配 response_schema（gap_type 用 enum 鎖在八個選項裡），跑過的不重跑（只補還沒成功的組合），
 -- 每次呼叫都記進 mm_gaps_log，再抄一份進共用的 Token 用量表 ops_llm_usage（Day 25 用）
--- 模型用 gemini-3.6-flash，thinking_level 設 LOW，思考 Token 也算在 max_output_tokens 裡，上限 2,048
+-- 模型用 gemini-3.8-flash，thinking_level 設 LOW，思考 Token 也算在 max_output_tokens 裡，上限 2,048
 -- 這一步會產生 Token 費用，run.sh 會先印出估價再問要不要繼續
 -- 只讀 martech_dw（對照表、頁面文字、兩張物件表），不讀答案表，對答案在 score.sql，run.sh 會用 grep 確認
 -- endpoint 與 model_params 只能寫常數、兩種給法傳進去的東西也不一樣，所以各寫一段
@@ -94,7 +94,7 @@ WHERE d.creative_id IS NULL;
 -- image：廣告圖＋頁面截圖三段
 INSERT INTO martech_dw.mm_gaps_log (run_id, mode, creative_id, page_id, model, result, gaps,
   prompt_tokens, output_tokens, thoughts_tokens, finish_reason, status, created_at, prompt_version)
-SELECT this_run, 'image', creative_id, page_id, 'gemini-3.6-flash', g.result,
+SELECT this_run, 'image', creative_id, page_id, 'gemini-3.8-flash', g.result,
   ARRAY_LENGTH(JSON_QUERY_ARRAY(SAFE.PARSE_JSON(g.result), '$.gaps')),
   CAST(JSON_VALUE(g.full_response, '$.usage_metadata.prompt_token_count') AS INT64),
   CAST(JSON_VALUE(g.full_response, '$.usage_metadata.candidates_token_count') AS INT64),
@@ -106,7 +106,7 @@ FROM (
     AI.GENERATE(
       (CONCAT(t.intro, '第一張圖是廣告圖，後面三張圖是那個頁面的截圖，由上到下切成三段，相鄰兩段有一小部分重疊。\n\n', task_text), a.ref, l1.ref, l2.ref, l3.ref),
       connection_id => 'us.vertex_ai_conn',
-      endpoint => 'gemini-3.6-flash',
+      endpoint => 'gemini-3.8-flash',
       model_params => JSON '''{"generation_config": {
         "max_output_tokens": 2048,
         "thinking_config": {"thinking_level": "LOW"},
@@ -132,7 +132,7 @@ FROM (
 -- text：廣告圖＋頁面文字
 INSERT INTO martech_dw.mm_gaps_log (run_id, mode, creative_id, page_id, model, result, gaps,
   prompt_tokens, output_tokens, thoughts_tokens, finish_reason, status, created_at, prompt_version)
-SELECT this_run, 'text', creative_id, page_id, 'gemini-3.6-flash', g.result,
+SELECT this_run, 'text', creative_id, page_id, 'gemini-3.8-flash', g.result,
   ARRAY_LENGTH(JSON_QUERY_ARRAY(SAFE.PARSE_JSON(g.result), '$.gaps')),
   CAST(JSON_VALUE(g.full_response, '$.usage_metadata.prompt_token_count') AS INT64),
   CAST(JSON_VALUE(g.full_response, '$.usage_metadata.candidates_token_count') AS INT64),
@@ -145,7 +145,7 @@ FROM (
       (CONCAT(t.intro, '附上的圖是廣告圖，那個頁面上看得到的文字放在最後面。\n\n', task_text,
         '\n\n頁面上的文字（由上到下）：\n', t.page_text), a.ref),
       connection_id => 'us.vertex_ai_conn',
-      endpoint => 'gemini-3.6-flash',
+      endpoint => 'gemini-3.8-flash',
       model_params => JSON '''{"generation_config": {
         "max_output_tokens": 2048,
         "thinking_config": {"thinking_level": "LOW"},
