@@ -264,7 +264,7 @@ def truth(bq):
     meta = one(f"SELECT SUM(credit_last) l, SUM(credit_decay) d FROM {DATASET}.mart_attribution WHERE channel = 'meta / paid_social'")[0]
     causes = [clean(r["cause"]) for r in one(
         f"""SELECT DISTINCT d.cause FROM {DATASET}.diag_summary s JOIN {DATASET}.mart_diagnosis d USING (anomaly_id)
-            WHERE s.channel = 'meta' AND d.model LIKE 'gemini-%-flash' AND IFNULL(d.cause, '') != '' ORDER BY 1""")]
+            WHERE s.channel = 'meta' AND d.model != 'gemini-3.5-flash-lite' AND IFNULL(d.cause, '') != '' ORDER BY 1""")]
     person = one(f"SELECT stratified v FROM {DATASET}.mart_creative_lift WHERE attr = 'person' AND metric = 'ctr'")[0]["v"]
 
     def num(v):   # 620.4 → 寫 620、620.4 或四捨五入都算對

@@ -1,6 +1,7 @@
 # 給各天的 run.sh 用 source 載入：記下這次執行用的是哪個 commit、題目與判準的檔案有沒有未 commit 的修改
 # 原本這幾天遇到未 commit 的修改就直接停下，連只是換個模型都會被擋住（Day 29 第 5 章），完賽後改成只提醒，
-# 並把當下的版本寫進 martech_dw.ops_run_versions，事後要確認某次結果是不是用 commit 過的題目跑的，查這張表就好
+# 並在每次啟動時把當下的版本寫進 martech_dw.ops_run_versions（還沒按 yes、最後取消的執行也會留一列），
+# 這張表沒有和結果表共用的 run_id，事後要確認某次結果用的版本，用執行時間對照結果表的建立時間
 #
 # 用法（在 run.sh 裡）：
 #   source ../scripts/run_version.sh

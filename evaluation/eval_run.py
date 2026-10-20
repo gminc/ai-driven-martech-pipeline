@@ -353,7 +353,9 @@ def judge_cost(judge, prompt_tokens):
 # ── 各個步驟 ─────────────────────────────────────────────────────────────────
 def step_answers(bq, project, dry):
     from google import genai
-    done = {(r["case_id"], r["mode"]) for r in latest_answers(bq)}
+    # 只算用目前這一版題目與設定（指紋相同，模型也算在指紋裡）問過的，換模型之後會重問，不會卡在 need_all_answers 的舊指紋檢查
+    sp_now = spec()
+    done = {(r["case_id"], r["mode"]) for r in latest_answers(bq) if r["spec"] == sp_now}
     todo = [(q, m) for q in QUESTIONS for m in MODES if (q["id"], m) not in done]
     if not todo:
         log_usage(bq)   # 上一次如果中途被打斷，用量在這裡補抄

@@ -91,9 +91,11 @@ ORDER BY verdict, gap_type, ad_keyword, creative_id, model;
 -- ⑨ 費用：avg_* 與 twd_per_1000 只看成功的呼叫，twd_per_1000 是照這次的平均用量問 1,000 張要多少新台幣
 --    spent_twd 是紀錄表裡每一列加起來（包含失敗與重問的），沿用的兩個組合只抄了成功的那 24 筆，當天失敗的不在裡面
 WITH price AS (
-  SELECT * FROM UNNEST([
+  -- 3.6 Flash 那一列給換模型之前留在紀錄表裡的舊紀錄算費用（到 2026-12-31 和 3.8 同價），DISTINCT 是怕 GEMINI_MODEL_FLASH 設成 3.6 時重複
+  SELECT DISTINCT * FROM UNNEST([
     STRUCT('gemini-3.5-flash-lite' AS model, 0.33 AS usd_in, 2.75 AS usd_out),
     STRUCT('gemini-3.8-flash', 0.825, 4.125),
+    STRUCT('gemini-3.6-flash', 0.825, 4.125),
     STRUCT('gemini-3.1-pro-preview', 2.0, 12.0)
   ])
 )
@@ -115,9 +117,11 @@ ORDER BY 1, 2;
 
 -- ⑩ 一張表看完：答對幾成、問 1,000 張多少錢
 WITH price AS (
-  SELECT * FROM UNNEST([
+  -- 3.6 Flash 那一列給換模型之前留在紀錄表裡的舊紀錄算費用（到 2026-12-31 和 3.8 同價），DISTINCT 是怕 GEMINI_MODEL_FLASH 設成 3.6 時重複
+  SELECT DISTINCT * FROM UNNEST([
     STRUCT('gemini-3.5-flash-lite' AS model, 0.33 AS usd_in, 2.75 AS usd_out),
     STRUCT('gemini-3.8-flash', 0.825, 4.125),
+    STRUCT('gemini-3.6-flash', 0.825, 4.125),
     STRUCT('gemini-3.1-pro-preview', 2.0, 12.0)
   ])
 ),

@@ -73,7 +73,7 @@ PARTITION BY report_date
 OPTIONS (description = 'Day 28 Slack 通知紀錄：kind 是 anomaly、daily_report、report_incomplete 或 flow_error，status 是 sent 或 failed，只加不刪');
 
 -- 異常警報的文字在這裡組好，流程只負責挑出該送的列再送出去
--- 異常是 Day 09 的 diag_summary，判讀取 Flash 那一輪（model LIKE 'gemini-%-flash'，不含 flash-lite，和助理的查異常工具用同一個條件，換模型前後存的判讀都讀得到）
+-- 異常是 Day 09 的 diag_summary，判讀取對照模型那一輪（model 不是主跑的 gemini-3.5-flash-lite，mart_diagnosis 只有這兩個模型，和助理的查異常工具用同一個條件，換模型前後存的判讀都讀得到）
 -- data_through 是廣告資料最新的一天，流程沒有帶 as_of 的時候就拿它當今天
 CREATE OR REPLACE VIEW martech_dw.v_anomaly_alerts AS
 SELECT
@@ -102,4 +102,4 @@ SELECT
   ) AS message
 FROM martech_dw.diag_summary s
 LEFT JOIN martech_dw.mart_diagnosis d
-  ON d.anomaly_id = s.anomaly_id AND d.model LIKE 'gemini-%-flash';
+  ON d.anomaly_id = s.anomaly_id AND d.model != 'gemini-3.5-flash-lite';

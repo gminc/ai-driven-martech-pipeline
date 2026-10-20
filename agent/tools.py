@@ -29,11 +29,13 @@ PRICES = [
 
 def price(model, day=None):
     """回傳 (輸入, 輸出) 每百萬 Token 的美元單價，找不到就停下來，不讓估價和花費上限用錯的單價"""
-    day = day or datetime.date.today().isoformat()
+    # 用台北日期，和 serve.py、deploy_assistant.sh 讀單價表用的 CURRENT_DATE('Asia/Taipei') 一致（Cloud Shell 的時區是 UTC）
+    day = day or (datetime.datetime.now(datetime.timezone.utc) + datetime.timedelta(hours=8)).date().isoformat()
     hit = [(i, o) for m, a, b, i, o in PRICES if m == model and a <= day <= b]
     if len(hit) != 1:
         raise SystemExit(f"❌ agent/tools.py 的 PRICES 沒有 {model} 在 {day} 適用的單價（找到 {len(hit)} 列），先補上再執行")
     return hit[0]
+
 MAX_BYTES = 100 * 1024 * 1024   # 單次查詢最多掃 100 MB，超過就失敗、不收費
 MAX_ROWS = 20                   # 回給模型的列數上限，結果越長下一輪的輸入 Token 越多
 DATA_START, DATA_END = "2026-06-19", "2026-09-16"
@@ -256,7 +258,7 @@ SELECT s.level, s.entity, IFNULL(NULLIF(s.channel, ''), 'all_site') AS channel, 
   s.cpc_chg_pct, s.ctr_chg_pct, SUBSTR(d.cause, 1, 40) AS cause, SUBSTR(d.evidence, 1, 120) AS evidence, d.confidence
 FROM {DATASET}.diag_summary s
 LEFT JOIN {DATASET}.mart_diagnosis d
-  ON d.anomaly_id = s.anomaly_id AND d.model LIKE 'gemini-%-flash'   -- Day 09 的 Flash 那一輪（不含 flash-lite），換模型前後存的判讀都讀得到
+  ON d.anomaly_id = s.anomaly_id AND d.model != 'gemini-3.5-flash-lite'   -- Day 09 的對照那一輪（mart_diagnosis 只有主跑的 flash-lite 與對照兩個模型），換模型前後存的判讀都讀得到
 WHERE @channel = 'all' OR s.channel = @channel OR IFNULL(s.channel, '') = ''
 ORDER BY s.period_start"""
     rows, billed = _query(client, sql, [bigquery.ScalarQueryParameter("channel", "STRING", channel)])
