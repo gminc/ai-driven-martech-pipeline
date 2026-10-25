@@ -6,10 +6,14 @@
 -- 每個組合換的只有 endpoint，題目、response_schema、輸出上限與思考設定都不動
 -- Pro 是預覽版，us 這個位置沒有，只寫模型名稱會被 BigQuery 擋下（Unsupported endpoint），所以 endpoint 寫成 global 端點的完整網址，
 -- 網址裡的 PROJECT_ID 由 run.sh 換成專案 ID，另外兩個模型只寫名稱，走的是非 global 端點
---   簡單題：output_schema、max_output_tokens 256、thinking_budget 0
+--   簡單題：output_schema、max_output_tokens 256、thinking_budget 0；Flash 有回答但欄位是空值或不在選項裡的，
+--           下一次執行時比照 Day 16 的補救段改用 response_schema 的 enum 再問一次（method 記 response_schema，題目不變），
+--           計分用的是補問之後的回答；flash-lite 沿用 Day 16 主要那一輪（Day 16 那一輪全部在選項裡，features/check.sql 第 6 項），
+--           所以兩個模型都是「output_schema 的回答在選項裡就用，不在才看 enum」，報表 ① 會列出哪幾張是補問來的
 --   難題  ：response_schema（gap_type 用 enum 鎖）、max_output_tokens 2,048（思考 Token 也算在裡面）、thinking_level LOW
 -- 前幾天問過的不重問：reuse.sql 已經把 Day 16（簡單題 × flash-lite）與 Day 19（難題 × 3.8-flash）的成功紀錄抄進 mm_bench_log，
--- 這裡五段都寫，但只會呼叫「還沒有成功紀錄」的組合，所以第一次執行實際上只呼叫三個組合，執行第二次是 0 次
+-- 這裡六段都寫（五個組合加上簡單題 × Flash 的 enum 補問），但只會呼叫「還沒有成功紀錄」的，所以第一次執行實際上只呼叫三個組合，
+-- 全部成功時執行第二次是 0 次；簡單題 × Flash 有回答但不算成功的那幾張，第二次執行會改用 enum 補問
 -- 直接用 bq query 執行時，要先把 PROJECT_ID 換成自己的專案 ID
 -- @batch_limit：每個組合這次最多呼叫幾張，run.sh 先用 1 試一張（確認模型叫得動、看實際用掉多少 Token），再用 24 跑完
 -- 這一步會產生 Token 費用，run.sh 會先印出估價再問要不要繼續
@@ -58,6 +62,10 @@ DECLARE gaps_version STRING DEFAULT TO_HEX(MD5(task_text));
 ASSERT features_version = 'd53bb63969eaa3a6febf02caaacdeb6a' AS '簡單題的題目和 Day 16 的 features/extract.sql 不一樣';
 ASSERT gaps_version = '9a7497b1ba445523991489428b9b0af3' AS '難題的題目和 Day 19 的 consistency/compare.sql 不一樣';
 
+-- method：這次呼叫的鎖法，空值是主要那一輪（簡單題 output_schema、難題 response_schema），response_schema 是簡單題用 enum 補問的那一次
+ALTER TABLE martech_dw.mm_bench_log ADD COLUMN IF NOT EXISTS method STRING
+  OPTIONS (description = '空值＝主要那一輪；response_schema＝簡單題 × Flash 主要那一輪有回答但有欄位是空值或不在選項裡，改用 enum 補問的那一次');
+
 -- 這次要問的：五個組合 × 24 張廣告圖，扣掉已經有成功紀錄的與不再問的，每個組合最多取 batch_limit 張
 CREATE TEMP TABLE todo AS
 SELECT task, model, creative_id, page_id, page_text, intro
@@ -81,7 +89,33 @@ FROM (
   LEFT JOIN (SELECT task, model, creative_id FROM martech_dw.mm_bench_log
              WHERE source = 'day20' AND NOT ok AND status = '' GROUP BY 1, 2, 3 HAVING COUNT(*) >= 2) x
     ON x.task = c.task AND x.model = c.model AND x.creative_id = m.creative_id
-  WHERE d.creative_id IS NULL AND x.creative_id IS NULL
+  -- 簡單題 × Flash：主要那一輪已經有回答、但不算成功的圖，不再用 output_schema 問，改由下面的 enum_todo 補問
+  LEFT JOIN (SELECT DISTINCT creative_id FROM martech_dw.mm_bench_log
+             WHERE source = 'day20' AND task = 'features' AND model = 'gemini-3.8-flash'
+               AND NOT ok AND status = '' AND method IS NULL) a
+    ON c.task = 'features' AND c.model = 'gemini-3.8-flash' AND a.creative_id = m.creative_id
+  WHERE d.creative_id IS NULL AND x.creative_id IS NULL AND a.creative_id IS NULL
+)
+WHERE rn <= batch_limit;
+
+-- 簡單題 × Flash 要用 enum 補問的圖（和 Day 16 features/extract.sql 的補救段同一個做法、同一段 response_schema）：
+-- 主要那一輪（output_schema）有回答、但有欄位是空值或不在選項裡，還沒有成功紀錄，也還沒有用 enum 問到回答的
+-- 在任何呼叫之前就算好，所以一次執行裡每張圖只會被呼叫一次（主要那一輪或 enum 其中一個），run.sh 的估價與第 18 項檢查都照這個算
+-- enum 呼叫本身出錯（status 不是空字串，例如被限流，這種不收費）的下次照樣重問；enum 有回答但還是不算成功的就不再問
+-- 2026-10-25 實測 gemini-3.8-flash 用 output_schema 時，24 張有 16 張把 cta_position、dominant_color 回成空值（flash-lite 沒有這個情況）
+CREATE TEMP TABLE enum_todo AS
+SELECT creative_id
+FROM (
+  SELECT l.creative_id, ROW_NUMBER() OVER (ORDER BY l.creative_id) AS rn
+  FROM (SELECT DISTINCT creative_id FROM martech_dw.mm_bench_log
+        WHERE source = 'day20' AND task = 'features' AND model = 'gemini-3.8-flash'
+          AND NOT ok AND status = '' AND method IS NULL) l
+  JOIN martech_dw.map_creative_landing m ON m.creative_id = l.creative_id
+  JOIN martech_dw.ref_landing_pages p ON p.page_id = m.page_id
+  WHERE NOT EXISTS (
+    SELECT 1 FROM martech_dw.mm_bench_log k
+    WHERE k.task = 'features' AND k.model = 'gemini-3.8-flash' AND k.creative_id = l.creative_id
+      AND (k.ok OR (k.method = 'response_schema' AND k.status = '')))
 )
 WHERE rn <= batch_limit;
 
@@ -96,8 +130,9 @@ SELECT this_run, 'features', 'gemini-3.5-flash-lite', creative_id, CAST(NULL AS 
   SAFE_CAST(JSON_VALUE(g.full_response, '$.usage_metadata.thoughts_token_count') AS INT64),
   JSON_VALUE(g.full_response, '$.candidates[0].finish_reason'),
   g.status, CURRENT_TIMESTAMP(), 'day20', features_version,
-  IFNULL(g.status = '' AND g.has_person IS NOT NULL AND g.cta_position IS NOT NULL AND g.dominant_color IS NOT NULL
-    AND g.text_density IS NOT NULL AND g.headline IS NOT NULL AND g.headline != '', FALSE)
+  IFNULL(g.status = '' AND g.has_person IS NOT NULL AND g.cta_position IN ('center', 'bottom_right', 'none')
+    AND g.dominant_color IN ('warm', 'cool', 'neutral') AND g.text_density IN ('low', 'high')
+    AND g.headline IS NOT NULL AND g.headline != '', FALSE)
 FROM (
   SELECT t.creative_id,
     AI.GENERATE(
@@ -123,8 +158,9 @@ SELECT this_run, 'features', 'gemini-3.8-flash', creative_id, CAST(NULL AS STRIN
   SAFE_CAST(JSON_VALUE(g.full_response, '$.usage_metadata.thoughts_token_count') AS INT64),
   JSON_VALUE(g.full_response, '$.candidates[0].finish_reason'),
   g.status, CURRENT_TIMESTAMP(), 'day20', features_version,
-  IFNULL(g.status = '' AND g.has_person IS NOT NULL AND g.cta_position IS NOT NULL AND g.dominant_color IS NOT NULL
-    AND g.text_density IS NOT NULL AND g.headline IS NOT NULL AND g.headline != '', FALSE)
+  IFNULL(g.status = '' AND g.has_person IS NOT NULL AND g.cta_position IN ('center', 'bottom_right', 'none')
+    AND g.dominant_color IN ('warm', 'cool', 'neutral') AND g.text_density IN ('low', 'high')
+    AND g.headline IS NOT NULL AND g.headline != '', FALSE)
 FROM (
   SELECT t.creative_id,
     AI.GENERATE(
@@ -137,6 +173,54 @@ FROM (
   FROM todo t
   JOIN martech_dw.obj_creatives o ON o.uri LIKE CONCAT('%/', t.creative_id, '.jpg')
   WHERE t.task = 'features' AND t.model = 'gemini-3.8-flash'
+);
+
+-- 簡單題 × Flash 的 enum 補問（要問哪幾張在上面的 enum_todo，呼叫之前就算好了）
+INSERT INTO martech_dw.mm_bench_log (run_id, task, model, creative_id, page_id, result,
+  prompt_tokens, output_tokens, thoughts_tokens, finish_reason, status, created_at, source, prompt_version, ok, method)
+SELECT this_run, 'features', 'gemini-3.8-flash', creative_id, CAST(NULL AS STRING),
+  TO_JSON_STRING(STRUCT(has_person, cta_position, dominant_color, text_density, headline)),
+  prompt_tokens, output_tokens, thoughts_tokens, finish_reason, status, CURRENT_TIMESTAMP(), 'day20', features_version,
+  IFNULL(status = '' AND has_person IS NOT NULL
+    AND cta_position IN ('center', 'bottom_right', 'none')
+    AND dominant_color IN ('warm', 'cool', 'neutral')
+    AND text_density IN ('low', 'high')
+    AND headline IS NOT NULL AND headline != '', FALSE),
+  'response_schema'
+FROM (
+  SELECT x.creative_id,
+    SAFE_CAST(JSON_VALUE(x.g.result, '$.has_person') AS BOOL) AS has_person,
+    JSON_VALUE(x.g.result, '$.cta_position') AS cta_position,
+    JSON_VALUE(x.g.result, '$.dominant_color') AS dominant_color,
+    JSON_VALUE(x.g.result, '$.text_density') AS text_density,
+    JSON_VALUE(x.g.result, '$.headline') AS headline,
+    SAFE_CAST(JSON_VALUE(x.g.full_response, '$.usage_metadata.prompt_token_count') AS INT64) AS prompt_tokens,
+    SAFE_CAST(JSON_VALUE(x.g.full_response, '$.usage_metadata.candidates_token_count') AS INT64) AS output_tokens,
+    SAFE_CAST(JSON_VALUE(x.g.full_response, '$.usage_metadata.thoughts_token_count') AS INT64) AS thoughts_tokens,
+    JSON_VALUE(x.g.full_response, '$.candidates[0].finish_reason') AS finish_reason,
+    x.g.status AS status
+  FROM (
+    SELECT e.creative_id,
+      AI.GENERATE(
+        (prompt_b, o.ref),
+        connection_id => 'us.vertex_ai_conn',
+        endpoint => 'gemini-3.8-flash',
+        model_params => JSON '''{"generation_config": {
+          "max_output_tokens": 256,
+          "thinking_config": {"thinking_budget": 0},
+          "response_mime_type": "application/json",
+          "response_schema": {"type": "OBJECT", "properties": {
+            "has_person": {"type": "BOOLEAN"},
+            "cta_position": {"type": "STRING", "enum": ["center", "bottom_right", "none"]},
+            "dominant_color": {"type": "STRING", "enum": ["warm", "cool", "neutral"]},
+            "text_density": {"type": "STRING", "enum": ["low", "high"]},
+            "headline": {"type": "STRING"}
+          }, "required": ["has_person", "cta_position", "dominant_color", "text_density", "headline"]}
+        }}'''
+      ) AS g
+    FROM enum_todo e
+    JOIN martech_dw.obj_creatives o ON o.uri LIKE CONCAT('%/', e.creative_id, '.jpg')
+  ) x
 );
 
 -- 難題 × gemini-3.5-flash-lite

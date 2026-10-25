@@ -1,6 +1,7 @@
 -- Day 20：流程檢查，一列＝一項，ok 欄位是 OK 或 DIFF（run.sh 再補第 18、19、20 項，共 20 項）
 -- 檢查的是「評測有沒有照設計跑完、比的是不是同一份題目和答案」，各模型答對幾成在 report.sql 看
 -- 會讀答案表，查詢在每月 1 TiB 免費額度內
+-- 單獨執行時，mm_bench_log 要先有 method 欄位（2026-10-25 加的，跑過一次新版的 reuse.sql 或 run.sh 就會補上）
 
 WITH
 ok_log AS (
@@ -80,11 +81,11 @@ checks AS (
             SELECT 1 FROM martech_dw.mm_bench_log earlier
             WHERE earlier.task = later.task AND earlier.model = later.model AND earlier.creative_id = later.creative_id
               AND earlier.ok AND earlier.created_at < later.created_at)) AS STRING)
-  -- 同一段 INSERT 裡同一張圖被呼叫兩次（例如物件表裡有兩個檔案對到同一個 creative_id）
-  UNION ALL SELECT '16 duplicate calls in one batch', '0',
+  -- 一次執行裡同一張圖在同一個組合被呼叫兩次（例如物件表裡有兩個檔案對到同一個 creative_id，或主要那一輪和 enum 補問重複）
+  UNION ALL SELECT '16 one call per image per execution', '0',
     CAST((SELECT COUNT(*) FROM (
             SELECT 1 FROM martech_dw.mm_bench_log
-            GROUP BY run_id, task, model, creative_id, created_at HAVING COUNT(*) > 1)) AS STRING)
+            GROUP BY run_id, task, model, creative_id HAVING COUNT(*) > 1)) AS STRING)
   -- 沿用 Day 16 的那一組，四個分類欄位要和 Day 16 的特徵表一樣（特徵表裡用 enum 補問過的圖不比，這裡沿用的是補問之前的那一筆）
   UNION ALL SELECT '17 lite features same as day 16 table', '0',
     CAST((SELECT COUNT(*) FROM martech_dw.mart_bench_features b

@@ -63,7 +63,10 @@ scalar() {
 }
 
 # 五個組合各還有幾張要問（task,model,pending 的 CSV，寫到 $1）：還沒成功、而且「有回答但不算成功」不到兩次的張數，條件要和 bench.sql 的 todo 一樣
-PENDING_SQL="SELECT c.task, c.model, COUNTIF(d.creative_id IS NULL AND x.creative_id IS NULL) AS pending
+# 簡單題 × Flash 例外：主要那一輪有回答但不算成功的圖改用 enum 補問（bench.sql 的 enum_todo），用 enum 問到回答還是不算成功的才不再問，
+# 一次執行裡每張圖只會被呼叫一次（主要那一輪或 enum 其中一個），所以這裡的張數就是下一次執行的呼叫次數
+PENDING_SQL="SELECT c.task, c.model,
+  COUNTIF(d.creative_id IS NULL AND IF(c.task = 'features' AND c.model = '${FLASH}', y.creative_id IS NULL, x.creative_id IS NULL)) AS pending
 FROM UNNEST([STRUCT('features' AS task, 'gemini-3.5-flash-lite' AS model), STRUCT('features', '${FLASH}'),
   STRUCT('gaps', 'gemini-3.5-flash-lite'), STRUCT('gaps', '${FLASH}'), STRUCT('gaps', 'gemini-3.1-pro-preview')]) AS c
 CROSS JOIN ${DATASET}.map_creative_landing m
@@ -73,6 +76,9 @@ LEFT JOIN (SELECT DISTINCT task, model, creative_id FROM ${DATASET}.mm_bench_log
 LEFT JOIN (SELECT task, model, creative_id FROM ${DATASET}.mm_bench_log
            WHERE source = 'day20' AND NOT ok AND status = '' GROUP BY 1, 2, 3 HAVING COUNT(*) >= 2) x
   ON x.task = c.task AND x.model = c.model AND x.creative_id = m.creative_id
+LEFT JOIN (SELECT DISTINCT task, model, creative_id FROM ${DATASET}.mm_bench_log
+           WHERE source = 'day20' AND NOT ok AND status = '' AND method = 'response_schema') y
+  ON y.task = c.task AND y.model = c.model AND y.creative_id = m.creative_id
 GROUP BY 1, 2 ORDER BY 1, 2"
 pending_csv() {
   if ! bq --headless --location=US query --nouse_legacy_sql --quiet --format=csv "${PENDING_SQL}" > "$1" 2> "${TMP}/pending_err"; then
@@ -123,9 +129,10 @@ bench, day16, day19 = read("bench.sql"), read("../features/extract.sql"), read("
 prompts = (block(bench, "prompt_b") is not None and block(bench, "prompt_b") == block(day16, "prompt_b")
            and block(bench, "task_text") is not None and block(bench, "task_text") == block(day19, "task_text"))
 b, d16, d19 = calls(bench), calls(day16), calls(day19)
-# Day 16 第一段是預設解析度，Day 19 第二段是給文字，bench.sql 前兩段是簡單題、後三段是難題
-same = (len(b) == 5 and len(d16) >= 1 and len(d19) == 2
-        and b[0] == b[1] == d16[0] and b[2] == b[3] == b[4] == d19[1]
+# Day 16 第一段是預設解析度、第三段是 enum 補救，Day 19 第二段是給文字
+# bench.sql 前兩段是簡單題、第三段是簡單題 × Flash 的 enum 補救、後三段是難題
+same = (len(b) == 6 and len(d16) == 3 and len(d19) == 2
+        and b[0] == b[1] == d16[0] and b[2] == d16[2] and b[3] == b[4] == b[5] == d19[1]
         and intro(bench) is not None and intro(bench) == intro(day19))
 leak = []
 for f in ("reuse.sql", "bench.sql"):
@@ -183,14 +190,16 @@ estimate "${TMP}/pending.csv"
 P="$(pending_total "${TMP}/pending.csv")"
 
 if [[ "${P}" -gt 0 ]]; then
-  confirm "先讓每個還沒問完的組合各試一張（最多 5 次呼叫），看模型叫不叫得動、實際用掉多少 Token，"
+  confirm "先讓每個還沒問完的組合各試一張（最多 5 次呼叫，簡單題 × Flash 若要用 enum 補問會再多 1 次），看模型叫不叫得動、實際用掉多少 Token，"
   cp "${TMP}/pending.csv" "${TMP}/before.csv"
   T0="$(bq_now)"
   echo "🧪 每個組合先試一張（bench.sql，batch_limit = 1）"
   run_sql bench.sql --format=pretty --parameter=batch_limit:INT64:1
-  # 試跑那幾筆：每個還沒問完的組合都要剛好一筆，而且要成功，少一筆或有失敗都停下來
+  # 試跑那幾筆：每個還沒問完的組合都要有成功的一筆，沒有就停下來
+  # 簡單題 × Flash 例外：模型有回答（status 是空字串）就算叫得動，回答不在選項裡的下一次執行會用 enum 補問
+  # （一個組合最多兩筆：一張圖的主要那一輪、另一張圖的 enum 補問，費用取兩筆的平均）
   if ! bq --headless --location=US query --nouse_legacy_sql --quiet --format=csv \
-    "SELECT task, model, CAST(ok AS STRING) AS ok, IFNULL(prompt_tokens, 0) AS tin, IFNULL(output_tokens, 0) + IFNULL(thoughts_tokens, 0) AS tout
+    "SELECT task, model, CAST(ok AS STRING) AS ok, IFNULL(status, 'missing') AS status, IFNULL(prompt_tokens, 0) AS tin, IFNULL(output_tokens, 0) + IFNULL(thoughts_tokens, 0) AS tout
      FROM ${DATASET}.mm_bench_log WHERE source = 'day20' AND created_at >= TIMESTAMP '${T0}'" > "${TMP}/canary.csv" 2> "${TMP}/canary_err"; then
     echo "❌ 讀不到試跑的紀錄，先停下來，其餘的沒有呼叫" >&2; cat "${TMP}/canary_err" >&2; exit 1
   fi
@@ -208,10 +217,14 @@ for key, n0 in before.items():
     if n0 == 0:
         continue
     rows = seen.get(key, [])
-    if len(rows) != 1 or rows[0]["ok"] != "true":
+    answered = key == ("features", os.environ["GEMINI_MODEL_FLASH"]) and any(r["status"] == "" for r in rows)
+    if not rows or len(rows) > 2 or not (any(r["ok"] == "true" for r in rows) or answered):
         bad.append(f"{key[0]} × {key[1]}：試跑 {len(rows)} 筆、成功 {sum(r['ok'] == 'true' for r in rows)} 筆")
         continue
-    tin, tout = int(rows[0]["tin"]), int(rows[0]["tout"]); pin, pout = price[key[1]]
+    if not any(r["ok"] == "true" for r in rows):
+        print(f"   {key[0]:<9}{key[1]:<24}試跑有回答但不在選項裡，跑完其餘的之後，再執行一次 run.sh 會用 enum 補問")
+    n = len(rows)
+    tin, tout = sum(int(r["tin"]) for r in rows) // n, sum(int(r["tout"]) for r in rows) // n; pin, pout = price[key[1]]
     one = (tin * pin + tout * pout) / 1e6 * 32
     c = after[key] * one
     total += c

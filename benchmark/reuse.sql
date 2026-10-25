@@ -19,9 +19,14 @@ CREATE TABLE IF NOT EXISTS martech_dw.mm_bench_log (
   created_at      TIMESTAMP,
   source          STRING,
   prompt_version  STRING,
-  ok              BOOL
+  ok              BOOL,
+  method          STRING OPTIONS (description = '空值＝主要那一輪；response_schema＝簡單題 × Flash 主要那一輪有回答但有欄位是空值或不在選項裡，改用 enum 補問的那一次')
 )
 OPTIONS (description = 'Day 20 模型評測的呼叫紀錄：一列＝一次呼叫（題目 features／gaps × 模型 × 廣告圖），result 是模型回的 JSON，ok 是這次呼叫算不算成功，source 是 day16／day19（沿用舊紀錄）或 day20（這次新問的）');
+
+-- 2026-10-25 加了 method 欄位，之前建的表在這裡補上（run.sh 算還有幾張要問時會讀這個欄位）
+ALTER TABLE martech_dw.mm_bench_log ADD COLUMN IF NOT EXISTS method STRING
+  OPTIONS (description = '空值＝主要那一輪；response_schema＝簡單題 × Flash 主要那一輪有回答但有欄位是空值或不在選項裡，改用 enum 補問的那一次');
 
 -- 簡單題 × flash-lite：每張圖取 Day 16 預設解析度、output_schema 那一輪最新的一筆成功紀錄
 -- Day 16 的紀錄表沒有存題目的指紋，這裡填的是 features/extract.sql 現在那一版 prompt_b 的指紋（run.sh 會確認三個檔案裡的題目一字不差）
