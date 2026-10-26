@@ -420,8 +420,9 @@ run_report:
                                     auth:
                                       type: OIDC
                                       audience: ${assistant_url}
-                                    # 流程等 150 秒就放棄，助理那一邊可能還在跑，逾時的那一題錢可能已經花了
-                                    timeout: 150
+                                    # 流程等 310 秒，比 Cloud Run 的 300 秒長一點：助理那一邊一句最多 270 秒，時間到會自己停下來回應
+                                    # 真的逾時代表助理那一邊出了狀況，那一題錢可能已經花了
+                                    timeout: 310
                                   result: resp
                               # 助理不管有沒有答出來都回 HTTP 200，真正的結果在 status 欄位，要自己看
                               - read_answer:

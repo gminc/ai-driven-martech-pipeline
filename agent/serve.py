@@ -105,7 +105,17 @@ SAFETY_ON = [
               "HARM_CATEGORY_SEXUALLY_EXPLICIT", "HARM_CATEGORY_DANGEROUS_CONTENT")
 ]
 
-CALL_TIMEOUT_MS = 20000    # 每次呼叫模型最多等幾毫秒，一輪最多 4 次，加上查詢與寫紀錄要小於 Cloud Run 的 300 秒
+# 時間上限：Cloud Run 的請求逾時是 300 秒（deploy_assistant.sh 的 --timeout 300），一句話要在那之前回應
+# gemini-3.8-flash 單次呼叫常超過 20 秒，所以每次呼叫放寬到 45 秒，改成整句共用一份 270 秒的預算，
+# 270 是給 300 秒留 30 秒餘裕（請求進來前的排隊、Flask 本身、回應送出去的時間）
+CALL_TIMEOUT_MS = 45000    # 每次呼叫模型最多等幾毫秒
+COUNT_TIMEOUT_MS = 10000   # 每次數 Token 最多等幾毫秒
+TOOL_TIMEOUT_S = 20        # 每次工具查詢的時間目標（秒），見 tools.py 的 QUERY_TIMEOUT_S
+STATE_QUERY_TIMEOUT_S = 15   # 對帳與接回對話這兩個查詢最多等幾秒
+LOG_RESERVE_S = 25         # 留給寫紀錄的時間：一定寫完才回應，下一句可能在新的執行個體從 serve_turns 接回對話
+REQUEST_BUDGET_S = 270     # 一句話從收到到回應的預算，改 Cloud Run 的 --timeout 要一起改
+STEP_RESERVE_S = COUNT_TIMEOUT_MS / 1000 + CALL_TIMEOUT_MS / 1000 + LOG_RESERVE_S   # 再走一步要留的時間（80 秒）
+T.QUERY_TIMEOUT_S = TOOL_TIMEOUT_S
 # 顧客資料獨佔的範圍在這裡是一整場對話，拒絕的原因要跟著改，不然模型會照 Day 23 的說法請使用者「開一個新的問題」
 ISOLATED = {
     G.ISOLATED_AFTER_OTHERS: "這場對話已經查過其他資料，程式不再提供顧客資料，顧客資料要在另一場對話單獨問，請使用者按「開新對話」",
@@ -122,6 +132,9 @@ MSG = {
     "incomplete": "這一題沒有在上限內答完，請把問題拆小一點再問一次。",
     "error": "這一題處理時出了狀況，沒有回答，請稍後再試。",
     "unavailable": "助理現在沒辦法使用，請稍後再試或找資料管理者。",
+    "slow": "模型這次回得比較慢，這一題沒有在時間上限內答完，請稍後再問一次。",
+    "waited": "這一句前面等太久（上一句還在處理或服務剛啟動），沒有送出，請再問一次。",
+    "busy": "這場對話的上一句還在處理，這一句沒有送出，請等上一句回來再問。",
 }
 
 TURN_SCHEMA = [
@@ -314,7 +327,7 @@ WHERE model = @model AND endpoint_type = @endpoint
 SELECT IFNULL(SUM(prompt_tokens), 0) AS p, IFNULL(SUM(output_tokens), 0) AS o, CURRENT_DATE('Asia/Taipei') AS d
 FROM {DATASET}.ops_llm_usage
 WHERE job = @job AND DATE(logged_at, 'Asia/Taipei') = CURRENT_DATE('Asia/Taipei')
-  AND DATE(logged_at) >= DATE_SUB(CURRENT_DATE(), INTERVAL 1 DAY)""", job_config=cfg).result(timeout=15))[0]
+  AND DATE(logged_at) >= DATE_SUB(CURRENT_DATE(), INTERVAL 1 DAY)""", job_config=cfg).result(timeout=STATE_QUERY_TIMEOUT_S))[0]
         return (used["p"] * price_in + used["o"] * price_out) / 1e6 * FX, used["d"]
 
     spent, _day = read_spent()
@@ -340,7 +353,7 @@ FROM {DATASET}.serve_turns
 WHERE session_id = @sid AND caller = @caller AND created_at >= TIMESTAMP_SUB(CURRENT_TIMESTAMP(), INTERVAL 1 DAY)
 ORDER BY turn, created_at""", job_config=bigquery.QueryJobConfig(maximum_bytes_billed=T.MAX_BYTES, query_parameters=[
                 bigquery.ScalarQueryParameter("sid", "STRING", session_id),
-                bigquery.ScalarQueryParameter("caller", "STRING", caller)])).result(timeout=15))
+                bigquery.ScalarQueryParameter("caller", "STRING", caller)])).result(timeout=STATE_QUERY_TIMEOUT_S))
         except Exception as e:
             event("ERROR", "session_load_failed", session_id=session_id, error=f"{type(e).__name__}: {str(e)[:300]}")
             return None
@@ -400,20 +413,27 @@ def set_state(state):
 
 
 # ── 問一輪 ─────────────────────────────────────────────────────────────────
+def _mono():
+    """時間預算一律用這個時鐘（不受系統校時影響），測試時換成假的"""
+    return time.monotonic()
+
+
 def count_input(st, contents):
     try:
         return st.client.models.count_tokens(model=MODEL, contents=contents, config=types.CountTokensConfig(
-            system_instruction=st.config.system_instruction, tools=st.config.tools)).total_tokens
+            system_instruction=st.config.system_instruction, tools=st.config.tools,
+            http_options=types.HttpOptions(timeout=COUNT_TIMEOUT_MS))).total_tokens
     except Exception as e:
         event("WARNING", "count_failed", error=f"{type(e).__name__}: {str(e)[:200]}")
         return None
 
 
-def run_turn(st, sess, question, usage, called=None):
+def run_turn(st, sess, question, usage, called=None, deadline=None):
     """問一輪，回傳 serve_turns 的一列，每一次模型呼叫的用量加進 usage（中途出錯，已經花掉的也還在裡面）
 
     called 是這一輪執行過的工具，同樣由呼叫端給清單：中途出錯時呼叫端還拿得到，紀錄表才不會漏記用過的工具
     （執行個體換掉之後，顧客資料獨佔是靠紀錄表裡的這一欄接回來的）
+    deadline 是這一句要在什麼時候（_mono() 的時間）之前回應，剩下的時間不夠再走一步就停，status 記成 turn_deadline
     sess["contents"] 是整場對話的紀錄，這一輪完整通過才會把新的內容留在裡面，其他情況一律還原
     sess["used"] 與 sess["known_pii"] 只加不減：工具只要執行過，不管這一輪最後有沒有留在紀錄裡都算數
     """
@@ -424,6 +444,7 @@ def run_turn(st, sess, question, usage, called=None):
            "action": "", "tools_called": "[]", "model_calls": 0, "prompt_tokens": 0, "output_tokens": 0,
            "cost_twd": 0.0, "status": "", "kept_in_history": False}
     called = [] if called is None else called
+    deadline = _mono() + REQUEST_BUDGET_S if deadline is None else deadline
     scrubbed, refused, stop = [], [], ""
 
     def spend(step, p_tok, o_tok, status=""):
@@ -449,6 +470,11 @@ def run_turn(st, sess, question, usage, called=None):
     if hits:
         return done(MSG["input_blocked"], "input_blocked")
 
+    # 前面（接回對話、等同一場對話的上一句）已經用掉太多時間，連對帳加走一步都不夠，就不開始
+    if deadline - _mono() < STATE_QUERY_TIMEOUT_S + STEP_RESERVE_S:
+        row["status"] = "turn_deadline"
+        return done(MSG["waited"], "incomplete")
+
     if not st.refresh_budget():   # 對不了帳就不花錢
         row["status"] = "error:budget_sync"
         return done(MSG["unavailable"], "error")
@@ -456,6 +482,9 @@ def run_turn(st, sess, question, usage, called=None):
     contents.append(types.Content(role="user", parts=[types.Part(text=question)]))
     answer = ""
     for step in range(1, MAX_STEPS + 1):
+        if deadline - _mono() < STEP_RESERVE_S:   # 數 Token、呼叫模型、寫紀錄都等到上限的話會超過預算
+            row["status"], stop = "turn_deadline", "incomplete"
+            break
         n_in = count_input(st, contents)
         if n_in is None:
             row["status"], stop = "error:count_failed", "error"
@@ -505,6 +534,9 @@ def run_turn(st, sess, question, usage, called=None):
         if step == MAX_STEPS:
             row["status"], stop = "max_steps", "incomplete"
             break
+        if deadline - _mono() < len(fcs) * TOOL_TIMEOUT_S + STEP_RESERVE_S:   # 工具查完也沒時間再問模型，就不查
+            row["status"], stop = "turn_deadline", "incomplete"
+            break
         contents.append(cand.content)
         parts = []
         for f in fcs:
@@ -526,7 +558,7 @@ def run_turn(st, sess, question, usage, called=None):
         contents.append(types.Content(role="user", parts=parts))
 
     if stop:
-        return done(MSG[stop], stop)
+        return done(MSG["slow"] if row["status"] == "turn_deadline" else MSG[stop], stop)
 
     # 輸出檢查（減速帶），最後一律封出口（保證）
     row["raw_answer"] = answer
@@ -659,17 +691,22 @@ def chat():
     question = G.drop_invisible(question).strip()
     if not question or len(question) > MAX_QUESTION:
         return jsonify(error=f"問題要在 1 到 {MAX_QUESTION} 個字之間"), 400
+    deadline = _mono() + REQUEST_BUDGET_S   # 從這裡開始算：服務剛啟動的準備、接回對話、等上一句都算在這一句的預算裡
     st = get_state()
     if st is None:
         return jsonify(answer=MSG["unavailable"], status="unavailable"), 503
     sess, how = st.sessions.get(session_id, caller_email(), st.load_session)
-    with sess["lock"]:   # 同一場對話一次只處理一句
+    # 同一場對話一次只處理一句。等上一句最多等到還夠對帳加走一步，等不到就不送出，也不寫紀錄（沒有問過模型）
+    if not sess["lock"].acquire(timeout=max(0, deadline - _mono() - STATE_QUERY_TIMEOUT_S - STEP_RESERVE_S)):
+        return jsonify(session_id=sess["id"], answer=MSG["busy"], status="incomplete", turn=sess["turns"],
+                       turns_left=MAX_TURNS - sess["turns"], restarted=False, restored=how == "restored")
+    try:
         if sess["turns"] >= MAX_TURNS:
             return jsonify(session_id=sess["id"], answer=MSG["max_turns"], status="max_turns", turns_left=0,
                            restarted=False, restored=how == "restored")
         keep, usage, called = len(sess["contents"]), [], []
         try:
-            row = run_turn(st, sess, question, usage, called)
+            row = run_turn(st, sess, question, usage, called, deadline)
         except Exception as e:   # 沒料到的錯：這一輪不留在對話紀錄裡，已經花掉的用量照樣寫
             del sess["contents"][keep:]
             event("ERROR", "turn_failed", session_id=sess["id"], turn=sess["turns"], error=f"{type(e).__name__}: {str(e)[:300]}")
@@ -681,6 +718,8 @@ def chat():
                    "cost_twd": sum(st.cost(r["prompt_tokens"], r["output_tokens"]) for r in usage),
                    "status": f"error:unexpected:{type(e).__name__}", "kept_in_history": False, "created_at": now()}
         write_logs(st, row, usage)
+    finally:
+        sess["lock"].release()
     event("INFO", "turn", session_id=row["session_id"], turn=row["turn"], action=row["action"], status=row["status"],
           model_calls=row["model_calls"], cost_twd=round(row["cost_twd"], 4), budget_left_twd=round(st.budget.left(), 4))
     return jsonify(session_id=sess["id"], answer=row["final_answer"], status=row["action"],

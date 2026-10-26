@@ -10,6 +10,7 @@ import json
 import os
 import sys
 import threading
+import time
 
 os.environ.setdefault("GOOGLE_CLOUD_PROJECT", "selftest-project")
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
@@ -24,6 +25,7 @@ class FakeModels:
 
     def __init__(self):
         self.script, self.calls, self.tokens, self.count_fails = [], 0, 100, False
+        self.tick = None   # 每次呼叫模型時先執行，時間預算的測試用它讓假時鐘往前走
 
     def count_tokens(self, model, contents, config):
         if self.count_fails:
@@ -31,6 +33,8 @@ class FakeModels:
         return types.CountTokensResponse(total_tokens=self.tokens)
 
     def generate_content(self, model, contents, config):
+        if self.tick:
+            self.tick()
         self.calls += 1
         kind, *rest = self.script.pop(0)
         if kind == "raise":
@@ -77,12 +81,15 @@ TOOL_RESULTS = {
     "get_top_customers": {"rows": [{"name": "王○○", "email": "a***@example.com", "phone": "0912-***-678"}]},
 }
 TOOL_CALLS = []
+TOOL_HOOK = [None]   # 每次執行工具時先執行，時間預算的測試用它讓假時鐘往前走
 
 
 def fake_tool(bq, name, args, mask_pii=True):
     assert mask_pii is True, "服務裡個資一定要遮蔽"
     if name == "explode":
         raise KeyError("unexpected")
+    if TOOL_HOOK[0]:
+        TOOL_HOOK[0]()
     TOOL_CALLS.append(name)
     withheld = ["王小明", "abcdef12@example.com", "0912345678"] if name == "get_top_customers" else []
     return json.loads(json.dumps(TOOL_RESULTS[name])), 0, withheld
@@ -95,6 +102,7 @@ def fresh_state(spent=0.0, cap=3.0):
     S.set_state(st)
     LOGS.update(usage=[], turns=[], fail_usage=False, fail_turns=False)
     del TOOL_CALLS[:]
+    TOOL_HOOK[0] = None
     return st, client.models
 
 
@@ -468,6 +476,87 @@ def main():
     ok(d["status"] == "passed" and st.log_broken is True, "用量寫不進去：這一句照樣回答，但服務標成不能再花錢")
     d = ask(c, "再問一句", session_id=d["session_id"]).get_json()
     ok(d["status"] == "daily_cap" and m.calls == 1, "之後不再呼叫模型")
+
+    # ── 六、一句話的時間預算（假時鐘，不真的等） ──
+    clk, real_mono = [0.0], S._mono
+
+    def walk(seconds):
+        return lambda: clk.__setitem__(0, clk[0] + seconds)
+
+    def slow_sessions(st, seconds):
+        real_get = st.sessions.get
+        st.sessions.get = lambda *a, **k: walk(seconds)() or real_get(*a, **k)
+
+    try:
+        S._mono = lambda: clk[0]
+        st, m = fresh_state()
+        m.tick = walk(60)
+        m.script = [("call", [("get_ad_spend", {})])] * S.MAX_STEPS
+        d = ask(c, "一直查，模型很慢").get_json()
+        ok(m.calls == 3 and TOOL_CALLS == ["get_ad_spend"] * 2 and d["answer"] == S.MSG["slow"] and d["status"] == "incomplete"
+           and LOGS["turns"][-1]["status"] == "turn_deadline" and len(LOGS["usage"]) == 3
+           and st.sessions._d[d["session_id"]]["contents"] == [],
+           "每次呼叫 60 秒：第 3 次呼叫之後剩下的時間不夠查工具再問，工具不跑、這一輪不留、用量照記")
+        st, m = fresh_state()
+        m.tick, TOOL_HOOK[0] = walk(60), walk(50)
+        m.script = [("call", [("get_ad_spend", {})])] * S.MAX_STEPS
+        d = ask(c, "查詢也很慢").get_json()
+        ok(m.calls == 2 and TOOL_CALLS == ["get_ad_spend"] * 2 and d["answer"] == S.MSG["slow"]
+           and LOGS["turns"][-1]["status"] == "turn_deadline", "呼叫 60 秒加工具 50 秒：剩下的時間不夠再走一步，第 3 次不呼叫")
+        st, m = fresh_state()
+        m.tick = walk(160)
+        m.script = [("call", [("get_ad_spend", {}), ("get_campaign_notes", {"campaign": "all"})])]
+        d = ask(c, "一次要兩個工具").get_json()
+        ok(m.calls == 1 and TOOL_CALLS == [] and d["answer"] == S.MSG["slow"] and LOGS["turns"][-1]["tools_called"] == "[]",
+           "一次要兩個工具、呼叫走了 160 秒：兩個工具的時間加上再走一步不夠，工具都不跑")
+        st, m = fresh_state()
+        synced = []
+        st.read_spent = lambda: synced.append(1) or (_ for _ in ()).throw(RuntimeError("bq down"))
+        st._synced_at -= S.BUDGET_SYNC_SECONDS + 1   # 這一句本來該對帳
+        slow_sessions(st, 180)
+        m.script = [("text", "不該被問到")]
+        d = ask(c, "接回對話等很久").get_json()
+        ok(d["answer"] == S.MSG["waited"] and m.calls == 0 and not synced and LOGS["turns"][-1]["status"] == "turn_deadline",
+           "接回對話用掉 180 秒：剩下的不夠對帳加走一步，不呼叫也不對帳，回「等太久」")
+        st, m = fresh_state()
+        held, _ = st.sessions.get("", "amy@example.com")
+        held["lock"].acquire()
+        slow_sessions(st, 260)
+        got, began = [], time.monotonic()
+        th = threading.Thread(target=lambda: got.append(ask(c, "上一句還沒回來", session_id=held["id"]).get_json()))
+        try:
+            th.start()
+            th.join(timeout=5)
+            spent_s = time.monotonic() - began
+        finally:
+            held["lock"].release()
+            th.join()
+        ok(spent_s < 1 and got and got[0]["answer"] == S.MSG["busy"] and got[0]["status"] == "incomplete"
+           and m.calls == 0 and not LOGS["turns"] and not LOGS["usage"],
+           "同一場對話的上一句還在跑、又已經等了 260 秒：不排隊，1 秒內回「上一句還在處理」，不寫紀錄")
+        seen = {}
+
+        class FakeJob:
+            total_bytes_billed = 0
+
+            def result(self, **kw):
+                seen["result"] = kw
+                return []
+
+        class FakeQueryClient:
+            def query(self, sql, **kw):
+                seen["query"] = kw
+                return FakeJob()
+
+        T._query(FakeQueryClient(), "SELECT 1", [])
+        q, r, half = seen["query"], seen["result"], S.TOOL_TIMEOUT_S / 2
+        ok(int(q["job_config"].job_timeout_ms or 0) == S.TOOL_TIMEOUT_S * 1000 and q.get("timeout") == half
+           and getattr(q.get("retry"), "deadline", None) == half and "job_retry" in q and q["job_retry"] is None
+           and r.get("timeout") == half and getattr(r.get("retry"), "deadline", None) == half
+           and "job_retry" in r and r["job_retry"] is None and r.get("max_results") == T.MAX_ROWS,
+           "工具查詢帶了 BigQuery 那邊的逾時、送出與等結果各自的時間、重試的期限，失敗不整個重送")
+    finally:
+        S._mono, TOOL_HOOK[0] = real_mono, None
     S.set_state(None)
     S._STATE_FAILED_AT = 0.0
     S.build_state = lambda: (_ for _ in ()).throw(RuntimeError("no bigquery"))

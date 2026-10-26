@@ -12,6 +12,7 @@
 # 這支腳本只會加人不會減人，要移除某個帳號請用 gcloud run services remove-iam-policy-binding
 #
 # 這支腳本本身不呼叫模型，建置與部署都在免費額度內，部署好之後有人發問才會產生 Token 費用
+# --timeout 300 是 agent/serve.py 的 REQUEST_BUDGET_S（270 秒）與流程、serve_try.py 等 310 秒的依據，改要一起改
 # 需要 Day 25 之後的 Terraform 已經套用（映像檔存放區 martech、服務帳號 martech-assistant）
 # ==============================================================================
 

@@ -38,6 +38,9 @@ def price(model, day=None):
 
 MAX_BYTES = 100 * 1024 * 1024   # 單次查詢最多掃 100 MB，超過就失敗、不收費
 MAX_ROWS = 20                   # 回給模型的列數上限，結果越長下一輪的輸入 Token 越多
+# 每次查詢的時間目標（秒），None 是不限（終端機的程式），服務（serve.py）會設成 20
+# 這是目標不是硬上限：連線卡住時函式庫等結果最少要 120 秒才放棄，BigQuery 本身出狀況時還是可能等更久
+QUERY_TIMEOUT_S = None
 DATA_START, DATA_END = "2026-06-19", "2026-09-16"
 
 ATTRIBUTION_MODELS = {"first_touch": "credit_first", "last_touch": "credit_last", "time_decay": "credit_decay"}
@@ -208,9 +211,19 @@ def _only(args, allowed, tool):
 
 
 def _query(client, sql, params):
-    job = client.query(sql, job_config=bigquery.QueryJobConfig(
-        query_parameters=params, maximum_bytes_billed=MAX_BYTES, use_query_cache=True))
-    rows = [dict(r) for r in job.result(max_results=MAX_ROWS)]
+    cfg = bigquery.QueryJobConfig(query_parameters=params, maximum_bytes_billed=MAX_BYTES, use_query_cache=True)
+    if QUERY_TIMEOUT_S is None:
+        job = client.query(sql, job_config=cfg)
+        rows = [dict(r) for r in job.result(max_results=MAX_ROWS)]
+    else:
+        # 送出與等結果各分一半時間，重試也限在那一半裡；job_retry=None 是失敗的查詢不整個重送一次
+        # job_timeout_ms 讓 BigQuery 那邊時間到就取消查詢，不會在背景繼續跑
+        half = QUERY_TIMEOUT_S / 2
+        cfg.job_timeout_ms = int(QUERY_TIMEOUT_S * 1000)
+        job = client.query(sql, job_config=cfg, timeout=half,
+                           retry=bigquery.DEFAULT_RETRY.with_deadline(half), job_retry=None)
+        rows = [dict(r) for r in job.result(max_results=MAX_ROWS, timeout=half,
+                                            retry=bigquery.DEFAULT_RETRY.with_deadline(half), job_retry=None)]
     for r in rows:
         for k, v in r.items():
             if isinstance(v, (datetime.date, datetime.datetime)):

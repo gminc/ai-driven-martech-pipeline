@@ -7,6 +7,7 @@
 這支程式只是一個客戶端，上限與護欄都在服務那一邊，每日上限是從服務目前的設定讀回來的
 """
 import argparse
+import http.client
 import json
 import os
 import subprocess
@@ -44,11 +45,13 @@ def call(url, token="", body=None, headers=None):
         data = json.dumps(body).encode()
         h.setdefault("Content-Type", "application/json")
     req = urllib.request.Request(url, data=data, headers=h, method="POST" if body is not None else "GET")
-    try:
-        with urllib.request.urlopen(req, timeout=150) as r:
+    try:   # 等 310 秒，比 Cloud Run 的 300 秒長一點：服務一句最多 270 秒，時間到會自己停下來回應
+        with urllib.request.urlopen(req, timeout=310) as r:
             return r.status, r.read().decode("utf-8", "replace")
     except urllib.error.HTTPError as e:
         return e.code, e.read().decode("utf-8", "replace")
+    except (OSError, http.client.HTTPException) as e:   # 逾時、連線中斷：沒拿到回應，用 0 表示
+        return 0, f"{type(e).__name__}: {e}"
 
 
 def main():
@@ -110,6 +113,10 @@ def main():
             code, text = call(url + "/chat", token, body=body, headers=chat)
         if code in (401, 403):
             print(f"\n❌ [{label}] {question}\n   HTTP {code}：服務不認這個身分（權杖過期或帳號沒有 run.invoker），這一句沒有進到程式、沒有呼叫模型，後面不再問")
+            break
+        if code == 0:   # 請求可能已經進到服務、呼叫過模型，所以不重問，花了多少以 serve_turns 為準
+            out.append({"conversation": label, "question": question, "http": 0, "error": text[:300]})
+            print(f"\n❌ [{label}] {question}\n   沒拿到回應（{text[:200]}），可能已經花錢，以 serve_turns 為準，後面不再問")
             break
         asked += 1
         try:
