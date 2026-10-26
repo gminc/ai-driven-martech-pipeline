@@ -7,13 +7,13 @@
 | features（簡單題） | 看一張廣告圖填五個固定欄位（Day 16） | `martech_gt.gt_creative_design` | 四個分類欄位 95 格，標題 24 格另外算 |
 | gaps（難題） | 廣告圖加頁面文字，列出對不上的地方（Day 19） | `martech_gt.gt_ad_page_gaps` | 計分的落差 21 個 |
 
-模型：`gemini-3.5-flash-lite`、`gemini-3.6-flash`、`gemini-3.1-pro-preview`（只做難題）
+模型：`gemini-3.5-flash-lite`、`gemini-3.8-flash`（環境變數 `GEMINI_MODEL_FLASH`，原本是 `gemini-3.6-flash`）、`gemini-3.1-pro-preview`（只做難題）
 
 ## 檔案
 
 | 檔案 | 做什麼 | 會不會花錢 |
 |---|---|---|
-| `reuse.sql` | 建呼叫紀錄表 `mm_bench_log`，把 Day 16（簡單題 × flash-lite）與 Day 19（難題 × 3.6-flash）的成功紀錄抄進來 | 不會 |
+| `reuse.sql` | 建呼叫紀錄表 `mm_bench_log`，把 Day 16（簡單題 × flash-lite）與 Day 19（難題 × 3.8-flash）的成功紀錄抄進來，Day 19 要用同一個 Flash 模型跑過 | 不會 |
 | `bench.sql` | 五個組合各一段，只呼叫還沒有成功紀錄的，`@batch_limit` 控制每個組合這次最多問幾張 | 會 |
 | `score.sql` | 對答案，建 `mart_bench_features` 與 `mart_bench_gaps`，記下答案表指紋 | 不會 |
 | `check.sql` | 17 項流程檢查（`run.sh` 再補 3 項，共 20 項） | 不會 |

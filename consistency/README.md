@@ -28,7 +28,7 @@ bash consistency/run.sh
 
 ## 設計
 
-- **答案先寫**：`answers.sql` 在第一次呼叫之前 commit，`run.sh` 發現 `answers.sql`、`pages.sql`、`compare.sql`、`score.sql` 或截圖有未 commit 的修改會停下來，每次評分記一筆答案表指紋，`check.sql` 第 12 項確認評分之後答案沒有被改過
+- **答案先寫**：`answers.sql` 在第一次呼叫之前 commit，`run.sh` 發現 `answers.sql`、`pages.sql`、`compare.sql`、`score.sql` 或截圖有未 commit 的修改會提醒（原本是停下來，完賽後改成提醒），並把這次用的 commit 與有沒有未 commit 的修改記進 `ops_run_versions`，每次評分記一筆答案表指紋，`check.sql` 第 12 項確認評分之後答案沒有被改過
 - **兩種給法只差頁面**：image 給廣告圖加三段頁面截圖，text 給廣告圖加頁面文字，檢查清單那一段與選項完全一樣，只有說明附了什麼的那一句不同，頁面文字把劃掉的原價寫成「（原價 NT$ 220，已劃掉）」
 - **長截圖先切開**：一張圖大約 1,100 個 Token，整頁長截圖的小字可能讀不到（只用縮圖看過，沒有實測），首頁等分三段，活動頁照內容切成主視覺、專案商品、頁尾
 - **題目是檢查清單**：八個選項裡五種是要查的，`gift`、`warranty` 是答案表沒有的，用來看會不會被清單誘導，另有 `other`

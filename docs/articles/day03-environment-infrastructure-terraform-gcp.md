@@ -1,5 +1,9 @@
 Day 03 | 環境基礎建設：Terraform 輕鬆建置 GCP 環境 —— 從 IAM 最小權限、BigQuery 倉儲到 Vertex AI 遠端連線全自動配置
 
+> 2026-10-27 實跑更新（全新專案、換成 gemini-3.8-flash 重跑）：
+> - `terraform plan` 現在是 34 to add（Day 25–28 加的資源）
+> - 第一次 `apply` 可能因為服務帳號還沒同步而失敗一個資源，腳本會自動等 60 秒重試
+
 # 1. 前言：告別「人工點擊」，為什麼現代雲端架構必須堅持 IaC？
 
 在探索生成式 AI 或建置資料架構的過程中，許多工程師與行銷團隊最常採取的起步方式，就是打開 Google Cloud Console 控制台，憑著直覺在網頁上一路「下一步」：手動點選建立 BigQuery 資料集、手動新增 Cloud Storage 儲存庫、在 IAM 頁面反覆搜尋並指派權限。

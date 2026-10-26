@@ -45,4 +45,27 @@
 
 ## 模型停用提醒
 
-`gemini-3.6-flash` 於 2026-11-19 停用，之後的請求會回 HTTP 404，找出用到它的地方與替代模型見 [Day 29](https://ithelp.ithome.com.tw/articles/10423920) 第 5 章，全系列完成後會把程式換成 `gemini-3.8-flash` 並實跑確認。
+`gemini-3.6-flash` 於 2026-11-19 停用，之後的請求會回 HTTP 404，找出用到它的地方與替代模型見 [Day 29](https://ithelp.ithome.com.tw/articles/10423920) 第 5 章。程式已經換成 `gemini-3.8-flash`（Flash 模型由環境變數 `GEMINI_MODEL_FLASH` 決定，沒設就是 `gemini-3.8-flash`），2026-10 在全新專案實跑確認過，結果見下一節。`gemini-3.8-flash` 從 2027-01-01 起單價加倍（global 端點每百萬 Token 輸入 1.50、輸出 7.50 美元），屆時要更新 `agent/tools.py` 的 `PRICES` 與單價表 `ref_llm_price`。
+
+## 2026-10 實跑確認
+
+2026-10-20 到 10-27 在全新的測試專案 `martech-release-2026`，用 `accept/final` 分支、Flash 模型 `gemini-3.8-flash` 從 Day 01 照順序重跑到 Day 28，跑完照 Day 30 第 5.5 節把資源全部刪掉。
+
+| 天 | 結果 |
+|---|---|
+| Day 01–08 | 通過；Day 03 的 Plan 是 34 to add，Day 04 綠界測試付款流程和文章不同，Day 07 的一致項數與 GA4 列數依讀者自己的 GA4 資料而異 |
+| Day 09–13 | 通過；判讀結論與文章相同，信心分數、`with_campaign` 等每次跑會變，Day 10 第一次 `cache.sh create` 可能回 403，重跑即可 |
+| Day 14–18 | 通過；Day 14 要先上傳素材圖並先跑 Day 15 的 `move_design.sql`，Day 18 誇大用語命中數變少 |
+| Day 19–20 | 通過；3.8-flash 截圖與文字都 21/21，簡單題改用 enum 補問後 95/95 |
+| Day 21–25 | 通過；3.8-flash 偶爾 429，Day 24 換模型後先把舊的人工評分檔改名再匯出 |
+| Day 26 | 通過；七句 16 項檢查全過，查過廣告再要顧客資料被程式拒絕，偶爾一句遇到 429 |
+| Day 27 | 部署與 22 項檢查通過；正式日報常因 429 或模型太慢只答出 2/3（第 1 題「上週花費」），需要隔天排程或手動重跑 |
+| Day 28 | 通過；Slack 測試、異常警報（含 2026-08-27 全站追蹤碼失效重播）與密鑰讀不到的失敗路徑都實測過 |
+| Day 29–30 | 只有文章；Day 30 第 5.5 節的關閉步驟照做一次，34 項 Terraform 資源與 Terraform 管不到的服務、存放區、儲存桶、資料集都刪掉了 |
+
+已知限制：
+
+- `gemini-3.8-flash` 會間歇回 429 RESOURCE_EXHAUSTED（配額不足），助理服務遇到時那一句回「出了狀況」、不重試，用量照最壞值記帳（429 實際應不收費，以帳單為準）
+- 日報第 1 題拿到兩次廣告花費查詢的結果後，下一次模型呼叫常超過 45 秒或回 429，所以日報可能只答出 2/3，這次實跑決定接受，不再改程式
+- `agent/run.sh`、`consistency/run.sh`、`benchmark/run.sh`、`evaluation/run.sh` 每次執行會把當下的 commit、有沒有未 commit 的修改與 Flash 模型寫進 `martech_dw.ops_run_versions`（`scripts/run_version.sh`），查得到每一份結果是哪一版程式跑出來的
+

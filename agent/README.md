@@ -176,7 +176,7 @@
 
 ## 模型停用提醒
 
-Google Cloud 已公告 `gemini-3.6-flash` 在 2026-11-19 停用，之後呼叫會回 404，官方建議改用 Gemini 3.8 Flash，`ask.py`、`chat.py`、`guard_test.py` 與 `serve.py` 的模型寫在檔案開頭的 `MODEL`，換模型時單價（`PRICE_IN`、`PRICE_OUT`）要一起改，`serve.py` 的單價是從 `ref_llm_price` 讀的，要先確認單價表有新模型，這裡的實測數字都是 3.6-flash 跑出來的
+Google Cloud 已公告 `gemini-3.6-flash` 在 2026-11-19 停用，之後呼叫會回 404，程式已經換成 Gemini 3.8 Flash：`ask.py`、`chat.py`、`guard_test.py` 與 `serve.py` 的 `MODEL` 都是 `tools.FLASH_MODEL`，由環境變數 `GEMINI_MODEL_FLASH` 決定（沒設是 `gemini-3.8-flash`），前三支的單價從 `tools.py` 的 `PRICES` 讀，`serve.py` 從單價表 `ref_llm_price` 讀，換模型要先確認兩邊都有新模型。上面 Day 21–26「實跑結果」的數字是 3.6-flash 跑出來的，2026-10 用 3.8-flash 在全新專案重跑的結果見儲存庫首頁的「2026-10 實跑確認」
 
 ## 限制
 
