@@ -420,7 +420,7 @@ run_report:
                                     auth:
                                       type: OIDC
                                       audience: ${assistant_url}
-                                    # 流程等 310 秒，比 Cloud Run 的 300 秒長一點：助理那一邊一句最多 270 秒，時間到會自己停下來回應
+                                    # 流程等 310 秒，比 Cloud Run 的 300 秒長一點：助理那一邊一句的目標是 270 秒，Cloud Run 前排隊或 BigQuery 出狀況時可能超過
                                     # 真的逾時代表助理那一邊出了狀況，那一題錢可能已經花了
                                     timeout: 310
                                   result: resp

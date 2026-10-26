@@ -26,8 +26,10 @@ class FakeModels:
     def __init__(self):
         self.script, self.calls, self.tokens, self.count_fails = [], 0, 100, False
         self.tick = None   # 每次呼叫模型時先執行，時間預算的測試用它讓假時鐘往前走
+        self.count_timeout = None   # 最近一次數 Token 帶的逾時（毫秒）
 
     def count_tokens(self, model, contents, config):
+        self.count_timeout = config.http_options.timeout if config.http_options else None
         if self.count_fails:
             raise RuntimeError("count failed")
         return types.CountTokensResponse(total_tokens=self.tokens)
@@ -534,6 +536,21 @@ def main():
         ok(spent_s < 1 and got and got[0]["answer"] == S.MSG["busy"] and got[0]["status"] == "incomplete"
            and m.calls == 0 and not LOGS["turns"] and not LOGS["usage"],
            "同一場對話的上一句還在跑、又已經等了 260 秒：不排隊，1 秒內回「上一句還在處理」，不寫紀錄")
+        st, m = fresh_state()
+        held, _ = st.sessions.get("", "amy@example.com")
+        held["lock"].acquire()
+        m.script = [("text", "上一句回來之後才答。")]
+        releaser = threading.Timer(0.2, held["lock"].release)   # 真實時間 0.2 秒後上一句回來，假時鐘的預算還很多
+        try:
+            releaser.start()
+            d = ask(c, "等上一句回來", session_id=held["id"]).get_json()
+        finally:
+            releaser.join()
+        ok(d["status"] == "passed" and m.calls == 1, "上一句還在跑但預算還夠：排隊等它回來再問")
+        st, m = fresh_state()
+        m.script = [("text", "好")]
+        ask(c, "數 Token 的逾時")
+        ok(m.count_timeout == 10000, "數 Token 帶了 10 秒的逾時（count_tokens 的 http_options）")
         seen = {}
 
         class FakeJob:

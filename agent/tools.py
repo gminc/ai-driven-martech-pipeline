@@ -217,7 +217,7 @@ def _query(client, sql, params):
         rows = [dict(r) for r in job.result(max_results=MAX_ROWS)]
     else:
         # 送出與等結果各分一半時間，重試也限在那一半裡；job_retry=None 是失敗的查詢不整個重送一次
-        # job_timeout_ms 讓 BigQuery 那邊時間到就取消查詢，不會在背景繼續跑
+        # job_timeout_ms：BigQuery 那邊約 20 秒會嘗試取消；客戶端放棄後工作可能還會跑一下，也可能已經計費
         half = QUERY_TIMEOUT_S / 2
         cfg.job_timeout_ms = int(QUERY_TIMEOUT_S * 1000)
         job = client.query(sql, job_config=cfg, timeout=half,

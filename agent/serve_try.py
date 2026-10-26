@@ -45,7 +45,7 @@ def call(url, token="", body=None, headers=None):
         data = json.dumps(body).encode()
         h.setdefault("Content-Type", "application/json")
     req = urllib.request.Request(url, data=data, headers=h, method="POST" if body is not None else "GET")
-    try:   # 等 310 秒，比 Cloud Run 的 300 秒長一點：服務一句最多 270 秒，時間到會自己停下來回應
+    try:   # 等 310 秒，比 Cloud Run 的 300 秒長一點：服務一句的目標是 270 秒，Cloud Run 前排隊或 BigQuery 出狀況時可能超過
         with urllib.request.urlopen(req, timeout=310) as r:
             return r.status, r.read().decode("utf-8", "replace")
     except urllib.error.HTTPError as e:
