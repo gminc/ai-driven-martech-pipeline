@@ -49,14 +49,15 @@
 
 ## 2026-10 實跑確認
 
-2026-10-20 到 10-27 在全新的測試專案 `martech-release-2026`，用 `accept/final` 分支、Flash 模型 `gemini-3.8-flash` 從 Day 01 照順序重跑到 Day 28，跑完照 Day 30 第 5.5 節把資源全部刪掉。
+2026-10-20 到 10-27 在全新的測試專案 `martech-release-2026`，用 `accept/final` 分支、Flash 模型 `gemini-3.8-flash` 從 Day 03 照順序重跑到 Day 28（Day 01、02 只有文章），跑完照 Day 30 第 5.5 節刪除資源，GA4 的 BigQuery 連結要另外到 GA4 管理介面取消。
 
 | 天 | 結果 |
 |---|---|
-| Day 01–08 | 通過；Day 03 的 Plan 是 34 to add，Day 04 綠界測試付款流程和文章不同，Day 07 的一致項數與 GA4 列數依讀者自己的 GA4 資料而異 |
-| Day 09–13 | 通過；判讀結論與文章相同，信心分數、`with_campaign` 等每次跑會變，Day 10 第一次 `cache.sh create` 可能回 403，重跑即可 |
-| Day 14–18 | 通過；Day 14 要先上傳素材圖並先跑 Day 15 的 `move_design.sql`，Day 18 誇大用語命中數變少 |
-| Day 19–20 | 通過；3.8-flash 截圖與文字都 21/21，簡單題改用 enum 補問後 95/95 |
+| Day 01–02 | 只有文章，Day 02 補註 Gemini 2.5 系列已於 2026-10-20 停用 |
+| Day 03–08 | 通過；Day 03 的 Plan 是 34 to add，Day 04 綠界測試付款流程和文章不同，Day 07 的一致項數與 GA4 列數依讀者自己的 GA4 資料而異 |
+| Day 09–13 | 通過；Day 09 判讀結論與文章相同，Day 13 換成 3.8-flash 三次都找到 S7（文章用 3.6-flash 幾乎沒找到），S5a 依分群結果而異，信心分數、`with_campaign` 等每次跑會變，Day 10 第一次 `cache.sh create` 可能回 403，重跑即可 |
+| Day 14–18 | 通過；Day 14 要先上傳素材圖並先跑 Day 15 的 `move_design.sql`，Day 18 誇大用語命中數變少，Day 18 的 Veo 沒有渲染（`veo.sh` 沒跑） |
+| Day 19–20 | 通過；3.8-flash 截圖與文字都 21/21，簡單題改用 enum 補問後 95/95，Day 20 選配的 Gemma 沒有試跑 |
 | Day 21–25 | 通過；3.8-flash 偶爾 429，Day 24 換模型後先把舊的人工評分檔改名再匯出 |
 | Day 26 | 通過；七句 16 項檢查全過，查過廣告再要顧客資料被程式拒絕，偶爾一句遇到 429 |
 | Day 27 | 部署與 22 項檢查通過；正式日報常因 429 或模型太慢只答出 2/3（第 1 題「上週花費」），需要隔天排程或手動重跑 |
@@ -68,4 +69,7 @@
 - `gemini-3.8-flash` 會間歇回 429 RESOURCE_EXHAUSTED（配額不足），助理服務遇到時那一句回「出了狀況」、不重試，用量照最壞值記帳（429 實際應不收費，以帳單為準）
 - 日報第 1 題拿到兩次廣告花費查詢的結果後，下一次模型呼叫常超過 45 秒或回 429，所以日報可能只答出 2/3，這次實跑決定接受，不再改程式
 - `agent/run.sh`、`consistency/run.sh`、`benchmark/run.sh`、`evaluation/run.sh` 每次執行會把當下的 commit、有沒有未 commit 的修改與 Flash 模型寫進 `martech_dw.ops_run_versions`（`scripts/run_version.sh`），查得到每一份結果是哪一版程式跑出來的
+- 新專案要先照 Day 28 把 Slack 密鑰放進 Secret Manager，才能部署 Day 27 的流程（`deploy_daily_report.sh` 會檢查）
+- IAM 剛授權時，第一次執行流程可能 AuthError，重跑一次即可
+- 刪資源時 GA4 的 BigQuery 連結要另外到 GA4 管理介面取消，不然隔天會重建 `analytics_` 資料集
 

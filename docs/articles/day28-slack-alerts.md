@@ -3,6 +3,7 @@
 > 2026-10-27 實跑更新（全新專案、換成 gemini-3.8-flash 重跑）：
 > - 密鑰可以從舊專案用管線複製，網址不落地：`gcloud secrets versions access latest --secret=slack-webhook-url --project 舊專案 | gcloud secrets versions add slack-webhook-url --project 新專案 --data-file=-`
 > - 密鑰讀不到的失敗路徑實測：`SLACK_SECRET_VERSION=999` 部署（部署腳本只檢查 latest，不存在的版本號也會部署成功），`--slack-test` 執行以失敗結束、通知紀錄的 detail 是 `secret_http_404`，終端機輸出、流程執行紀錄、Cloud Logging 與資料表都沒有 Webhook 網址；改回 latest 重新部署後恢復 http_200，check.sql 第 22 項會留下 1 筆提醒（那一則沒送出的測試通知）
+> - deploy_daily_report.sh 已補上檢查：指定的密鑰版本號碼不存在或停用時直接停下，不會部署出讀不到密鑰的流程
 
 昨天的流程每天早上會自己向助理問三題，把回答存成一份日報放在 BigQuery，可是要看日報還是得有人打開 BigQuery 去查，流程三題全失敗的那一天也只有 Workflows 執行清單上多一個紅字，Day 09 找出來的成效異常更是安靜地躺在 `diag_summary` 裡，沒有人去查就沒有人知道，寫好了沒人看和沒寫其實差不多。
 
