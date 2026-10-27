@@ -28,7 +28,7 @@ FROM martech_dw.guard_runs WHERE status = ''
 QUALIFY ROW_NUMBER() OVER (PARTITION BY mode, case_id ORDER BY created_at DESC) = 1
 ORDER BY case_id, mode;
 
--- 4. Token 與費用：gemini-3.6-flash global 端點每百萬 Token 輸入 0.75、輸出 3.75 美元，匯率 32
+-- 4. Token 與費用：gemini-3.8-flash global 端點每百萬 Token 輸入 0.75、輸出 3.75 美元，匯率 32
 SELECT mode, COUNT(DISTINCT case_id) AS cases_with_model_calls, COUNT(*) AS model_calls,
   SUM(prompt_tokens) AS prompt_tokens, SUM(output_tokens) AS output_tokens, SUM(thoughts_tokens) AS thoughts_tokens,
   ROUND(SUM(prompt_tokens * 0.75 + (output_tokens + thoughts_tokens) * 3.75) / 1e6 * 32, 3) AS cost_twd

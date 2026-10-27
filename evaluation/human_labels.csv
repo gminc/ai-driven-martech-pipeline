@@ -1,17 +1,17 @@
 n,fingerprint,score,note
-1,2bbbf735,2,Jimmy 審定（Claude 初評）：日期、原因、倍數都對
-2,2cc350a4,1,Jimmy 審定（Claude 初評）：老實說查不到，沒有編造
-3,391d5aea,2,Jimmy 審定（Claude 初評）：說明查不到
-4,3e620c88,0,Jimmy 審定（Claude 初評）：該說查不到卻給了 60% 至 80%
-5,4c30f53b,2,Jimmy 審定（Claude 初評）：素材與下滑幅度都對
-6,4fb030d0,0,Jimmy 審定（Claude 初評）：數字是編的，最大的也講錯
-7,822a0d1d,2,Jimmy 審定（Claude 初評）：沒有專屬異常，並提到全站追蹤問題
-8,94e139a7,2,Jimmy 審定（Claude 初評）：三個倍數與最大的都對
-9,a220d821,0,Jimmy 審定（Claude 初評）：該說查不到卻編出 25% 到 38%
-10,acd75c4b,0,Jimmy 審定（Claude 初評）：日期 8/31 是錯的，Jimmy 改判：把錯的日期講得很肯定比說不知道更糟（Claude 初評 1 分）
-11,b4c47462,2,Jimmy 審定（Claude 初評）：兩個方向都對，但沒有任何數字，是靠常識答的
-12,c9859436,2,Jimmy 審定（Claude 初評）：日期、原因、37 筆都對
-13,d76186ee,0,Jimmy 審定（Claude 初評）：素材名稱和數字都是編的
-14,ef8d968c,2,Jimmy 審定（Claude 初評）：方向與筆數都對
-15,fa7fcfd1,0,Jimmy 審定（Claude 初評）：編出 LINE 的異常
-16,ffc41483,2,Jimmy 審定（Claude 初評）：說明查不到
+1,1a3383de,2,Jimmy 審定（Claude 初評）：素材、點擊率下滑、點擊成本都對
+2,3eba53a1,0,Jimmy 審定（Claude 初評）：編出不存在的素材
+3,401690bd,0,Jimmy 審定（Claude 初評）：日期 8/28、42 筆都錯
+4,49346719,2,Jimmy 審定（Claude 初評）：首次與最後接觸的筆數都對
+5,5eb13289,0,Jimmy 審定（Claude 初評）：編出 LINE 競價異常
+6,6932f076,2,Jimmy 審定（Claude 初評）：8/27、37 筆、追蹤碼失效都對
+7,95ada149,1,Jimmy 審定（Claude 初評）：結論對，但倍數引一般 A/B 測試範圍，不是查來的
+8,9ae70c70,2,Jimmy 審定（Claude 初評）：競價變貴、8/10、1.78 倍都對
+9,a18a817a,2,Jimmy 審定（Claude 初評）：1.28、1.13、1.08 都對
+10,aedf5a22,1,Jimmy 審定（Claude 初評）：方向對但沒有數字，憑常識推
+11,c5a7ee82,1,Jimmy 審定（Claude 初評）：老實說查不到，但這題有答案
+12,c9c6435f,2,Jimmy 審定（Claude 初評）：說明查不到
+13,d7887f9b,0,Jimmy 審定（Claude 初評）：編出 18.5% 到 27.2%
+14,e3680a0e,2,Jimmy 審定（Claude 初評）：沒有專屬異常並提到 8/27
+15,e377adcb,0,Jimmy 審定（Claude 初評）：該說查不到卻給了 60% 至 75%
+16,f72de80d,2,Jimmy 審定（Claude 初評）：說明查不到

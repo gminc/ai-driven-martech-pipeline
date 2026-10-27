@@ -1,5 +1,8 @@
 # Day 02 | 技術評估：為何選 Google Cloud + Vertex AI？從生態整合到成本效益的深度剖析
 
+> 2026-10-27 實跑更新（全新專案、換成 gemini-3.8-flash 重跑）：
+> - Gemini 2.5 系列（`gemini-2.5-pro`、`gemini-2.5-flash`、`gemini-2.5-flash-lite`）已於 2026-10-20 停用（Vertex AI 模型版本與生命週期頁），這個系列現在用的是 Gemini 3.x
+
 ## 1. 前言：現代 MarTech 架構的技術評估痛點
 
 在建構 AI 驅動的行銷科技（MarTech）架構時，多數團隊常陷入「拼裝車困境」：

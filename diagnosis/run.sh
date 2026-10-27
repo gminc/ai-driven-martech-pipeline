@@ -7,6 +7,11 @@ set -euo pipefail
 
 cd "$(dirname "$0")"
 DATASET="${DATASET:-martech_dw}"
+# Flash 等級的模型名稱：環境變數 GEMINI_MODEL_FLASH，沒設就用 SQL 裡寫的預設值 gemini-3.8-flash（執行前替換 SQL 裡的 'gemini-3.8-flash'）
+FLASH="${GEMINI_MODEL_FLASH:-gemini-3.8-flash}"
+[[ "${FLASH}" =~ ^[a-z0-9][a-z0-9.-]*$ ]] || { echo "❌ GEMINI_MODEL_FLASH 只能有小寫英數、點與減號，拿到「${FLASH}」"; exit 1; }
+export GEMINI_MODEL_FLASH="${FLASH}"
+[[ "${FLASH}" == "gemini-3.8-flash" ]] || echo "📌 Flash 模型用 ${FLASH}（估價與報表的單價是照 gemini-3.8-flash 算的，單價不同要另外改）"
 
 ACTIVE="$(gcloud auth list --filter=status:ACTIVE --format='value(account)' 2>/dev/null || true)"
 if [[ -z "${ACTIVE}" ]]; then
@@ -33,7 +38,7 @@ TMP="$(mktemp -d)"
 trap 'rm -rf "${TMP}"' EXIT
 
 run_sql() {
-  if ! sed "s/martech_dw\./${DATASET}./g" "$1" \
+  if ! sed -e "s/martech_dw\./${DATASET}./g" -e "s/'gemini-3\.8-flash'/'${FLASH}'/g" "$1" \
       | bq --headless --location=US query --nouse_legacy_sql --quiet "${@:2}" \
         > "${TMP}/out" 2> "${TMP}/err"; then
     echo "❌ $1 執行失敗" >&2
@@ -52,7 +57,7 @@ echo "💰 呼叫前先數 Token（cost.sql，兩個模型各一輪的最壞情�
 run_sql cost.sql --format=pretty
 
 if [[ "${AUTO_YES:-0}" != "1" ]]; then
-  read -r -p "要呼叫 Gemini 嗎？會跑 flash-lite 與 3.6-flash 各一輪，輸入 yes 繼續：" ANSWER || ANSWER=""
+  read -r -p "要呼叫 Gemini 嗎？會跑 flash-lite 與 ${FLASH} 各一輪，輸入 yes 繼續：" ANSWER || ANSWER=""
   [[ "${ANSWER}" == "yes" ]] || { echo "已取消，沒有呼叫 Gemini"; exit 0; }
 fi
 

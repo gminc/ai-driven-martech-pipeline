@@ -90,7 +90,7 @@ for T in "serve_turns:Day 26（bash scripts/deploy_assistant.sh）" "diag_summar
     exit 1
   }
 done
-# Slack 的網址：只確認密鑰在、有啟用中的版本、流程的服務帳號讀得到，不讀它的內容
+# Slack 的網址：只確認密鑰在、有啟用中的版本（指定版本號碼時確認那一版是啟用中）、流程的服務帳號讀得到，不讀它的內容
 ENABLED_VERSIONS="$(gcloud secrets versions list "${SLACK_SECRET}" --project "${PROJECT_ID}" --filter='state=ENABLED' --format='value(name)' 2>/dev/null || true)"
 if [[ -z "${ENABLED_VERSIONS}" ]]; then
   echo "❌ 密鑰 ${SLACK_SECRET} 不存在或沒有啟用中的版本，請先把 Slack 的 Webhook 網址放進去（網址不要貼在指令列上，會留在指令紀錄裡）："
@@ -102,6 +102,14 @@ if [[ "${SLACK_SECRET_VERSION}" == "latest" ]]; then
   NEWEST_STATE="$(gcloud secrets versions list "${SLACK_SECRET}" --project "${PROJECT_ID}" --sort-by='~createTime' --limit=1 --format='value(state)' 2>/dev/null || true)"
   if [[ "${NEWEST_STATE}" != "ENABLED" && "${NEWEST_STATE}" != "enabled" ]]; then
     echo "❌ 密鑰 ${SLACK_SECRET} 最新的版本不是啟用中（${NEWEST_STATE:-讀不到}），流程讀 latest 會失敗，請啟用它或再加一個新版本"
+    exit 1
+  fi
+else
+  # 指定版本號碼時，確認那一版真的存在而且是啟用中，不然流程每次都會讀不到（secret_http_404）
+  PINNED_STATE="$(gcloud secrets versions describe "${SLACK_SECRET_VERSION}" --secret "${SLACK_SECRET}" --project "${PROJECT_ID}" --format='value(state)' 2>/dev/null || true)"
+  if [[ "${PINNED_STATE}" != "ENABLED" && "${PINNED_STATE}" != "enabled" ]]; then
+    echo "❌ 密鑰 ${SLACK_SECRET} 的版本 ${SLACK_SECRET_VERSION} 不存在或不是啟用中（${PINNED_STATE:-找不到}），請改用 latest 或現有的版本號碼："
+    echo "   gcloud secrets versions list ${SLACK_SECRET} --project ${PROJECT_ID}"
     exit 1
   fi
 fi

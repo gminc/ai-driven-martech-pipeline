@@ -3,7 +3,10 @@
 -- 來源：Agent Platform（原 Vertex AI）定價頁 Standard 層，2026-10-08 查
 --   https://cloud.google.com/vertex-ai/generative-ai/pricing
 -- gemini-3.6-flash 到 2026-12-31 是導入期價格，2027-01-01 起恢復原價（兩倍），
---   但官方已公告這個模型 2026-11-19 停用（建議改用 gemini-3.8-flash），2027 那兩列只是照定價頁記下來
+--   但官方已公告這個模型 2026-11-19 停用（建議改用 gemini-3.8-flash），2027 那兩列只是照定價頁記下來，
+--   舊的用量紀錄還是用這幾列算費用，所以停用後也不要刪
+-- gemini-3.8-flash 2026-09-02 發布，到 2026-12-31 單價和 3.6 Flash 相同，2027-01-01 起是兩倍（2026-10-13 查官方定價頁），
+--   2026-10 起各篇程式預設用它，agent/tools.py 的 PRICES 要和這裡的 global 列一致
 -- gemini-3.1-pro-preview 每次輸入在 20 萬 Token 以內的價格（超過是 4 / 18 美元，這個系列沒有用到）
 -- 非 global 端點（區域與多區域）比 global 貴一成
 -- 這裡沒有列到的模型，在 view 裡 priced 是 false、費用是 NULL：
@@ -24,6 +27,10 @@ CREATE OR REPLACE TABLE martech_dw.ref_llm_price (
 OPTIONS (description = 'Gemini 單價對照表：每百萬 Token 的美元單價，依模型、端點、期間，Day 25 的 view 用');
 
 INSERT INTO martech_dw.ref_llm_price VALUES
+  ('gemini-3.8-flash',      'global',     DATE '2026-09-02', DATE '2026-12-31', 0.75,  3.75,  'same as 3.6 flash until 2026-12-31'),
+  ('gemini-3.8-flash',      'non-global', DATE '2026-09-02', DATE '2026-12-31', 0.825, 4.125, 'same as 3.6 flash until 2026-12-31'),
+  ('gemini-3.8-flash',      'global',     DATE '2027-01-01', DATE '9999-12-31', 1.50,  7.50,  'standard pricing'),
+  ('gemini-3.8-flash',      'non-global', DATE '2027-01-01', DATE '9999-12-31', 1.65,  8.25,  'standard pricing'),
   ('gemini-3.6-flash',      'global',     DATE '2026-07-21', DATE '2026-12-31', 0.75,  3.75,  'introductory pricing'),
   ('gemini-3.6-flash',      'non-global', DATE '2026-07-21', DATE '2026-12-31', 0.825, 4.125, 'introductory pricing'),
   ('gemini-3.6-flash',      'global',     DATE '2027-01-01', DATE '9999-12-31', 1.50,  7.50,  'standard pricing'),

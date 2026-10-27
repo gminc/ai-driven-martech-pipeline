@@ -5,7 +5,7 @@
 -- 放大到整批時多做三件事：
 --   1. 跑過的不重跑：每次呼叫都記進 mm_features_log，只挑「還沒有成功紀錄」的圖 × 解析度去呼叫，
 --      同一段 SQL 執行第二次，成功過的圖不會再花錢，失敗的圖會自動補跑
---   2. 超出選項的只補那幾張：output_schema 只能鎖型別，萬一預設解析度回來的值不在選項裡，
+--   2. 超出選項的只補那幾張：output_schema 只能鎖型別，萬一預設解析度回來的值不在選項裡或是空值，
 --      只把那幾張改用 response_schema 的 enum 再問一次，沒有就是 0 次呼叫
 --   3. 花了多少要記下來：每一次呼叫都抄一份進共用的 Token 用量表 ops_llm_usage，Day 25 的監控從這張表讀
 --
@@ -120,15 +120,29 @@ FROM (
   JOIN todo t ON t.uri = o.uri AND t.resolution = 'low'
 );
 
--- 補救：預設解析度成功了、但有值不在選項裡的圖，改用 response_schema 的 enum 再問一次
+-- 補救：預設解析度有回答、但有值不在選項裡或是空值的圖，改用 response_schema 的 enum 再問一次
 -- 已經有 enum 成功紀錄的不再問，全部都在選項裡時這一段是 0 次呼叫
+-- 空值也要補：NULL NOT IN (...) 的結果是 NULL 不是 TRUE，不包 IFNULL 會漏掉
+-- （2026-10-25 實測 gemini-3.8-flash 用 output_schema 時，cta_position、dominant_color 常回空值，flash-lite 沒有這個情況）
 CREATE TEMP TABLE off_option AS
 SELECT DISTINCT l.creative_id
 FROM martech_dw.mm_features_log l
 WHERE l.resolution = 'default' AND l.method = 'output_schema' AND l.status = ''
-  AND (l.cta_position NOT IN ('center', 'bottom_right', 'none')
-       OR l.dominant_color NOT IN ('warm', 'cool', 'neutral')
-       OR l.text_density NOT IN ('low', 'high'))
+  AND (IFNULL(l.cta_position, '') NOT IN ('center', 'bottom_right', 'none')
+       OR IFNULL(l.dominant_color, '') NOT IN ('warm', 'cool', 'neutral')
+       OR IFNULL(l.text_density, '') NOT IN ('low', 'high')
+       OR l.has_person IS NULL
+       OR IFNULL(l.headline, '') = '')
+  -- 同一張圖之後又有一筆主要那一輪的回答全部在選項裡，就不用補
+  AND NOT EXISTS (
+    SELECT 1 FROM martech_dw.mm_features_log k
+    WHERE k.creative_id = l.creative_id AND k.resolution = 'default' AND k.method = 'output_schema' AND k.status = ''
+      AND k.has_person IS NOT NULL AND IFNULL(k.headline, '') != ''
+      AND k.cta_position IN ('center', 'bottom_right', 'none')
+      AND k.dominant_color IN ('warm', 'cool', 'neutral')
+      AND k.text_density IN ('low', 'high')
+      AND k.created_at > l.created_at
+  )
   AND l.creative_id NOT IN (
     SELECT creative_id FROM martech_dw.mm_features_log
     WHERE resolution = 'default' AND method = 'response_schema'

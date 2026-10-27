@@ -1,6 +1,7 @@
 -- Day 20：流程檢查，一列＝一項，ok 欄位是 OK 或 DIFF（run.sh 再補第 18、19、20 項，共 20 項）
 -- 檢查的是「評測有沒有照設計跑完、比的是不是同一份題目和答案」，各模型答對幾成在 report.sql 看
 -- 會讀答案表，查詢在每月 1 TiB 免費額度內
+-- 單獨執行時，mm_bench_log 要先有 method 欄位（2026-10-25 加的，跑過一次新版的 reuse.sql 或 run.sh 就會補上）
 
 WITH
 ok_log AS (
@@ -17,15 +18,15 @@ checks AS (
           JOIN martech_dw.ref_landing_pages p USING (page_id)) AS STRING) AS actual
   UNION ALL SELECT '02 features done (lite/flash)', '24/24',
     CONCAT(CAST((SELECT COUNT(*) FROM ok_log WHERE task = 'features' AND model = 'gemini-3.5-flash-lite') AS STRING), '/',
-           CAST((SELECT COUNT(*) FROM ok_log WHERE task = 'features' AND model = 'gemini-3.6-flash') AS STRING))
+           CAST((SELECT COUNT(*) FROM ok_log WHERE task = 'features' AND model = 'gemini-3.8-flash') AS STRING))
   UNION ALL SELECT '03 gaps done (lite/flash/pro)', '24/24/24',
     CONCAT(CAST((SELECT COUNT(*) FROM ok_log WHERE task = 'gaps' AND model = 'gemini-3.5-flash-lite') AS STRING), '/',
-           CAST((SELECT COUNT(*) FROM ok_log WHERE task = 'gaps' AND model = 'gemini-3.6-flash') AS STRING), '/',
+           CAST((SELECT COUNT(*) FROM ok_log WHERE task = 'gaps' AND model = 'gemini-3.8-flash') AS STRING), '/',
            CAST((SELECT COUNT(*) FROM ok_log WHERE task = 'gaps' AND model = 'gemini-3.1-pro-preview') AS STRING))
-  -- 沿用的舊紀錄：Day 16 的簡單題 × flash-lite 與 Day 19 的難題 × 3.6-flash，各 24 筆
+  -- 沿用的舊紀錄：Day 16 的簡單題 × flash-lite 與 Day 19 的難題 × 3.8-flash，各 24 筆
   UNION ALL SELECT '04 reused rows (day16/day19)', '24/24',
     CONCAT(CAST((SELECT COUNT(*) FROM martech_dw.mm_bench_log WHERE source = 'day16' AND task = 'features' AND model = 'gemini-3.5-flash-lite') AS STRING), '/',
-           CAST((SELECT COUNT(*) FROM martech_dw.mm_bench_log WHERE source = 'day19' AND task = 'gaps' AND model = 'gemini-3.6-flash') AS STRING))
+           CAST((SELECT COUNT(*) FROM martech_dw.mm_bench_log WHERE source = 'day19' AND task = 'gaps' AND model = 'gemini-3.8-flash') AS STRING))
   -- 同一種題目只有一版題目（指紋只有一個）
   UNION ALL SELECT '05 prompt versions (features/gaps)', '1/1',
     CONCAT(CAST((SELECT COUNT(DISTINCT IFNULL(prompt_version, 'none')) FROM martech_dw.mm_bench_log WHERE task = 'features') AS STRING), '/',
@@ -48,21 +49,21 @@ checks AS (
   -- 簡單題：2 個模型 × 24 張 × 5 欄，每一格都要有 correct 或 wrong
   UNION ALL SELECT '10 feature cells judged (2 x 24 x 5)', '240',
     CAST((SELECT COUNT(*) FROM martech_dw.mart_bench_features
-          WHERE verdict IN ('correct', 'wrong') AND model IN ('gemini-3.5-flash-lite', 'gemini-3.6-flash')) AS STRING)
+          WHERE verdict IN ('correct', 'wrong') AND model IN ('gemini-3.5-flash-lite', 'gemini-3.8-flash')) AS STRING)
   -- 簡單題計分的格子：每個模型 95 格（96 格扣掉 disagree 的 1 格）
   UNION ALL SELECT '11 counted cells per model (lite/flash)', '95/95',
     CONCAT(CAST((SELECT COUNTIF(counted) FROM martech_dw.mart_bench_features WHERE model = 'gemini-3.5-flash-lite') AS STRING), '/',
-           CAST((SELECT COUNTIF(counted) FROM martech_dw.mart_bench_features WHERE model = 'gemini-3.6-flash') AS STRING))
+           CAST((SELECT COUNTIF(counted) FROM martech_dw.mart_bench_features WHERE model = 'gemini-3.8-flash') AS STRING))
   -- 難題：計分的 21 列 × 3 個模型，每一格都要有 hit 或 miss
   UNION ALL SELECT '12 gap answers judged (21 x 3)', '63',
     CAST((SELECT COUNT(*) FROM martech_dw.mart_bench_gaps
           WHERE verdict IN ('hit', 'miss')
-            AND model IN ('gemini-3.5-flash-lite', 'gemini-3.6-flash', 'gemini-3.1-pro-preview')) AS STRING)
+            AND model IN ('gemini-3.5-flash-lite', 'gemini-3.8-flash', 'gemini-3.1-pro-preview')) AS STRING)
   -- 沿用 Day 19 的那一組，在這裡重新評分的結果要和 Day 19 的成績表一樣
   UNION ALL SELECT '13 flash gaps same as day 19 (hit/extra)', 'true',
     CAST((SELECT COUNTIF(verdict = 'hit') = (SELECT COUNTIF(verdict = 'hit') FROM martech_dw.mart_ad_page_gaps WHERE mode = 'text')
              AND COUNTIF(verdict = 'extra') = (SELECT COUNTIF(verdict = 'extra') FROM martech_dw.mart_ad_page_gaps WHERE mode = 'text')
-          FROM martech_dw.mart_bench_gaps WHERE model = 'gemini-3.6-flash') AS STRING)
+          FROM martech_dw.mart_bench_gaps WHERE model = 'gemini-3.8-flash') AS STRING)
   -- 每次評分當下三張答案表的指紋都一樣、和現在的答案表一樣，難題的指紋也和 Day 19 評分時的一樣
   UNION ALL SELECT '14 answer tables unchanged', '1',
     CAST((SELECT COUNT(DISTINCT fp) FROM (
@@ -80,11 +81,11 @@ checks AS (
             SELECT 1 FROM martech_dw.mm_bench_log earlier
             WHERE earlier.task = later.task AND earlier.model = later.model AND earlier.creative_id = later.creative_id
               AND earlier.ok AND earlier.created_at < later.created_at)) AS STRING)
-  -- 同一段 INSERT 裡同一張圖被呼叫兩次（例如物件表裡有兩個檔案對到同一個 creative_id）
-  UNION ALL SELECT '16 duplicate calls in one batch', '0',
+  -- 一次執行裡同一張圖在同一個組合被呼叫兩次（例如物件表裡有兩個檔案對到同一個 creative_id，或主要那一輪和 enum 補問重複）
+  UNION ALL SELECT '16 one call per image per execution', '0',
     CAST((SELECT COUNT(*) FROM (
             SELECT 1 FROM martech_dw.mm_bench_log
-            GROUP BY run_id, task, model, creative_id, created_at HAVING COUNT(*) > 1)) AS STRING)
+            GROUP BY run_id, task, model, creative_id HAVING COUNT(*) > 1)) AS STRING)
   -- 沿用 Day 16 的那一組，四個分類欄位要和 Day 16 的特徵表一樣（特徵表裡用 enum 補問過的圖不比，這裡沿用的是補問之前的那一筆）
   UNION ALL SELECT '17 lite features same as day 16 table', '0',
     CAST((SELECT COUNT(*) FROM martech_dw.mart_bench_features b

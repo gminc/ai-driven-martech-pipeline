@@ -15,7 +15,7 @@ WHERE c.status = ''
   AND c.session_id IN (SELECT session_id FROM martech_dw.chat_turns WHERE mode = 'script' GROUP BY 1 HAVING COUNTIF(status = '') = 5)
 ORDER BY c.turn, c.step;
 
--- 3. 合計：gemini-3.6-flash global 端點每百萬 Token 輸入 0.75、輸出 3.75 美元，匯率 32
+-- 3. 合計：gemini-3.8-flash global 端點每百萬 Token 輸入 0.75、輸出 3.75 美元，匯率 32
 SELECT COUNT(DISTINCT c.turn) AS turns, COUNT(*) AS model_calls,
   SUM(c.prompt_tokens) AS prompt_tokens, SUM(c.output_tokens) AS output_tokens, SUM(c.thoughts_tokens) AS thoughts_tokens,
   ROUND(SUM(c.prompt_tokens * 0.75 + (c.output_tokens + c.thoughts_tokens) * 3.75) / 1e6 * 32, 3) AS cost_twd,

@@ -42,9 +42,9 @@ DATASET = T.DATASET
 MODES = ("tools", "none")
 # 官方範例用 us-central1，但 2026-10-07 實測那裡找不到這兩個評分模型（回 404），端點和模型都改用 global 才通
 EVAL_LOCATION = os.environ.get("EVAL_LOCATION", "global")
-JUDGES = [j for j in os.environ.get("JUDGES", "gemini-3.6-flash,gemini-3.5-flash-lite").split(",") if j]
-# 每百萬 Token 的美元單價（輸入, 輸出），global 端點的價格，換模型或換地區要一起改
-JUDGE_PRICE = {"gemini-3.6-flash": (0.75, 3.75), "gemini-3.5-flash-lite": (0.30, 2.50)}
+JUDGES = [j for j in os.environ.get("JUDGES", f"{T.FLASH_MODEL},{T.LITE_MODEL}").split(",") if j]
+# 每百萬 Token 的美元單價（輸入, 輸出），global 端點的價格，從 agent/tools.py 的 PRICES 讀，換地區要另外改
+JUDGE_PRICE = {j: T.price(j) for j in JUDGES}
 JUDGE_MAX_OUT = 768       # 評分模型每次的輸出上限（思考也算在裡面）。evaluation service 不回報用掉幾個 Token，估價一律用這個上限算
 INPUT_MARGIN = 1.3        # 服務自己會在評分說明外面再加輸出格式的要求，輸入 Token 多估三成
 FX = 32
@@ -353,7 +353,9 @@ def judge_cost(judge, prompt_tokens):
 # ── 各個步驟 ─────────────────────────────────────────────────────────────────
 def step_answers(bq, project, dry):
     from google import genai
-    done = {(r["case_id"], r["mode"]) for r in latest_answers(bq)}
+    # 只算用目前這一版題目與設定（指紋相同，模型也算在指紋裡）問過的，換模型之後會重問，不會卡在 need_all_answers 的舊指紋檢查
+    sp_now = spec()
+    done = {(r["case_id"], r["mode"]) for r in latest_answers(bq) if r["spec"] == sp_now}
     todo = [(q, m) for q in QUESTIONS for m in MODES if (q["id"], m) not in done]
     if not todo:
         log_usage(bq)   # 上一次如果中途被打斷，用量在這裡補抄

@@ -8,7 +8,7 @@
 -- 寫法沿用 Day 15、16：AI.GENERATE 搭配 response_schema（enum 把按鈕位置、主色、文字量、引用的特徵鎖在選項裡）規定草稿欄位，
 -- 跑過的不重跑（只補還沒成功的組合），
 -- 每次呼叫都記進 mm_drafts_log，再抄一份進共用的 Token 用量表 ops_llm_usage（Day 25 用）
--- 模型用 gemini-3.6-flash（一般任務，要寫文案和構圖，比看圖分類需要多一點推理），thinking_level 設 LOW，
+-- 模型用 gemini-3.8-flash（一般任務，要寫文案和構圖，比看圖分類需要多一點推理），thinking_level 設 LOW，
 -- 思考 Token 也算在 max_output_tokens 裡，上限放寬到 4,096，避免回答寫到一半被截斷（截斷也會收費）
 -- 這一步會產生 Token 費用，run.sh 會先印出最壞情況再問要不要繼續
 -- 只讀 martech_dw（倍數表、特徵表、成效表、物件表、商品事實），不讀答案表，run.sh 會用 grep 確認
@@ -157,7 +157,7 @@ WHERE dn.creative_id IS NULL;
 INSERT INTO martech_dw.mm_drafts_log (run_id, version, sample, creative_id, model, headline, subhead, badge, cta_text,
   cta_position, has_person, dominant_color, text_density, composition, image_prompt, changes, cited_feature, cited_ratio,
   expected_effect, prompt_tokens, output_tokens, thoughts_tokens, finish_reason, status, created_at, method)
-SELECT this_run, version, sample, creative_id, 'gemini-3.6-flash',
+SELECT this_run, version, sample, creative_id, 'gemini-3.8-flash',
   JSON_VALUE(g.result, '$.headline'), JSON_VALUE(g.result, '$.subhead'), JSON_VALUE(g.result, '$.badge'),
   JSON_VALUE(g.result, '$.cta_text'), JSON_VALUE(g.result, '$.cta_position'),
   SAFE_CAST(JSON_VALUE(g.result, '$.has_person') AS BOOL),
@@ -175,7 +175,7 @@ FROM (
     AI.GENERATE(
       (t.prompt, o.ref),
       connection_id => 'us.vertex_ai_conn',
-      endpoint => 'gemini-3.6-flash',
+      endpoint => 'gemini-3.8-flash',
       model_params => JSON '''{"generation_config": {
         "max_output_tokens": 4096,
         "thinking_config": {"thinking_level": "LOW"},

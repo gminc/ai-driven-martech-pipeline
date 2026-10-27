@@ -71,7 +71,7 @@ FROM martech_dw.eval_answers WHERE NOT STARTS_WITH(status, 'error')
 QUALIFY ROW_NUMBER() OVER (PARTITION BY case_id, mode ORDER BY created_at DESC) = 1
 ORDER BY case_id, mode DESC;
 
--- 6. 費用：問問題用實際的 Token 算（gemini-3.6-flash global 端點每百萬 Token 輸入 0.75、輸出 3.75 美元，匯率 32）
+-- 6. 費用：問問題用實際的 Token 算（gemini-3.8-flash global 端點每百萬 Token 輸入 0.75、輸出 3.75 美元，匯率 32）
 --    評分模型那一段 evaluation service 不回報 Token，這裡列的是估價上限：輸入是送出前自己數的再多估三成，
 --    輸出當成每次都寫滿上限，單價是 global 端點的，實際金額以帳單為準
 SELECT 'answers' AS part, model AS model, COUNT(*) AS calls,

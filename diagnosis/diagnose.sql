@@ -1,6 +1,6 @@
 -- Day 09 第三步：在 SQL 裡叫 Gemini 判讀每一筆異常，結果落成 martech_dw.mart_diagnosis
 -- 每一列異常各呼叫一次，回傳格式用 response_schema 鎖成 JSON，原因只能從六個選項挑
--- thinking_budget 設 0：gemini-3.6-flash 預設會思考，思考 token 也算在 max_output_tokens 裡，
+-- thinking_budget 設 0：Flash 預設會思考，思考 token 也算在 max_output_tokens 裡（Day 09 用 gemini-3.6-flash 實測），
 --   實測預設值會把 512 個 token 幾乎用光（約 488 個），JSON 被截斷但 status 仍是空字串（成功）
 -- thinking_level 目前會被 BigQuery 的參數檢查擋下，要用 thinking_budget
 -- 這一步會產生 Token 費用，執行前先跑 cost.sql 數 Token
@@ -12,7 +12,7 @@ CREATE OR REPLACE MODEL martech_dw.gemini_flash_lite
 
 CREATE OR REPLACE MODEL martech_dw.gemini_flash
   REMOTE WITH CONNECTION `us.vertex_ai_conn`
-  OPTIONS (ENDPOINT = 'gemini-3.6-flash');
+  OPTIONS (ENDPOINT = 'gemini-3.8-flash');
 
 -- 主跑：gemini-3.5-flash-lite
 CREATE OR REPLACE TABLE martech_dw.mart_diagnosis
@@ -53,11 +53,11 @@ FROM AI.GENERATE_TEXT(
   )
 );
 
--- 對照：同一份摘要交給 gemini-3.6-flash
+-- 對照：同一份摘要交給 gemini-3.8-flash
 INSERT INTO martech_dw.mart_diagnosis
 SELECT
   anomaly_id, level, entity, period_start,
-  'gemini-3.6-flash' AS model,
+  'gemini-3.8-flash' AS model,
   JSON_VALUE(result, '$.cause'),
   JSON_VALUE(result, '$.evidence'),
   SAFE_CAST(JSON_VALUE(result, '$.confidence') AS FLOAT64),

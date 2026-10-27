@@ -15,7 +15,7 @@ OPTIONS (description = 'Day 20 簡單題對答案：一列＝模型 × 廣告圖
 AS
 WITH
 models AS (
-  SELECT model FROM UNNEST(['gemini-3.5-flash-lite', 'gemini-3.6-flash']) AS model
+  SELECT model FROM UNNEST(['gemini-3.5-flash-lite', 'gemini-3.8-flash']) AS model
   UNION DISTINCT
   SELECT DISTINCT model FROM martech_dw.mm_bench_log WHERE task = 'features'
 ),
@@ -56,7 +56,7 @@ OPTIONS (description = 'Day 20 難題對答案：一列＝模型 × 答案表的
 AS
 WITH
 models AS (
-  SELECT model FROM UNNEST(['gemini-3.5-flash-lite', 'gemini-3.6-flash', 'gemini-3.1-pro-preview']) AS model
+  SELECT model FROM UNNEST(['gemini-3.5-flash-lite', 'gemini-3.8-flash', 'gemini-3.1-pro-preview']) AS model
   UNION DISTINCT
   SELECT DISTINCT model FROM martech_dw.mm_bench_log WHERE task = 'gaps'
 ),

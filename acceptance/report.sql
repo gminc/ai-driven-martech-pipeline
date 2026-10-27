@@ -18,7 +18,7 @@ ORDER BY signal_id;
 -- ③ 盲測：每個訊號，兩個模型各三次裡找到幾次
 SELECT signal_id,
   COUNTIF(model = 'gemini-3.5-flash-lite' AND found) AS flash_lite_found_of_3,
-  COUNTIF(model = 'gemini-3.6-flash' AND found) AS flash_found_of_3
+  COUNTIF(model = 'gemini-3.8-flash' AND found) AS flash_found_of_3
 FROM martech_gt.blind_scorecard
 GROUP BY signal_id
 ORDER BY signal_id;
@@ -44,7 +44,7 @@ SELECT r.model, COUNT(*) AS calls,
 FROM martech_dw.blind_result r
 JOIN (
   SELECT 'gemini-3.5-flash-lite' AS model, 0.33 AS in_usd, 2.75 AS out_usd
-  UNION ALL SELECT 'gemini-3.6-flash', 0.825, 4.125
+  UNION ALL SELECT 'gemini-3.8-flash', 0.825, 4.125
 ) p USING (model)
 GROUP BY r.model, p.in_usd, p.out_usd
 ORDER BY r.model;

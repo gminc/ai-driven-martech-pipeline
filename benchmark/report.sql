@@ -1,16 +1,19 @@
 -- Day 20：報表，同一份題目和答案，三個等級的模型各答對幾成、各花多少錢（一批跑多久在 timing.sql）
 -- 會讀答案表（對答案用），不呼叫 Gemini，查詢在每月 1 TiB 免費額度內
--- 單價（每百萬 Token，美元，輸出含思考，前兩個是非 global 端點）：gemini-3.5-flash-lite 0.33／2.75、gemini-3.6-flash 0.825／4.125（到 2026 年底的上市優惠價）、
+-- 單獨執行時，mm_bench_log 要先有 method 欄位（2026-10-25 加的，跑過一次新版的 reuse.sql 或 run.sh 就會補上）
+-- 單價（每百萬 Token，美元，輸出含思考，前兩個是非 global 端點）：gemini-3.5-flash-lite 0.33／2.75、gemini-3.8-flash 0.825／4.125（到 2026 年底的上市優惠價）、
 -- gemini-3.1-pro-preview 2／12（預覽版只有 global 端點，官方定價頁也只列這一種價格），實際以帳單為準，匯率 32
 
 -- ① 每個組合的呼叫紀錄從哪裡來：day16／day19 是沿用的舊紀錄，day20 是這次新問的
-SELECT task, model, source,
+--    method：main 是主要那一輪，response_schema 是簡單題 × Flash 用 enum 補問的（成績裡有幾張是補問來的看 ok_rows）
+--    補問的那幾張，費用是主要那一輪加上補問兩次，⑨、⑩ 的每千張費用只平均成功的那一筆，會比實際低
+SELECT task, model, source, IFNULL(method, 'main') AS method,
   COUNT(*) AS call_rows, COUNTIF(ok) AS ok_rows, COUNTIF(NOT ok) AS failed,
   COUNTIF(finish_reason = 'MAX_TOKENS') AS cut_by_cap,
   MIN(created_at) AS first_call, MAX(created_at) AS last_call
 FROM martech_dw.mm_bench_log
-GROUP BY 1, 2, 3
-ORDER BY 1, 2, 3;
+GROUP BY 1, 2, 3, 4
+ORDER BY 1, 2, 3, 4;
 
 -- ② 簡單題總成績：四個分類欄位計分的 95 格答對幾格，標題 24 格另外算，off_option 是值不在選項裡的格子
 --    沒有成功呼叫紀錄的格子（no_call）會留在分母裡算沒答對，no_call 欄位不是 0 時成績不能直接拿來比
@@ -91,8 +94,10 @@ ORDER BY verdict, gap_type, ad_keyword, creative_id, model;
 -- ⑨ 費用：avg_* 與 twd_per_1000 只看成功的呼叫，twd_per_1000 是照這次的平均用量問 1,000 張要多少新台幣
 --    spent_twd 是紀錄表裡每一列加起來（包含失敗與重問的），沿用的兩個組合只抄了成功的那 24 筆，當天失敗的不在裡面
 WITH price AS (
-  SELECT * FROM UNNEST([
+  -- 3.6 Flash 那一列給換模型之前留在紀錄表裡的舊紀錄算費用（到 2026-12-31 和 3.8 同價），DISTINCT 是怕 GEMINI_MODEL_FLASH 設成 3.6 時重複
+  SELECT DISTINCT * FROM UNNEST([
     STRUCT('gemini-3.5-flash-lite' AS model, 0.33 AS usd_in, 2.75 AS usd_out),
+    STRUCT('gemini-3.8-flash', 0.825, 4.125),
     STRUCT('gemini-3.6-flash', 0.825, 4.125),
     STRUCT('gemini-3.1-pro-preview', 2.0, 12.0)
   ])
@@ -115,8 +120,10 @@ ORDER BY 1, 2;
 
 -- ⑩ 一張表看完：答對幾成、問 1,000 張多少錢
 WITH price AS (
-  SELECT * FROM UNNEST([
+  -- 3.6 Flash 那一列給換模型之前留在紀錄表裡的舊紀錄算費用（到 2026-12-31 和 3.8 同價），DISTINCT 是怕 GEMINI_MODEL_FLASH 設成 3.6 時重複
+  SELECT DISTINCT * FROM UNNEST([
     STRUCT('gemini-3.5-flash-lite' AS model, 0.33 AS usd_in, 2.75 AS usd_out),
+    STRUCT('gemini-3.8-flash', 0.825, 4.125),
     STRUCT('gemini-3.6-flash', 0.825, 4.125),
     STRUCT('gemini-3.1-pro-preview', 2.0, 12.0)
   ])

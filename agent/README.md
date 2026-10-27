@@ -114,7 +114,7 @@
 | `static/` | 對話頁，回答用 `textContent` 當純文字顯示，不載圖片、不連外部 | 不會 |
 | `Dockerfile`、`requirements.txt` | 映像檔，一個 worker 四個 thread，套件版本釘住 | 不會 |
 | `serve_setup.sql` | 問答紀錄表 `serve_turns` | 不會 |
-| `serve_selftest.py` | 97 項自我檢查，模型與 BigQuery 都是假的 | 不會 |
+| `serve_selftest.py` | 105 項自我檢查，模型與 BigQuery 都是假的，時間預算用假時鐘測 | 不會 |
 | `serve_try.py` | 對部署好的服務實測，`--free` 只做不花錢的五項，完整版問七句話 | 會，先印估價再問 |
 | `serve_check.sql`、`serve_report.sql` | 上線後的 16 項檢查與兩段報表 | 不會 |
 | `../scripts/deploy_assistant.sh` | 建置、部署、綁權限、部署完自己驗不是公開的 | 不會 |
@@ -129,6 +129,12 @@
 | 每次呼叫的輸入、輸出 | 6,000、1,024 個 Token | `INPUT_CAP`、`MAX_OUTPUT` |
 | 一句話最長 | 500 個字 | `MAX_QUESTION` |
 | 服務一天最多花 | 新台幣 3 元（照單價表估） | 環境變數 `DAILY_CAP_TWD` |
+| 每次呼叫模型、數 Token 最多等 | 45 秒、10 秒（原本呼叫是 20 秒，gemini-3.8-flash 常超過，2026-10-26 重跑出現 4 次 504） | `CALL_TIMEOUT_MS`、`COUNT_TIMEOUT_MS` |
+| 每次工具查詢 | 目標 20 秒（BigQuery 那邊約 20 秒會嘗試取消；客戶端放棄後工作可能還會跑一下，也可能已經計費；連線卡住時函式庫最少等 120 秒，不是硬上限） | `TOOL_TIMEOUT_S`、`tools.py` 的 `QUERY_TIMEOUT_S` |
+| 一句話從收到到回應 | 270 秒預算（給 Cloud Run 的 300 秒留餘裕），剩下的不夠再走一步（數 Token＋呼叫＋寫紀錄 80 秒，要查工具再加每個 20 秒）就停下來，`status` 記成 `turn_deadline`、回「模型這次回得比較慢」；一開始就已經等太久的回「前面等太久」，不呼叫模型 | `REQUEST_BUDGET_S`、`STEP_RESERVE_S` |
+| 同一場對話的上一句還沒回來 | 最多等到還夠對帳加走一步，等不到就回「上一句還在處理」（`status` 是 `incomplete`），不呼叫模型、不寫紀錄 | `chat()` |
+
+時間預算管的是模型與工具這兩段，寫紀錄一定寫完才回應（下一句可能在新的執行個體從 `serve_turns` 接回對話），所以 BigQuery 本身出狀況時一句話仍可能超過 300 秒，被 Cloud Run 切掉，這點和換模型之前一樣；流程（`workflows/daily_report.yaml`）與 `serve_try.py` 等 310 秒，比 300 秒長一點
 
 每日上限的做法是每次呼叫模型之前先保留一次最貴的金額，保留不下來就不呼叫，單價從 Day 25 的 `ref_llm_price` 讀，額度記在記憶體裡，有人發問而且距離上次超過一分鐘時會和用量表對一次帳、取比較大的數字
 
@@ -170,7 +176,7 @@
 
 ## 模型停用提醒
 
-Google Cloud 已公告 `gemini-3.6-flash` 在 2026-11-19 停用，之後呼叫會回 404，官方建議改用 Gemini 3.8 Flash，`ask.py`、`chat.py`、`guard_test.py` 與 `serve.py` 的模型寫在檔案開頭的 `MODEL`，換模型時單價（`PRICE_IN`、`PRICE_OUT`）要一起改，`serve.py` 的單價是從 `ref_llm_price` 讀的，要先確認單價表有新模型，這裡的實測數字都是 3.6-flash 跑出來的
+Google Cloud 已公告 `gemini-3.6-flash` 在 2026-11-19 停用，之後呼叫會回 404，程式已經換成 Gemini 3.8 Flash：`ask.py`、`chat.py`、`guard_test.py` 與 `serve.py` 的 `MODEL` 都是 `tools.FLASH_MODEL`，由環境變數 `GEMINI_MODEL_FLASH` 決定（沒設是 `gemini-3.8-flash`），前三支的單價從 `tools.py` 的 `PRICES` 讀，`serve.py` 從單價表 `ref_llm_price` 讀，換模型要先確認兩邊都有新模型。上面 Day 21–26「實跑結果」的數字是 3.6-flash 跑出來的，2026-10 用 3.8-flash 在全新專案重跑的結果見儲存庫首頁的「2026-10 實跑確認」
 
 ## 限制
 

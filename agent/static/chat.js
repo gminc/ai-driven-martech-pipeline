@@ -22,7 +22,7 @@
   function busy(on) {
     send.disabled = on;
     input.disabled = on;
-    if (on) { status.textContent = "查詢中，第一句可能要等十幾秒"; }
+    if (on) { status.textContent = "查詢中，第一句可能要等十幾秒，模型忙的時候最久約四分半"; }
   }
 
   reset.addEventListener("click", function () {

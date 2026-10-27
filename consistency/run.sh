@@ -7,6 +7,11 @@ set -euo pipefail
 
 cd "$(dirname "$0")"
 DATASET="${DATASET:-martech_dw}"
+# Flash 等級的模型名稱：環境變數 GEMINI_MODEL_FLASH，沒設就用 SQL 裡寫的預設值 gemini-3.8-flash（執行前替換 SQL 裡的 'gemini-3.8-flash'）
+FLASH="${GEMINI_MODEL_FLASH:-gemini-3.8-flash}"
+[[ "${FLASH}" =~ ^[a-z0-9][a-z0-9.-]*$ ]] || { echo "❌ GEMINI_MODEL_FLASH 只能有小寫英數、點與減號，拿到「${FLASH}」"; exit 1; }
+export GEMINI_MODEL_FLASH="${FLASH}"
+[[ "${FLASH}" == "gemini-3.8-flash" ]] || echo "📌 Flash 模型用 ${FLASH}（估價與報表的單價是照 gemini-3.8-flash 算的，單價不同要另外改）"
 EXPECTED=48   # 24 張廣告圖 × 2 種給頁面的方式
 
 ACTIVE="$(gcloud auth list --filter=status:ACTIVE --format='value(account)' 2>/dev/null || true)"
@@ -34,7 +39,7 @@ TMP="$(mktemp -d)"
 trap 'rm -rf "${TMP}"' EXIT
 
 run_sql() {
-  if ! sed -e "s/martech_dw\./${DATASET}./g" -e "s/PROJECT_ID/${PROJECT}/g" "$1" \
+  if ! sed -e "s/martech_dw\./${DATASET}./g" -e "s/'gemini-3\.8-flash'/'${FLASH}'/g" -e "s/PROJECT_ID/${PROJECT}/g" "$1" \
       | bq --headless --location=US query --nouse_legacy_sql --quiet "${@:2}" \
         > "${TMP}/out" 2> "${TMP}/err"; then
     echo "❌ $1 執行失敗" >&2
@@ -67,15 +72,13 @@ log_rows() {
   if log_exists; then scalar "SELECT COUNT(*) FROM ${DATASET}.mm_gaps_log"; else echo 0; fi
 }
 
-# 答案、題目與評分的 SQL 有未 commit 的修改就停下來：結果一印出來就不能再說「先寫答案」了，看完結果再改題目或評分方式也一樣
+# 答案、題目與評分的 SQL 有未 commit 的修改就提醒，並把這次用的版本記進 ops_run_versions：
+# 結果一印出來就不能再說「先寫答案」了，看完結果再改題目或評分方式也一樣（原本是直接停下，完賽後改成提醒，見 scripts/run_version.sh）
 # 評分之後答案表有沒有被改過，由 check.sql 第 12 項用答案表的指紋檢查
-if git rev-parse --is-inside-work-tree >/dev/null 2>&1; then
-  if [[ -n "$(git status --porcelain -- answers.sql pages.sql compare.sql score.sql ../creatives/landing)" ]]; then
-    echo "❌ consistency/ 的 answers.sql、pages.sql、compare.sql、score.sql 或 creatives/landing/ 的截圖有未 commit 的修改（或還沒 commit 過），先 commit 再執行"
-    exit 1
-  fi
-  echo "📌 答案表最後 commit：consistency/answers.sql $(git log -1 --format='%cI' -- answers.sql 2>/dev/null || true)"
-fi
+source ../scripts/run_version.sh
+run_version "Day 19" answers.sql pages.sql compare.sql score.sql ../creatives/landing
+git rev-parse --is-inside-work-tree >/dev/null 2>&1 && echo "📌 答案表最後 commit：consistency/answers.sql $(git log -1 --format='%cI' -- answers.sql 2>/dev/null || true)"
+run_version_record
 
 # 截圖每次都重新上傳（九張不到 1 MB，在 Cloud Storage 免費額度內），bucket 裡的一定和儲存庫裡 commit 過的那一版相同
 BUCKET="gs://${PROJECT}-martech-assets/landing"
@@ -97,7 +100,7 @@ P="$(pending)"
 [[ "${P}" =~ ^[0-9]+$ ]] || { echo "❌ 算不出這次要呼叫幾次（拿到「${P}」），先停下來，沒有呼叫 Gemini"; exit 1; }
 # 估價：給截圖的每次輸入以 5,600 個 Token 計（四張圖各約 1,100、題目約 800，留一成多餘裕），給文字的以 2,900 計（一張圖、題目與頁面文字），
 # 兩種各占一半所以平均 4,250，這一項是估計值不是上限，輸出以 max_output_tokens 2,048 計（思考 Token 也算在裡面，這一項是上限），
-# 單價用 gemini-3.6-flash 非 global 端點
+# 單價用 gemini-3.8-flash 非 global 端點
 python3 - "${P}" <<'PYCOST'
 import sys
 n = int(sys.argv[1])
